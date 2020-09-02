@@ -11,11 +11,9 @@
 
 class HodoRawHit;
 class DCRawHit;
-class TPCRawHit;
 
 typedef std::vector<HodoRawHit*> HodoRHitContainer;
 typedef std::vector<DCRawHit*>   DCRHitContainer;
-typedef std::vector<TPCRawHit*>  TPCRHitContainer;
 typedef std::vector<Int_t>       FADCRHitContainer;
 
 //_____________________________________________________________________________
@@ -49,7 +47,6 @@ private:
   std::vector<HodoRHitContainer> m_FBT2RawHC;
   std::vector<DCRHitContainer>   m_BcInRawHC;
   std::vector<DCRHitContainer>   m_BcOutRawHC;
-  std::vector<TPCRHitContainer>  m_TPCRawHC;
   std::vector<DCRHitContainer>   m_SdcInRawHC;
   std::vector<DCRHitContainer>   m_SdcOutRawHC;
   HodoRHitContainer              m_ScalerRawHC;
@@ -60,8 +57,6 @@ public:
   void                     ClearAll( void );
   Bool_t                   DecodeHits( void );
   Bool_t                   DecodeCalibHits( void );
-  Bool_t                   DecodeTPCHits( Int_t padid, Double_t y,
-					  Double_t charge );
   const HodoRHitContainer& GetBH1RawHC( void ) const;
   const HodoRHitContainer& GetBH2RawHC( void ) const;
   const HodoRHitContainer& GetBACRawHC( void ) const;
@@ -81,7 +76,6 @@ public:
   const DCRHitContainer&   GetBcOutRawHC( Int_t layer ) const;
   const DCRHitContainer&   GetSdcInRawHC( Int_t layer ) const;
   const DCRHitContainer&   GetSdcOutRawHC( Int_t layer ) const;
-  const TPCRHitContainer&  GetTPCRawHC( Int_t layer ) const;
   const HodoRHitContainer& GetScalerRawHC( void ) const;
   const HodoRHitContainer& GetTrigRawHC( void ) const;
   const HodoRHitContainer& GetVmeCalibRawHC( void ) const;
@@ -94,8 +88,6 @@ private:
   Bool_t AddDCRawHit( DCRHitContainer& cont,
 		      Int_t plane, Int_t wire, Int_t data,
 		      Int_t type=kDcLeading );
-  Bool_t AddTPCRawHit( TPCRHitContainer& cont,
-		       Int_t padid, Double_t y, Double_t charge );
   void   DecodeHodo( Int_t id, Int_t plane, Int_t nseg, Int_t nch,
 		     HodoRHitContainer& cont );
   void   DecodeHodo( Int_t id, Int_t nseg, Int_t nch,
@@ -236,14 +228,6 @@ RawData::GetBcOutRawHC( Int_t layer ) const
 {
   if( layer<0 || layer>NumOfLayersBcOut ) layer = 0;
   return m_BcOutRawHC[layer];
-}
-
-//_____________________________________________________________________________
-inline const TPCRHitContainer&
-RawData::GetTPCRawHC( Int_t layer ) const
-{
-  if( layer<0 || layer>NumOfLayersTPC ) layer = 0;
-  return m_TPCRawHC[layer];
 }
 
 //_____________________________________________________________________________

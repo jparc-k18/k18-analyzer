@@ -890,7 +890,7 @@ KuramaTrack::GetTrajectoryLocalPosition( int layer, double & x, double & y ) con
     y = lpos.y();
     return true;
   }
-  catch( std::out_of_range ) {
+  catch( const std::out_of_range& ) {
     return false;
   }
 }

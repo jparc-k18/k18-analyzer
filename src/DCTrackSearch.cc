@@ -25,10 +25,6 @@
 #include "UserParamMan.hh"
 #include "DeleteUtility.hh"
 #include "ConfMan.hh"
-#include "TPCPadHelper.hh"
-#include "TPCLocalTrack.hh"
-#include "TPCCluster.hh"
-
 #include "RootHelper.hh"
 
 namespace
@@ -48,10 +44,6 @@ namespace
   // SdcIn & BcOut for XUV Tracking routine
   const double MaxChisquareVXU = 50.;//
   const double ChisquareCutVXU = 50.;//
-
-  // TPC Tracking
-  const int    MaxNumOfTrackTPC = 100;
-  const double& valueHall = ConfMan::Get<double>("HSFLDHALL");
 
   const double Bh2SegX[NumOfSegBH2]      = {35./2., 10./2., 7./2., 7./2., 7./2., 7./2., 10./2., 35./2.};
   const double Bh2SegXAcc[NumOfSegBH2]   = {20., 6.5, 5., 5., 5., 5., 6.5, 20.};
@@ -244,7 +236,7 @@ namespace
   }
 
   //_____________________________________________________________________
-  void
+  [[maybe_unused]] void
   DebugPrint( const IndexList& nCombi,
 	      const std::string& func_name="",
 	      const std::string& msg="" )
@@ -268,7 +260,7 @@ namespace
   }
 
   //_____________________________________________________________________
-  void
+  [[maybe_unused]] void
   DebugPrint( const std::vector<DCLocalTrack*>& trackCont,
 	      const std::string& arg="" )
   {
@@ -287,7 +279,7 @@ namespace
   }
 
   //_____________________________________________________________________
-  void
+  [[maybe_unused]] void
   DebugPrint( const IndexList& nCombi,
 	      const std::vector<ClusterList>& CandCont,
 	      const std::string& arg="" )
@@ -313,7 +305,7 @@ namespace
     }
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   template <class Functor>
   inline void
   FinalizeTrack( const std::string& arg,
@@ -398,10 +390,9 @@ namespace
     del::ClearContainerAll( candCont );
   }
 
-  //______________________________________________________________________________
-  // MakeCluster _________________________________________________________________
-
-  //______________________________________________________________________________
+  //___________________________________________________________________________
+  // MakeCluster ______________________________________________________________
+  //___________________________________________________________________________
   bool
   MakePairPlaneHitCluster( const DCHitContainer & HC1,
 			   const DCHitContainer & HC2,
@@ -486,7 +477,7 @@ namespace
     return true;
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   bool
   MakeUnPairPlaneHitCluster( const DCHitContainer& HC,
 			     ClusterList& Cont,
@@ -517,7 +508,7 @@ namespace
     return true;
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   bool
   MakeMWPCPairPlaneHitCluster( const DCHitContainer& HC,
 			       ClusterList& Cont )
@@ -538,7 +529,7 @@ namespace
     return true;
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   bool
   MakeTOFHitCluster( const DCHitContainer& HitCont,
 		     ClusterList& Cont,
@@ -555,55 +546,7 @@ namespace
     return true;
   }
 
-//  //______________________________________________________________________________
-//  bool
-//  MakeTPCHitCluster( const TPCHitContainer& HitCont,
-//  		     TPCClusterList& ClCont,
-// 		     int layerID )
-//  {
-//    static const std::string func_name("["+class_name+"::"+__func__+"()]");
-//    static const double ClusterYCut = gUser.GetParameter("ClusterYCut");
-//
-//    //del::ClearContainer( ClCont );
-//
-//    const std::size_t nh = HitCont.size();
-//    if( nh==0 ) return false;
-//
-//    std::vector<int> flag( nh, 0 );
-//
-//    for( std::size_t hiti=0; hiti < nh; hiti++ ) {
-//      if( flag[hiti] > 0 ) continue;
-//      TPCHitContainer CandCont;
-//      TPCHit* hit = HitCont[hiti];
-//      if( !hit || !hit->IsGoodHit() ) continue;
-//      CandCont.push_back(hit);
-//      flag[hiti]++;
-//
-//      for( std::size_t hitj=0; hitj < nh; hitj++ ) {
-//        if( hiti==hitj || flag[hitj]>0 ) continue;
-//        TPCHit* thit = HitCont[hitj];
-//        if( !thit || !thit->IsGoodHit() ) continue;
-//        for( int ci=0; ci < CandCont.size(); ci++ ) {
-//          TPCHit* c_hit = CandCont[ci];
-//          int rowID = thit->RowId();
-//          int c_rowID = c_hit->RowId();
-//          if( (abs(rowID - c_rowID) <= 2 ||
-//      	  (layerID<10 && abs(rowID - c_rowID)>=tpc::padParameter[layerID][1]-2) )
-//      	&& fabs( thit->Y() - c_hit->Y() ) < ClusterYCut )
-//          {
-//            CandCont.push_back(thit);
-//            flag[hitj]++;
-//            break;
-//          }
-//        }
-//      }
-//      ClCont.push_back( new TPCCluster( layerID, CandCont ) );
-//    }
-//
-//    return true;
-//  }
-
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   bool
   MakePairPlaneHitClusterVUX( const DCHitContainer& HC1,
 			      const DCHitContainer& HC2,
@@ -677,10 +620,9 @@ namespace
     return true;
   }
 
-  //______________________________________________________________________________
-  // MakeIndex ___________________________________________________________________
-
-  //______________________________________________________________________________
+  //___________________________________________________________________________
+  // MakeIndex ________________________________________________________________
+  //___________________________________________________________________________
   std::vector<IndexList>
   MakeIndex( int ndim, const int *index1, bool& status)
   {
@@ -722,14 +664,14 @@ namespace
     return index;
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   std::vector<IndexList>
   MakeIndex( int ndim, const IndexList& index1, bool& status )
   {
     return MakeIndex( ndim, &(index1[0]), status );
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   std::vector<IndexList>
   MakeIndex_VXU( int ndim,int maximumHit, const int *index1 )
   {
@@ -772,17 +714,16 @@ namespace
     return index;
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   std::vector<IndexList>
   MakeIndex_VXU( int ndim,int maximumHit, const IndexList& index1 )
   {
     return MakeIndex_VXU( ndim, maximumHit, &(index1[0]) );
   }
 
-  //______________________________________________________________________________
-  // MakeTrack ___________________________________________________________________
-
-  //______________________________________________________________________________
+  //___________________________________________________________________________
+  // MakeTrack ________________________________________________________________
+  //___________________________________________________________________________
   DCLocalTrack*
   MakeTrack( const std::vector<ClusterList>& CandCont,
 	     const IndexList& combination )
@@ -811,11 +752,10 @@ namespace
   }
 }
 
-
-//______________________________________________________________________________
+//_____________________________________________________________________________
 namespace track
 {
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   int /* Local Track Search without BH2Filter */
   LocalTrackSearch( const std::vector<DCHitContainer>& HC,
 		    const DCPairPlaneInfo * PpInfo,
@@ -893,7 +833,7 @@ namespace track
     return status? TrackCont.size() : -1;
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   int /* Local Track Search with BH2Filter */
   LocalTrackSearch( const std::vector< std::vector<DCHitContainer> > &hcAssemble,
 		    const DCPairPlaneInfo * PpInfo,
@@ -922,7 +862,7 @@ namespace track
     return status < 0? status : trackCont.size();
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   int
   LocalTrackSearchSdcOut( const std::vector<DCHitContainer>& SdcOutHC,
 			  const DCPairPlaneInfo *PpInfo,
@@ -979,7 +919,7 @@ namespace track
     return status? TrackCont.size() : -1;
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   int
   LocalTrackSearchSdcOut( const DCHitContainer& TOFHC,
 			  const std::vector<DCHitContainer>& SdcOutHC,
@@ -1069,7 +1009,7 @@ namespace track
     return status? TrackCont.size() : -1;
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   int /* Local Track Search SdcIn w/Fiber */
   LocalTrackSearchSdcInFiber( const std::vector<DCHitContainer>& HC,
 			      const DCPairPlaneInfo *PpInfo,
@@ -1714,7 +1654,7 @@ namespace track
     return status_all? TrackCont.size() : -1;
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   int
   LocalTrackSearchBcOutSdcIn( const std::vector<DCHitContainer>& BcHC,
 			      const DCPairPlaneInfo *BcPpInfo,
@@ -1805,7 +1745,7 @@ namespace track
     return TrackCont.size();
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   inline bool
   IsDeletionTarget( const std::vector< std::pair<int,int> >& nh,
 		    std::size_t NDelete, int layer )
@@ -1824,7 +1764,7 @@ namespace track
     return false;
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   int
   LocalTrackSearchSdcInSdcOut( const std::vector<DCHitContainer>& SdcInHC,
 			       const DCPairPlaneInfo* SdcInPpInfo,
@@ -1889,208 +1829,9 @@ namespace track
     return status? TrackCont.size() : -1;
   }
 
-  //______________________________________________________________________________
-  int
-  LocalTrackSearchTPC( const std::vector<TPCClusterContainer>& TPCClCont,
-			   std::vector<TPCLocalTrack*>& TrackCont,
-			   int MinNumOfHits /*=8*/ )
-  {
-    static const std::string func_name("["+class_name+"::"+__func__+"()]");
-
-    static const double HoughWindowCut = gUser.GetParameter("HoughWindowCut");
-    bool status = true;
-
-//    if( valueHall ) { // TODO
-//    }
-
-    // y = p0 + p1 * x
-    double p0[MaxNumOfTrackTPC];
-    double p1[MaxNumOfTrackTPC];
-
-    // r = x * cos(theta) + y * sin(theta)
-    const int    theta_ndiv = 200;
-    const double theta_min =    0;
-    const double theta_max =  180;
-    const int    r_ndiv = 200;
-    const double r_min = -500;
-    const double r_max =  500;
-    TH2D *hist[MaxNumOfTrackTPC];
-
-    std::vector<std::vector<int> > flag;
-    flag.resize( NumOfLayersTPC );
-    for( int layer=0; layer<NumOfLayersTPC; layer++ ){
-	flag[layer].resize( TPCClCont[layer].size(), 0 );
-      }
-
-    for( int tracki=0; tracki<MaxNumOfTrackTPC; tracki++ ){
-      hist[tracki] = new TH2D(Form("hist_%d",tracki),";theta (deg.); r (mm)",
-	  theta_ndiv, theta_min, theta_max, r_ndiv, r_min, r_max);
-      for( int layer=0; layer<NumOfLayersTPC; layer++ ){
-	for( int ci=0, n=TPCClCont[layer].size(); ci<n; ci++ ){
-	  if( flag[layer][ci]>0 ) continue;
-	  TPCCluster* cluster = TPCClCont[layer][ci];
-	  TVector3 pos = cluster->Position();
-	  for( int ti=0; ti<theta_ndiv; ti++ ){
-	    double theta = theta_min+ti*(theta_max-theta_min)/theta_ndiv;
-	    hist[tracki]->Fill(theta, cos(theta*acos(-1)/180.)*pos.Z()
-				    +sin(theta*acos(-1)/180.)*pos.X());
-	  }
-	} // cluster
-      } // layer
-      if( hist[tracki]->GetMaximum() < MinNumOfHits ) break;
-
-      TPCLocalTrack *track = new TPCLocalTrack();
-
-      int maxbin = hist[tracki]->GetMaximumBin();
-      int mx,my,mz;
-      hist[tracki]->GetBinXYZ( maxbin, mx, my, mz );
-      double mtheta = hist[tracki]->GetXaxis()->GetBinCenter(mx)*acos(-1)/180.;
-      double mr = hist[tracki]->GetYaxis()->GetBinCenter(my);
-      p0[tracki] = mr/sin(mtheta);
-      p1[tracki] = -cos(mtheta)/sin(mtheta);
-
-      for( int layer=0; layer<NumOfLayersTPC; layer++ ){
-	for( int ci=0, n=TPCClCont[layer].size(); ci<n; ci++ ){
-	  if( flag[layer][ci]>0 ) continue;
-	  TPCCluster* cluster = TPCClCont[layer][ci];
-	  TVector3 pos = cluster->Position();
-	  double dist = fabs(p1[tracki]*pos.Z()-pos.X()+p0[tracki])/sqrt(pow(p1[tracki],2)+1);
-	  if( dist < HoughWindowCut ){
-	    track->AddTPCCluster(cluster);
-	    if( cluster->GetClusterSize() ){
-	      std::vector<TPCHit*> hitset = cluster->GetTPCHits();
-	      for( int hiti=0, m=cluster->GetClusterSize(); hiti<m; hiti++ ){
-		track->AddTPCHit(hitset[hiti]);
-	      }
-	    }
-	    flag[layer][ci]++;
-	  }
-	}
-      }
-
-      if( track ) TrackCont.push_back(track);
-      else {
-	delete track;
-      }
-      for( int tracki=0; tracki<MaxNumOfTrackTPC; tracki++ ){
-	hist[tracki]->Delete();
-      }
-    } // track
-
-//#else
-//    // TODO
-//#endif
-    //FinalizeTrack( func_name, TrackCont, DCLTrackComp(), TPCClCont ); // TODO
-    return status? TrackCont.size() : -1;
-
-    return 0;
-  }
-
-  //______________________________________________________________________________
-  int
-  LocalTrackSearchTPC( const std::vector<TPCHitContainer>& TPCHC,
-				std::vector<TPCLocalTrack*>& TrackCont,
-				int MinNumOfHits /*=8*/ )
-  {
-    static const std::string func_name("["+class_name+"::"+__func__+"()]");
-    // static const double HoughWindowCut = gUser.GetParameter("HoughWindowCut");
-    bool status = true;
-
-    //del::ClearContainer( TrackCont );
-
-//#if UseTpcCluster
-//
-//    std::vector<TPCClusterList> CandCont(NumOfLayersTPC);
-//    for( int layer=0; layer<NumOfLayersTPC; layer++ ){
-//      MakeTPCHitCluster( TPCHC[layer], CandCont[layer], layer );
-//    }
-//
-//    if( valueHall ) { // TODO
-//    }
-//
-//    // y = p0 + p1 * x
-//    double p0[MaxNumOfTrackTPC];
-//    double p1[MaxNumOfTrackTPC];
-//
-//    // r = x * cos(theta) + y * sin(theta)
-//    const int    theta_ndiv = 200;
-//    const double theta_min =    0;
-//    const double theta_max =  180;
-//    const int    r_ndiv = 200;
-//    const double r_min = -500;
-//    const double r_max =  500;
-//    TH2D *hist[MaxNumOfTrackTPC];
-//
-//    std::vector<std::vector<int> > flag;
-//    flag.resize( NumOfLayersTPC );
-//    for( int layer=0; layer<NumOfLayersTPC; layer++ ){
-//	flag[layer].resize( CandCont[layer].size(), 0 );
-//      }
-//
-//    for( int tracki=0; tracki<MaxNumOfTrackTPC; tracki++ ){
-//      hist[tracki] = new TH2D(Form("hist_%d",tracki),";theta (deg.); r (mm)",
-//	  theta_ndiv, theta_min, theta_max, r_ndiv, r_min, r_max);
-//      for( int layer=0; layer<NumOfLayersTPC; layer++ ){
-//	for( int ci=0, n=CandCont[layer].size(); ci<n; ci++ ){
-//	  if( flag[layer][ci]>0 ) continue;
-//	  TPCCluster* cluster = CandCont[layer][ci];
-//	  TVector3 pos = cluster->Position();
-//	  for( int ti=0; ti<theta_ndiv; ti++ ){
-//	    double theta = theta_min+ti*(theta_max-theta_min)/theta_ndiv;
-//	    hist[tracki]->Fill(theta, cos(theta*acos(-1)/180.)*pos.Z()
-//				    +sin(theta*acos(-1)/180.)*pos.X());
-//	  }
-//	} // cluster
-//      } // layer
-//      if( hist[tracki]->GetMaximum() < MinNumOfHits ) break;
-//
-//      TPCLocalTrack *track = new TPCLocalTrack();
-//
-//      int maxbin = hist[tracki]->GetMaximumBin();
-//      int mx,my,mz;
-//      hist[tracki]->GetBinXYZ( maxbin, mx, my, mz );
-//      double mtheta = hist[tracki]->GetXaxis()->GetBinCenter(mx)*acos(-1)/180.;
-//      double mr = hist[tracki]->GetYaxis()->GetBinCenter(my);
-//      p0[tracki] = mr/sin(mtheta);
-//      p1[tracki] = -cos(mtheta)/sin(mtheta);
-//
-//      for( int layer=0; layer<NumOfLayersTPC; layer++ ){
-//	for( int ci=0, n=CandCont[layer].size(); ci<n; ci++ ){
-//	  if( flag[layer][ci]>0 ) continue;
-//	  TPCCluster* cluster = CandCont[layer][ci];
-//	  TVector3 pos = cluster->Position();
-//	  double dist = fabs(p1[tracki]*pos.Z()-pos.X()+p0[tracki])/sqrt(pow(p1[tracki],2)+1);
-//	  if( dist < HoughWindowCut ){
-//	    track->AddTPCCluster(cluster);
-//	    std::vector<TPCHit*> hitset = cluster->GetTPCHits();
-//	    for( int hiti=0, m=cluster->GetClusterSize(); hiti<m; hiti++ ){
-//	      track->AddTPCHit(hitset[hiti]);
-//	    }
-//	    flag[layer][ci]++;
-//	  }
-//	}
-//      }
-//
-//      if( track ) TrackCont.push_back(track);
-//      else {
-//	delete track;
-//      }
-//      for( int tracki=0; tracki<MaxNumOfTrackTPC; tracki++ ){
-//	hist[tracki]->Delete();
-//      }
-//    } // track
-
-//#else
-//    // TODO
-//#endif
-    //FinalizeTrack( func_name, TrackCont, DCLTrackComp(), CandCont ); // TODO
-    return status? TrackCont.size() : -1;
-
-    return 0;
-  }
-
-  //For MWPC
-  //_____________________________________________________________________________
+  //___________________________________________________________________________
+  // For MWPC _________________________________________________________________
+  //___________________________________________________________________________
   int MWPCLocalTrackSearch( const std::vector<DCHitContainer>& HC,
 			    std::vector<DCLocalTrack*>& TrackCont )
 
@@ -2131,7 +1872,7 @@ namespace track
     return TrackCont.size();
   }
 
-  //______________________________________________________________________________
+  //___________________________________________________________________________
   int MWPCLocalTrackSearch( const std::vector< std::vector<DCHitContainer> >& hcList,
 			    std::vector<DCLocalTrack*>& trackCont )
   {

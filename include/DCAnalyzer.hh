@@ -17,10 +17,6 @@ class MWPCCluster;
 class FiberCluster;
 class HodoCluster;
 
-class TPCHit;
-class TPCCluster;
-class TPCLocalTrack;
-
 class Hodo1Hit;
 class Hodo2Hit;
 class HodoAnalyzer;
@@ -32,15 +28,11 @@ typedef std::vector<K18TrackU2D*>  K18TrackU2DContainer;
 typedef std::vector<K18TrackD2U*>  K18TrackD2UContainer;
 typedef std::vector<KuramaTrack*>  KuramaTrackContainer;
 
-typedef std::vector<TPCHit*>        TPCHitContainer;
-typedef std::vector<TPCCluster*>    TPCClusterContainer;
-typedef std::vector<TPCLocalTrack*> TPCLocalTrackContainer;
-
 typedef std::vector<Hodo1Hit*> Hodo1HitContainer;
 typedef std::vector<Hodo2Hit*> Hodo2HitContainer;
 typedef std::vector<HodoCluster*> HodoClusterContainer;
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 class DCAnalyzer
 {
 public:
@@ -55,7 +47,6 @@ private:
   enum e_type { k_BcIn,  k_BcOut,
 		k_SdcIn, k_SdcOut,
 		k_SsdIn, k_SsdOut,
-		k_TPC,
 		k_TOF, n_type };
   std::vector<bool>     m_is_decoded;
   std::vector<int>      m_much_combi;
@@ -65,9 +56,6 @@ private:
   std::vector<DCHitContainer>       m_BcOutHC;
   std::vector<DCHitContainer>       m_SdcInHC;
   std::vector<DCHitContainer>       m_SdcOutHC;
-  std::vector<DCHitContainer>       m_TPCDCHitCont;
-  std::vector<TPCHitContainer>      m_TPCHitCont;
-  std::vector<TPCClusterContainer>  m_TPCClCont;
 
   DCHitContainer        m_TOFHC;
   DCHitContainer        m_VtxPoint;
@@ -75,10 +63,6 @@ private:
   DCLocalTrackContainer m_BcOutTC;
   DCLocalTrackContainer m_SdcInTC;
   DCLocalTrackContainer m_SdcOutTC;
-
-  DCLocalTrackContainer m_TPCTC;
-  TPCLocalTrackContainer m_TPCTC_;
-
 
   K18TrackU2DContainer  m_K18U2DTC;
   K18TrackD2UContainer  m_K18D2UTC;
@@ -96,11 +80,6 @@ public:
   bool DecodeFiberHits( RawData* rawData );
   bool DecodeBcInHits( RawData* rawData );
   bool DecodeBcOutHits( RawData* rawData );
-  bool DecodeTPCHits_geant( const int nhits,
-     			    const double *x, const double *y, const double *z, const double *de );
-  bool DecodeTPCHits_geant( const int nhits,
-   			    const int *iPad, const double *dx, const double *dz, const double *y);
-  bool DecodeTPCHits( RawData* rawData );
   bool DecodeSdcInHits( RawData* rawData );
   bool DecodeSdcOutHits( RawData* rawData, double ofs_dt=0.);
   bool DecodeTOFHits( const Hodo2HitContainer& HitCont );
@@ -108,8 +87,6 @@ public:
   //bool DecodeSimuHits( SimuData *simuData );
   int  ClusterizeMWPCHit( const DCHitContainer& hits,
 			  MWPCClusterContainer& clusters );
-  bool  ClusterizeTPC( int layerID, const TPCHitContainer& HitCont,
-			  TPCClusterContainer& ClCont );
 
   inline const DCHitContainer& GetTempBcInHC( int layer ) const;
   inline const DCHitContainer& GetBcInHC( int layer ) const;
@@ -117,8 +94,6 @@ public:
   inline const DCHitContainer& GetSdcInHC( int layer ) const;
   inline const DCHitContainer& GetSdcOutHC( int layer ) const;
   inline const DCHitContainer& GetTOFHC( void ) const;
-  inline const TPCHitContainer& GetTPCHC( int layer ) const;
-  inline const TPCClusterContainer& GetTPCClCont( int layer ) const;
 
   bool TrackSearchBcIn( void );
   bool TrackSearchBcIn( const std::vector< std::vector<DCHitContainer> >& hc );
@@ -129,7 +104,6 @@ public:
   bool TrackSearchSdcOut( void );
   bool TrackSearchSdcOut( const Hodo2HitContainer& HitCont );
   bool TrackSearchSdcOut( const HodoClusterContainer& ClCont );
-  bool TrackSearchTPC( void );
 
   int GetNtracksBcIn( void )   const { return m_BcInTC.size(); }
   int GetNtracksBcOut( void )  const { return m_BcOutTC.size(); }
@@ -168,7 +142,6 @@ public:
   int GetNTracksK18U2D( void ) const { return m_K18U2DTC.size(); }
   int GetNTracksK18D2U( void ) const { return m_K18D2UTC.size(); }
   int GetNTracksKurama( void ) const { return m_KuramaTC.size(); }
-  int GetNTracksTPC( void ) const { return m_TPCTC_.size(); }
 
   inline K18TrackU2D  * GetK18TrackU2D( int i ) const;
   inline K18TrackD2U  * GetK18TrackD2U( int i ) const;
@@ -220,14 +193,10 @@ protected:
   void ClearTOFHits( void );
   void ClearVtxHits( void );
 
-  void ClearTPCHits( void );
-  void ClearTPCClusters( void );
-
   void ClearTracksBcIn( void );
   void ClearTracksBcOut( void );
   void ClearTracksSdcIn( void );
   void ClearTracksSdcOut( void );
-  void ClearTracksTPC( void );
   void ClearTracksBcOutSdcIn( void );
   void ClearTracksSdcInSdcOut( void );
   void ClearK18TracksU2D( void );
@@ -251,7 +220,7 @@ public:
 
 };
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline const DCHitContainer&
 DCAnalyzer::GetTempBcInHC( int layer ) const
 {
@@ -259,7 +228,7 @@ DCAnalyzer::GetTempBcInHC( int layer ) const
   return m_TempBcInHC[layer];
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline const DCHitContainer&
 DCAnalyzer::GetBcInHC( int layer ) const
 {
@@ -267,7 +236,7 @@ DCAnalyzer::GetBcInHC( int layer ) const
   return m_BcInHC[layer];
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline const DCHitContainer&
 DCAnalyzer::GetBcOutHC( int layer ) const
 {
@@ -275,15 +244,7 @@ DCAnalyzer::GetBcOutHC( int layer ) const
   return m_BcOutHC[layer];
 }
 
-//______________________________________________________________________________
-inline const TPCHitContainer&
-DCAnalyzer::GetTPCHC( int layer ) const
-{
-  if( layer>NumOfLayersTPC ) layer=NumOfLayersTPC;
-  return m_TPCHitCont[layer];
-}
-
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline const DCHitContainer&
 DCAnalyzer::GetSdcInHC( int layer ) const
 {
@@ -291,7 +252,7 @@ DCAnalyzer::GetSdcInHC( int layer ) const
   return m_SdcInHC[layer];
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline const DCHitContainer&
 DCAnalyzer::GetSdcOutHC( int layer ) const
 {
@@ -299,14 +260,14 @@ DCAnalyzer::GetSdcOutHC( int layer ) const
   return m_SdcOutHC[layer];
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline const DCHitContainer&
 DCAnalyzer::GetTOFHC( void ) const
 {
   return m_TOFHC;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline DCLocalTrack*
 DCAnalyzer::GetTrackBcIn( int i ) const
 {
@@ -316,7 +277,7 @@ DCAnalyzer::GetTrackBcIn( int i ) const
     return 0;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline DCLocalTrack*
 DCAnalyzer::GetTrackBcOut( int i ) const
 {
@@ -326,7 +287,7 @@ DCAnalyzer::GetTrackBcOut( int i ) const
     return 0;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline DCLocalTrack*
 DCAnalyzer::GetTrackSdcIn( int i ) const
 {
@@ -336,7 +297,7 @@ DCAnalyzer::GetTrackSdcIn( int i ) const
     return 0;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline DCLocalTrack*
 DCAnalyzer::GetTrackSdcOut( int i ) const
 {
@@ -346,7 +307,7 @@ DCAnalyzer::GetTrackSdcOut( int i ) const
     return 0;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline DCLocalTrack*
 DCAnalyzer::GetTrackSdcInEx( int layer, int i ) const
 {
@@ -356,7 +317,7 @@ DCAnalyzer::GetTrackSdcInEx( int layer, int i ) const
     return 0;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline DCLocalTrack*
 DCAnalyzer::GetTrackSdcOutEx( int layer, int i ) const
 {
@@ -366,7 +327,7 @@ DCAnalyzer::GetTrackSdcOutEx( int layer, int i ) const
     return 0;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline K18TrackU2D*
 DCAnalyzer::GetK18TrackU2D( int i ) const
 {
@@ -376,7 +337,7 @@ DCAnalyzer::GetK18TrackU2D( int i ) const
     return 0;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline K18TrackD2U*
 DCAnalyzer::GetK18TrackD2U( int i ) const
 {
@@ -386,7 +347,7 @@ DCAnalyzer::GetK18TrackD2U( int i ) const
     return 0;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline KuramaTrack*
 DCAnalyzer::GetKuramaTrack( int i ) const
 {
@@ -396,7 +357,7 @@ DCAnalyzer::GetKuramaTrack( int i ) const
     return 0;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline DCLocalTrack*
 DCAnalyzer::GetTrackBcOutSdcIn( int i ) const
 {
@@ -406,7 +367,7 @@ DCAnalyzer::GetTrackBcOutSdcIn( int i ) const
     return 0;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline DCLocalTrack*
 DCAnalyzer::GetTrackSdcInSdcOut( int i ) const
 {
@@ -416,20 +377,12 @@ DCAnalyzer::GetTrackSdcInSdcOut( int i ) const
     return 0;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 inline const MWPCClusterContainer&
 DCAnalyzer::GetClusterMWPC( int layer ) const
 {
   if( layer>NumOfLayersBcIn ) layer=0;
   return m_MWPCClCont[layer];
-}
-
-//______________________________________________________________________________
-inline const TPCClusterContainer&
-DCAnalyzer::GetTPCClCont( int layer ) const
-{
-  if( layer>NumOfLayersTPC ) layer=NumOfLayersTPC;
-  return m_TPCClCont[layer];
 }
 
 #endif

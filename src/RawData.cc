@@ -16,8 +16,6 @@
 #include "DetectorID.hh"
 #include "FuncName.hh"
 #include "HodoRawHit.hh"
-#include "TPCPadHelper.hh"
-#include "TPCRawHit.hh"
 #include "UserParamMan.hh"
 
 #define OscillationCut 0
@@ -54,7 +52,6 @@ RawData::RawData( void )
     m_FBT2RawHC(2*NumOfLayersFBT2),
     m_BcInRawHC(NumOfLayersBcIn+1),
     m_BcOutRawHC(NumOfLayersBcOut+1),
-    m_TPCRawHC(NumOfLayersTPC+1),
     m_SdcInRawHC(NumOfLayersSdcIn+1),
     m_SdcOutRawHC(NumOfLayersSdcOut+1),
     m_ScalerRawHC(),
@@ -352,16 +349,6 @@ RawData::DecodeHits( void )
 
 //_____________________________________________________________________________
 bool
-RawData::DecodeTPCHits( Int_t padid, Double_t y, Double_t charge )
-{
-  del::ClearContainerAll( m_TPCRawHC );
-  Int_t layer = tpc::getLayerID(padid);
-  AddTPCRawHit( m_TPCRawHC[layer], padid, y, charge );
-  return true;
-}
-
-//_____________________________________________________________________________
-bool
 RawData::DecodeCalibHits( void )
 {
   del::ClearContainer( m_VmeCalibRawHC );
@@ -457,27 +444,6 @@ RawData::AddDCRawHit( DCRHitContainer& cont,
 		<< "DataType   = " << type  << std::endl;
     return false;
   }
-  return true;
-}
-
-//_____________________________________________________________________________
-Bool_t
-RawData::AddTPCRawHit( TPCRHitContainer& cont,
-		       Int_t padid, Double_t y, Double_t charge )
-{
-  TPCRawHit* p = nullptr;
-  for( Int_t i=0, n=cont.size(); i<n; ++i ){
-    TPCRawHit* q = cont[i];
-    if( q->PadId() == padid &&
-	q->Y() == y ){
-      p=q; break;
-    }
-  }
-  if( !p ){
-    p = new TPCRawHit( padid, y, charge );
-    cont.push_back(p);
-  }
-
   return true;
 }
 

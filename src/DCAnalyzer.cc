@@ -33,11 +33,6 @@
 #include "RawData.hh"
 #include "UserParamMan.hh"
 #include "DeleteUtility.hh"
-#include "TPCPadHelper.hh"
-#include "TPCRawHit.hh"
-#include "TPCHit.hh"
-#include "TPCCluster.hh"
-#include "TPCLocalTrack.hh"
 
 #define DefStatic
 #include "DCParameters.hh"
@@ -53,8 +48,6 @@
 #define SdcIn_XUV         0 // XUV Tracking (not used in KURAMA)
 #define SdcIn_Pair        1 // Pair plane Tracking (fast but bad for large angle track)
 #define SdcIn_Deletion    1 // Deletion method for too many combinations
-/* TPCTracking */
-#define UseTpcCluster	1
 
 namespace
 {
@@ -64,7 +57,7 @@ namespace
   const DCGeomMan&    gGeom = DCGeomMan::GetInstance();
   const UserParamMan& gUser = UserParamMan::GetInstance();
 
-  //______________________________________________________________________________
+  //_____________________________________________________________________________
   const double& pK18 = ConfMan::Get<double>("PK18");
   const int& IdTOFUX = gGeom.DetectorId("TOF-UX");
   const int& IdTOFUY = gGeom.DetectorId("TOF-UY");
@@ -77,7 +70,7 @@ namespace
   const double kMWPCClusteringWireExtension =  1.0; // [mm]
   const double kMWPCClusteringTimeExtension = 10.0; // [nsec]
 
-  //______________________________________________________________________________
+  //_____________________________________________________________________________
   inline bool /* for MWPCCluster */
   isConnectable( double wire1, double leading1, double trailing1,
 		 double wire2, double leading2, double trailing2,
@@ -113,7 +106,7 @@ namespace
     return ( isWireOk && isTimeOk );
   }
 
-  //______________________________________________________________________________
+  //_____________________________________________________________________________
   inline void
   printConnectionFlag( const std::vector<std::deque<bool> >& flag )
   {
@@ -127,7 +120,7 @@ namespace
   }
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 DCAnalyzer::DCAnalyzer( void )
   : m_is_decoded(n_type),
     m_much_combi(n_type),
@@ -137,9 +130,6 @@ DCAnalyzer::DCAnalyzer( void )
     m_BcOutHC(NumOfLayersBcOut+2),
     m_SdcInHC(NumOfLayersSdcIn+1),
     m_SdcOutHC(NumOfLayersSdcOut+1),
-    m_TPCDCHitCont(NumOfLayersTPC*2+1),
-    m_TPCHitCont(NumOfLayersTPC+1),
-    m_TPCClCont(NumOfLayersTPC+1),
     m_SdcInExTC(NumOfLayersSdcIn+1),
     m_SdcOutExTC(NumOfLayersSdcOut+1)
 {
@@ -168,7 +158,7 @@ DCAnalyzer::~DCAnalyzer( void )
   debug::ObjectCounter::decrease(class_name);
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::PrintKurama( const std::string& arg ) const
 {
@@ -188,7 +178,7 @@ DCAnalyzer::PrintKurama( const std::string& arg ) const
   }
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 #if UseBcIn
 bool
 DCAnalyzer::DecodeBcInHits( RawData *rawData )
@@ -261,7 +251,7 @@ DCAnalyzer::DecodeBcInHits( RawData *rawData )
 }
 #endif
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::DecodeBcOutHits( RawData *rawData )
 {
@@ -302,189 +292,7 @@ DCAnalyzer::DecodeBcOutHits( RawData *rawData )
   return true;
 }
 
-//______________________________________________________________________________
-bool
-DCAnalyzer::ClusterizeTPC( int layerID, const TPCHitContainer& HitCont, TPCClusterContainer& ClCont )
-{
-  static const std::string func_name("["+class_name+"::"+__func__+"()]");
-
-  static const double ClusterYCut = gUser.GetParameter("ClusterYCut");
-
-  del::ClearContainer( ClCont );
-
-  const std::size_t nh = HitCont.size();
-  if( nh==0 ) return false;
-
-  std::vector<int> flag( nh, 0 );
-
-  for( std::size_t hiti=0; hiti < nh; hiti++ ) {
-    if( flag[hiti] > 0 ) continue;
-    TPCHitContainer CandCont;
-    TPCHit* hit = HitCont[hiti];
-    if( !hit || !hit->IsGoodHit() ) continue;
-    CandCont.push_back(hit);
-    flag[hiti]++;
-
-    for( std::size_t hitj=0; hitj < nh; hitj++ ) {
-      if( hiti==hitj || flag[hitj]>0 ) continue;
-      TPCHit* thit = HitCont[hitj];
-      if( !thit || !thit->IsGoodHit() ) continue;
-      for( int ci=0; ci < CandCont.size(); ci++ ) {
-	TPCHit* c_hit = CandCont[ci];
-	int rowID = thit->RowId();
-	int c_rowID = c_hit->RowId();
-	if( (abs(rowID - c_rowID) <= 2 ||
-	      (layerID<10 && abs(rowID - c_rowID)>=tpc::padParameter[layerID][1]-2) )
-	    && fabs( thit->Y() - c_hit->Y() ) < ClusterYCut )
-	{
-	  CandCont.push_back(thit);
-	  flag[hitj]++;
-	  break;
-	}
-      }
-    }
-    TPCCluster* cluster = new TPCCluster( layerID, CandCont );
-    if( cluster ) ClCont.push_back( cluster );
-  }
-
-  return true;
-}
-
-//______________________________________________________________________________
-bool
-DCAnalyzer::DecodeTPCHits( RawData *rawData )
-{
-  static const std::string func_name("["+class_name+"::"+__func__+"()]");
-
-  if( m_is_decoded[k_TPC] ){
-    hddaq::cout << "#D " << func_name << " "
-		<< "already decoded" << std::endl;
-    return true;
-  }
-
-  ClearTPCHits();
-
-  for( int layer=0; layer<=NumOfLayersTPC; ++layer ){
-    const TPCRHitContainer &RHitCont=rawData->GetTPCRawHC(layer);
-    int nh = RHitCont.size();
-    for( int i=0; i<nh; ++i ){
-      TPCRawHit *rhit  = RHitCont[i];
-      TPCHit    *hit   = new TPCHit( rhit->PadId(), rhit->Y(), rhit->Charge() );
-
-      if( hit->CalcTPCObservables() )
-	m_TPCHitCont[layer].push_back(hit);
-      else
-	delete hit;
-    }
-#if UseTpcCluster
-    ClusterizeTPC( layer, m_TPCHitCont[layer], m_TPCClCont[layer] );
-#endif
-  }
-
-  m_is_decoded[k_TPC] = true;
-  return true;
-}
-
-//______________________________________________________________________________
-bool
-DCAnalyzer::DecodeTPCHits_geant( const int nhits,
-			         const double *x, const double *y, const double *z, const double *de )
-{
-  static const std::string func_name("["+class_name+"::"+__func__+"()]");
-
-  if( m_is_decoded[k_TPC] ){
-    hddaq::cout << "#D " << func_name << " "
-		<< "already decoded" << std::endl;
-    return true;
-  }
-  ClearTPCClusters();
-
-  for( int hiti=0; hiti<nhits; hiti++ ){
-    TPCCluster* cluster = new TPCCluster( x[hiti], y[hiti], z[hiti], de[hiti] );
-    int layer = tpc::getLayerID( tpc::findPadID( z[hiti], x[hiti] ) );
-    if( cluster ) m_TPCClCont[layer].push_back( cluster );
-  }
-
-  m_is_decoded[k_TPC] = true;
-  return true;
-}
-
-//______________________________________________________________________________
-bool
-DCAnalyzer::DecodeTPCHits_geant(const int nhits, const int *iPad, const double *dx, const double *dz, const double *y)
-{
-  static const std::string func_name("["+class_name+"::"+__func__+"()]");
-
-  if( m_is_decoded[k_TPC] ){
-    hddaq::cout << "#D " << func_name << " "
-		<< "already decoded" << std::endl;
-    return true;
-  }
-  ClearTPCHits();
-
-  std::cout<<"DecodeTPCHits:: nhits="<<nhits<<std::endl;
-  for(int ihit=0; ihit<nhits; ++ihit){
-    TVector3 Point = tpc::getPosition(iPad[ihit]);
-    int laytpc = tpc::getLayerID(iPad[ihit]);
-    int rowtpc = tpc::getRowID(iPad[ihit]);
-    std::cout<<"DecodeTPCHits:: ihits="<<ihit
-	     <<", iPad="<<iPad[ihit]
-	     <<", layer="<<laytpc
-	     <<", x="<<Point.x()
-	     <<", z="<<Point.z()
-	     <<", dx="<<dx[ihit]
-	     <<", dz="<<dz[ihit]
-	     <<", y="<<y[ihit]<<std::endl;
-
-    DCHit *hit_x   = new DCHit( laytpc+PlOffsTPCX, rowtpc);
-    hit_x->SetWirePosition(Point.x());
-    hit_x->SetZ(Point.z());
-    hit_x->SetTiltAngle(0.);
-    hit_x->SetDummyPair();
-    hit_x->SetHitNum(ihit);
-    m_TPCDCHitCont[laytpc].push_back(hit_x);
-
-    DCHit *hit_y   = new DCHit( laytpc+PlOffsTPCY, rowtpc);
-    hit_y->SetWirePosition(y[ihit]);
-    hit_y->SetZ(Point.z());
-    hit_y->SetTiltAngle(90.);
-    hit_y->SetDummyPair();
-    hit_y->SetHitNum(ihit);
-    m_TPCDCHitCont[laytpc].push_back(hit_y);
-  }
-  m_is_decoded[k_TPC] = true;
-
-  /*
-  for( int layer=1; layer<=NumOfLayersBcOut; ++layer ){
-    const DCRHitContainer &RHitCont=rawData->GetBcOutRawHC(layer);
-    int nh = RHitCont.size();
-    for( int i=0; i<nh; ++i ){
-      DCRawHit *rhit  = RHitCont[i];
-      DCHit    *hit   = new DCHit( rhit->PlaneId()+PlOffsBc, rhit->WireId() );
-      int       nhtdc      = rhit->GetTdcSize();
-      int       nhtrailing = rhit->GetTrailingSize();
-      if(!hit) continue;
-      for( int j=0; j<nhtdc; ++j ){
-	hit->SetTdcVal( rhit->GetTdc(j) );
-      }
-      for( int j=0; j<nhtrailing; ++j ){
-	hit->SetTdcTrailing( rhit->GetTrailing(j) );
-      }
-
-      if( hit->CalcDCObservables() )
-	m_BcOutHC[layer].push_back(hit);
-      else
-	delete hit;
-    }
-  }
-
-  m_is_decoded[k_BcOut] = true;
-
-  */
-  return true;
-}
-
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::DecodeSdcInHits( RawData *rawData )
 {
@@ -562,7 +370,7 @@ DCAnalyzer::DecodeSdcInHits( RawData *rawData )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::DecodeSdcOutHits( RawData *rawData , double ofs_dt)
 {
@@ -707,7 +515,7 @@ DCAnalyzer::DecodeSdcOutHits( RawData *rawData , double ofs_dt)
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::DecodeRawHits( RawData *rawData )
 {
@@ -721,7 +529,7 @@ DCAnalyzer::DecodeRawHits( RawData *rawData )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::DecodeTOFHits( const Hodo2HitContainer& HitCont )
 {
@@ -781,7 +589,7 @@ DCAnalyzer::DecodeTOFHits( const Hodo2HitContainer& HitCont )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::DecodeTOFHits( const HodoClusterContainer& ClCont )
 {
@@ -841,7 +649,7 @@ DCAnalyzer::DecodeTOFHits( const HodoClusterContainer& ClCont )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 #if UseBcIn
 bool
 DCAnalyzer::TrackSearchBcIn( void )
@@ -850,7 +658,7 @@ DCAnalyzer::TrackSearchBcIn( void )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::TrackSearchBcIn( const std::vector<std::vector<DCHitContainer> >& hc )
 {
@@ -859,7 +667,7 @@ DCAnalyzer::TrackSearchBcIn( const std::vector<std::vector<DCHitContainer> >& hc
 }
 #endif
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::TrackSearchBcOut( int T0Seg )
 {
@@ -880,7 +688,7 @@ DCAnalyzer::TrackSearchBcOut( int T0Seg )
   return false;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 // Use with BH2Filter
 bool
 DCAnalyzer::TrackSearchBcOut( const std::vector<std::vector<DCHitContainer> >& hc, int T0Seg )
@@ -900,7 +708,7 @@ DCAnalyzer::TrackSearchBcOut( const std::vector<std::vector<DCHitContainer> >& h
   return false;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::TrackSearchSdcIn( void )
 {
@@ -911,7 +719,7 @@ DCAnalyzer::TrackSearchSdcIn( void )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::TrackSearchSdcOut( void )
 {
@@ -923,7 +731,7 @@ DCAnalyzer::TrackSearchSdcOut( void )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::TrackSearchSdcOut( const Hodo2HitContainer& TOFCont )
 {
@@ -943,7 +751,7 @@ DCAnalyzer::TrackSearchSdcOut( const Hodo2HitContainer& TOFCont )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::TrackSearchSdcOut( const HodoClusterContainer& TOFCont )
 {
@@ -957,7 +765,7 @@ DCAnalyzer::TrackSearchSdcOut( const HodoClusterContainer& TOFCont )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::TrackSearchBcOutSdcIn( void )
 {
@@ -971,7 +779,7 @@ DCAnalyzer::TrackSearchBcOutSdcIn( void )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 #if UseBcIn
 bool
 DCAnalyzer::TrackSearchK18U2D( void )
@@ -1069,7 +877,7 @@ DCAnalyzer::TrackSearchK18U2D( void )
 }
 #endif // UseBcIn
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::TrackSearchK18D2U( const std::vector<double>& XinCont )
 {
@@ -1145,7 +953,7 @@ DCAnalyzer::TrackSearchK18D2U( const std::vector<double>& XinCont )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::TrackSearchKurama( void )
 {
@@ -1197,7 +1005,7 @@ DCAnalyzer::TrackSearchKurama( void )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::TrackSearchKurama( double initial_momentum )
 {
@@ -1238,22 +1046,7 @@ DCAnalyzer::TrackSearchKurama( double initial_momentum )
   return true;
 }
 
-//______________________________________________________________________________
-bool
-DCAnalyzer::TrackSearchTPC( void )
-{
-  static const int MinLayer = gUser.GetParameter("MinLayerTPC");
-
-#if UseTpcCluster
-  track::LocalTrackSearchTPC(m_TPCClCont, m_TPCTC_, MinLayer );
-#else
-  track::LocalTrackSearchTPC(m_TPCHitCont, m_TPCTC_, MinLayer );
-#endif
-
-  return true;
-}
-
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearDCHits( void )
 {
@@ -1264,10 +1057,9 @@ DCAnalyzer::ClearDCHits( void )
   ClearSdcInHits();
   ClearSdcOutHits();
   ClearTOFHits();
-  //ClearTPCHits();
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 #if UseBcIn
 void
 DCAnalyzer::ClearBcInHits( void )
@@ -1278,7 +1070,7 @@ DCAnalyzer::ClearBcInHits( void )
 }
 #endif
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearBcOutHits( void )
 {
@@ -1286,50 +1078,35 @@ DCAnalyzer::ClearBcOutHits( void )
 }
 
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearSdcInHits( void )
 {
   del::ClearContainerAll( m_SdcInHC );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearSdcOutHits( void )
 {
   del::ClearContainerAll( m_SdcOutHC );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearVtxHits( void )
 {
   del::ClearContainer( m_VtxPoint );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearTOFHits( void )
 {
   del::ClearContainer( m_TOFHC );
 }
 
-//______________________________________________________________________________
-void
-DCAnalyzer::ClearTPCHits( void )
-{
-  del::ClearContainerAll( m_TPCDCHitCont );
-  del::ClearContainerAll( m_TPCHitCont );
-}
-
-//______________________________________________________________________________
-void
-DCAnalyzer::ClearTPCClusters( void )
-{
-  del::ClearContainerAll( m_TPCClCont );
-}
-
-//______________________________________________________________________________
+//_____________________________________________________________________________
 #if UseBcIn
 void
 DCAnalyzer::ClearTracksBcIn( void )
@@ -1338,14 +1115,14 @@ DCAnalyzer::ClearTracksBcIn( void )
 }
 #endif
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearTracksBcOut( void )
 {
   del::ClearContainer( m_BcOutTC );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearTracksSdcIn( void )
 {
@@ -1353,7 +1130,7 @@ DCAnalyzer::ClearTracksSdcIn( void )
   del::ClearContainerAll( m_SdcInExTC );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearTracksSdcOut( void )
 {
@@ -1361,7 +1138,7 @@ DCAnalyzer::ClearTracksSdcOut( void )
   del::ClearContainerAll( m_SdcOutExTC );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 #if UseBcIn
 void
 DCAnalyzer::ClearK18TracksU2D( void )
@@ -1370,43 +1147,35 @@ DCAnalyzer::ClearK18TracksU2D( void )
 }
 #endif
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearK18TracksD2U( void )
 {
   del::ClearContainer( m_K18D2UTC );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearKuramaTracks( void )
 {
   del::ClearContainer( m_KuramaTC );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearTracksBcOutSdcIn( void )
 {
   del::ClearContainer( m_BcOutSdcInTC );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ClearTracksSdcInSdcOut( void )
 {
   del::ClearContainer( m_SdcInSdcOutTC );
 }
 
-//______________________________________________________________________________
-void
-DCAnalyzer::ClearTracksTPC( void )
-{
-  del::ClearContainer( m_TPCTC );
-  del::ClearContainer( m_TPCTC_ );
-}
-
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcMWPCHits( std::vector<DCHitContainer>& cont,
 			    bool applyRecursively )
@@ -1423,7 +1192,7 @@ DCAnalyzer::ReCalcMWPCHits( std::vector<DCHitContainer>& cont,
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcDCHits( std::vector<DCHitContainer>& cont,
 			  bool applyRecursively )
@@ -1440,7 +1209,7 @@ DCAnalyzer::ReCalcDCHits( std::vector<DCHitContainer>& cont,
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcDCHits( bool applyRecursively )
 {
@@ -1456,7 +1225,7 @@ DCAnalyzer::ReCalcDCHits( bool applyRecursively )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcTrack( DCLocalTrackContainer& cont,
 			 bool applyRecursively )
@@ -1469,7 +1238,7 @@ DCAnalyzer::ReCalcTrack( DCLocalTrackContainer& cont,
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcTrack( K18TrackD2UContainer& cont,
 			 bool applyRecursively )
@@ -1482,7 +1251,7 @@ DCAnalyzer::ReCalcTrack( K18TrackD2UContainer& cont,
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcTrack( KuramaTrackContainer& cont,
 			 bool applyRecursively )
@@ -1495,7 +1264,7 @@ DCAnalyzer::ReCalcTrack( KuramaTrackContainer& cont,
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 #if UseBcIn
 bool
 DCAnalyzer::ReCalcTrackBcIn( bool applyRecursively )
@@ -1504,28 +1273,28 @@ DCAnalyzer::ReCalcTrackBcIn( bool applyRecursively )
 }
 #endif
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcTrackBcOut( bool applyRecursively )
 {
   return ReCalcTrack( m_BcOutTC );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcTrackSdcIn( bool applyRecursively )
 {
   return ReCalcTrack( m_SdcInTC );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcTrackSdcOut( bool applyRecursively )
 {
   return ReCalcTrack( m_SdcOutTC );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 #if UseBcIn
 bool
 DCAnalyzer::ReCalcK18TrackU2D( bool applyRecursively )
@@ -1539,21 +1308,21 @@ DCAnalyzer::ReCalcK18TrackU2D( bool applyRecursively )
 }
 #endif
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcK18TrackD2U( bool applyRecursively )
 {
   return ReCalcTrack( m_K18D2UTC, applyRecursively );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcKuramaTrack( bool applyRecursively )
 {
   return ReCalcTrack( m_KuramaTC, applyRecursively );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::ReCalcAll( void )
 {
@@ -1572,7 +1341,7 @@ DCAnalyzer::ReCalcAll( void )
   return true;
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 // int
 // clusterizeMWPCHit(const DCHitContainer& hits,
 // 		  MWPCClusterContainer& clusters)
@@ -1695,28 +1464,28 @@ DCAnalyzer::ReCalcAll( void )
 //   return clusters.size();
 // }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ChiSqrCutBcOut( double chisqr )
 {
   ChiSqrCut( m_BcOutTC, chisqr );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ChiSqrCutSdcIn( double chisqr )
 {
   ChiSqrCut( m_SdcInTC, chisqr );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ChiSqrCutSdcOut( double chisqr )
 {
   ChiSqrCut( m_SdcOutTC, chisqr );
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::ChiSqrCut( DCLocalTrackContainer& TrackCont,
 		       double chisqr )
@@ -1739,7 +1508,7 @@ DCAnalyzer::ChiSqrCut( DCLocalTrackContainer& TrackCont,
   ValidCand.clear();
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::TotCutBCOut(double min_tot)
 {
@@ -1748,7 +1517,7 @@ DCAnalyzer::TotCutBCOut(double min_tot)
   }// for(i)
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::TotCutSDC1(double min_tot)
 {
@@ -1757,7 +1526,7 @@ DCAnalyzer::TotCutSDC1(double min_tot)
   }// for(i)
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::TotCutSDC2(double min_tot)
 {
@@ -1766,7 +1535,7 @@ DCAnalyzer::TotCutSDC2(double min_tot)
   }// for(i)
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::TotCutSDC3(double min_tot)
 {
@@ -1775,7 +1544,7 @@ DCAnalyzer::TotCutSDC3(double min_tot)
   }// for(i)
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::TotCut( DCHitContainer& HitCont,
 		    double min_tot, bool adopt_nan )
@@ -1799,7 +1568,7 @@ DCAnalyzer::TotCut( DCHitContainer& HitCont,
   ValidCand.clear();
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::DriftTimeCutBC34(double min_dt, double max_dt)
 {
@@ -1808,7 +1577,7 @@ DCAnalyzer::DriftTimeCutBC34(double min_dt, double max_dt)
   }// for(i)
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::DriftTimeCutSDC2(double min_dt, double max_dt)
 {
@@ -1817,7 +1586,7 @@ DCAnalyzer::DriftTimeCutSDC2(double min_dt, double max_dt)
   }// for(i)
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::DriftTimeCutSDC3(double min_dt, double max_dt)
 {
@@ -1826,7 +1595,7 @@ DCAnalyzer::DriftTimeCutSDC3(double min_dt, double max_dt)
   }// for(i)
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 void
 DCAnalyzer::DriftTimeCut( DCHitContainer& HitCont,
 			  double min_dt, double max_dt, bool select_1st )
@@ -1850,7 +1619,7 @@ DCAnalyzer::DriftTimeCut( DCHitContainer& HitCont,
   ValidCand.clear();
 }
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 bool
 DCAnalyzer::MakeBH2DCHit(int t0seg)
 {
