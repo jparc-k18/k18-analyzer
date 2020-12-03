@@ -124,17 +124,6 @@ DCLocalTrack::GetNDF( void ) const
   return ndf-4;
 }
 
-//______________________________________________________________________________
-int
-DCLocalTrack::GetNHitSFT(void) const
-{
-  int n_sft=0;
-  for(const auto& hit : m_hit_array){
-    if(hit->GetLayer() > 6) ++n_sft;
-  }
-
-  return n_sft;
-}
 
 //______________________________________________________________________________
 int

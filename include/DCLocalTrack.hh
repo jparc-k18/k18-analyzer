@@ -65,7 +65,6 @@ public:
   int          GetNDF( void ) const;
   int          GetNHit( void ) const { return m_hit_array.size();  }
   int          GetNHitUV(void )const { return m_hit_arrayUV.size();}
-  int          GetNHitSFT( void ) const;
   int          GetNHitY( void ) const;
   DCLTrackHit* GetHit( std::size_t nth ) const;
   DCLTrackHit* GetHitUV( std::size_t nth ) const;

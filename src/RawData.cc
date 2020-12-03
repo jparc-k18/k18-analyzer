@@ -38,18 +38,13 @@ RawData::RawData( void )
   : m_is_decoded(false),
     m_BH1RawHC(),
     m_BH2RawHC(),
-    m_E42BH2RawHC(),
-    m_SACRawHC(),
+    m_PVACRawHC(),
+    m_FACRawHC(),
     m_TOFRawHC(),
-    m_HtTOFRawHC(),
     m_LACRawHC(),
-    m_LCRawHC(),
     m_WCRawHC(),
     m_BFTRawHC(NumOfPlaneBFT),
-    m_SFTRawHC(NumOfPlaneSFT),
     m_SCHRawHC(),
-    m_FBT1RawHC(2*NumOfLayersFBT1),
-    m_FBT2RawHC(2*NumOfLayersFBT2),
     m_BcInRawHC(NumOfLayersBcIn+1),
     m_BcOutRawHC(NumOfLayersBcOut+1),
     m_SdcInRawHC(NumOfLayersSdcIn+1),
@@ -75,18 +70,13 @@ RawData::ClearAll( void )
   del::ClearContainer( m_BH1RawHC );
   del::ClearContainer( m_BH2RawHC );
   del::ClearContainer( m_BACRawHC );
-  del::ClearContainer( m_E42BH2RawHC );
-  del::ClearContainer( m_SACRawHC );
+  del::ClearContainer( m_PVACRawHC );
+  del::ClearContainer( m_FACRawHC );
   del::ClearContainer( m_TOFRawHC );
-  del::ClearContainer( m_HtTOFRawHC );
   del::ClearContainer( m_LACRawHC );
-  del::ClearContainer( m_LCRawHC );
   del::ClearContainer( m_WCRawHC );
 
   del::ClearContainerAll( m_BFTRawHC );
-  del::ClearContainerAll( m_SFTRawHC );
-  del::ClearContainerAll( m_FBT1RawHC );
-  del::ClearContainerAll( m_FBT2RawHC );
 
   del::ClearContainer( m_SCHRawHC );
 
@@ -114,6 +104,8 @@ RawData::DecodeHits( void )
   static const Double_t MaxTdcSDC2 = gUser.GetParameter("TdcSDC2", 1);
   static const Double_t MinTdcSDC3 = gUser.GetParameter("TdcSDC3", 0);
   static const Double_t MaxTdcSDC3 = gUser.GetParameter("TdcSDC3", 1);
+  static const Double_t MinTdcSDC4 = gUser.GetParameter("TdcSDC4", 0);
+  static const Double_t MaxTdcSDC4 = gUser.GetParameter("TdcSDC4", 1);
 
   if( m_is_decoded ){
     hddaq::cout << "#D " << FUNC_NAME << " "
@@ -129,18 +121,14 @@ RawData::DecodeHits( void )
   DecodeHodo( DetIdBH2, NumOfSegBH2, kBothSide, m_BH2RawHC );
   // BAC
   DecodeHodo( DetIdBAC, NumOfSegBAC, kOneSide,  m_BACRawHC );
-  // E42 BH2
-  DecodeHodo( DetIdE42BH2, NumOfSegE42BH2, kBothSide, m_E42BH2RawHC );
-  // SAC
-  DecodeHodo( DetIdSAC, NumOfSegSAC, kOneSide,  m_SACRawHC );
+  // PVAC
+  DecodeHodo( DetIdPVAC, NumOfSegPVAC, kOneSide,  m_PVACRawHC );
+  // FAC
+  DecodeHodo( DetIdFAC, NumOfSegFAC, kOneSide,  m_FACRawHC );
   // TOF
   DecodeHodo( DetIdTOF, NumOfSegTOF, kBothSide, m_TOFRawHC );
-  // TOF-HT
-  DecodeHodo( DetIdHtTOF,NumOfSegHtTOF,kOneSide,  m_HtTOFRawHC );
   // LAC
   DecodeHodo( DetIdLAC,  NumOfSegLAC,  kOneSide,  m_LACRawHC );
-  // LC
-  DecodeHodo( DetIdLC,  NumOfSegLC,  kOneSide,  m_LCRawHC );
   // WC
   DecodeHodo( DetIdWC, NumOfSegWC, kBothSide, m_WCRawHC );
 
@@ -159,28 +147,6 @@ RawData::DecodeHits( void )
     }
   }
 
-  //SFT
-  for( Int_t plane=0; plane<NumOfPlaneSFT; ++plane ){
-    Int_t nseg = 0;
-    switch( plane ) {
-    case 0: nseg = NumOfSegSFT_UV; break;
-    case 1: nseg = NumOfSegSFT_UV; break;
-    case 2: nseg = NumOfSegSFT_X;  break;
-    case 3: nseg = NumOfSegSFT_X;  break;
-    default: break;
-    }
-    for( Int_t seg=0; seg<nseg; ++seg ) {
-      for( Int_t LorT=0; LorT<2; ++LorT ) {
-	UInt_t nhit = gUnpacker.get_entries( DetIdSFT, plane, 0, seg, LorT );
-	for( Int_t i=0; i<nhit; ++i ){
-	  UInt_t edge = gUnpacker.get( DetIdSFT, plane, 0, seg, LorT, i );
-	  AddHodoRawHit( m_SFTRawHC[plane], DetIdSFT, plane, seg, 0,
-			 kHodoLeading+LorT, edge );
-	}
-      }
-    }
-  }
-
   //SCH
   for( Int_t seg=0; seg<NumOfSegSCH; ++seg ){
     UInt_t nhit = gUnpacker.get_entries( DetIdSCH, 0, seg, 0, 0 );
@@ -194,41 +160,6 @@ RawData::DecodeHits( void )
     }
   }
 
-  //FBT1
-  for( Int_t layer=0; layer<NumOfLayersFBT1; ++layer ){
-    for( Int_t seg=0; seg<MaxSegFBT1; ++seg ){
-      for( Int_t UorD=0; UorD<2; ++UorD ){
-	for( Int_t LorT=0; LorT<2; ++LorT ){
-	  UInt_t nhit = gUnpacker.get_entries( DetIdFBT1, layer, seg,
-					       UorD, LorT );
-	  for( Int_t i=0; i<nhit; ++i ){
-	    UInt_t time  = gUnpacker.get( DetIdFBT1, layer, seg,
-					  UorD, LorT, i );
-	    AddHodoRawHit( m_FBT1RawHC[2*layer + UorD], DetIdFBT1, layer, seg,
-			   UorD, kHodoLeading+LorT, time );
-	  }
-	}
-      }
-    }
-  }
-
-  //FBT2
-  for( Int_t layer=0; layer<NumOfLayersFBT2; ++layer ){
-    for( Int_t seg=0; seg<MaxSegFBT2; ++seg ){
-      for( Int_t UorD=0; UorD<2; ++UorD ){
-	for( Int_t LorT=0; LorT<2; ++LorT ){
-	  UInt_t nhit = gUnpacker.get_entries( DetIdFBT2, layer, seg,
-					       UorD, LorT);
-	  for( Int_t i=0; i<nhit; ++i ){
-	    UInt_t time  = gUnpacker.get( DetIdFBT2, layer, seg,
-					  UorD, LorT, i );
-	    AddHodoRawHit( m_FBT2RawHC[2*layer + UorD], DetIdFBT2, layer, seg,
-			   UorD, kHodoLeading+LorT, time );
-	  }
-	}
-      }
-    }
-  }
 
   // BC3&BC4 MWDC
   for( Int_t plane=0; plane<NumOfLayersBcOut; ++plane ){
@@ -269,59 +200,86 @@ RawData::DecodeHits( void )
     }
   }
 
-  // SdcIn (SDC1)
-  for( Int_t plane=0; plane<NumOfLayersSDC1; ++plane ){
-    for( Int_t wire=0; wire<MaxWireSDC1; ++wire ){
-      for( Int_t lt=0; lt<2; ++lt ){
-	UInt_t nhit = gUnpacker.get_entries( DetIdSDC1, plane, 0, wire, lt );
+  // SdcIn (SDC1&SDC2)
+  for( Int_t plane=0; plane<NumOfLayersSDC1+NumOfLayersSDC2; ++plane ){
+    if( plane<NumOfLayersSDC1 ){
+      for( Int_t wire=0; wire<MaxWireSDC1; ++wire ){
+	for( Int_t lt=0; lt<2; ++lt ){
+	  Int_t nhit = gUnpacker.get_entries( DetIdSDC1, plane, 0, wire, lt );
 #if OscillationCut
-	if( nhit>MaxMultiHitDC ) continue;
+	  if( nhit>MaxMultiHitDC ) continue;
 #endif
-	for( Int_t i=0; i<nhit; i++ ){
-	  UInt_t data = gUnpacker.get( DetIdSDC1, plane, 0, wire, lt, i ) ;
-	  if ( lt == 0 && ( data<MinTdcSDC1 || MaxTdcSDC1<data ) ) continue;
-	  if ( lt == 1 && data<MinTdcSDC1 ) continue;
-	  AddDCRawHit( m_SdcInRawHC[plane+1], plane+PlMinSdcIn, wire+1, data );
+	  for(Int_t i=0; i<nhit; i++ ){
+	    Int_t data = gUnpacker.get( DetIdSDC1, plane, 0, wire, lt, i );
+	    if( lt == 0 && ( data<MinTdcSDC1 || MaxTdcSDC1<data ) ) continue;
+	    if( lt == 1 && data<MinTdcSDC1 ) continue;
+	    AddDCRawHit( m_SdcInRawHC[plane+1], plane+PlMinSdcIn, wire+1,
+			 data , lt);
+	  }
+	}
+      }
+    } else {
+      Int_t MaxWireSDC2
+	= ( plane==NumOfLayersSDC1 || plane==(NumOfLayersSDC1+1) )
+	? MaxWireSDC2X : MaxWireSDC2Y;
+      for( Int_t wire=0; wire<MaxWireSDC2; ++wire ){
+	for( Int_t lt=0; lt<2; ++lt ){
+	  UInt_t nhit =
+	    gUnpacker.get_entries( DetIdSDC2, plane-NumOfLayersSDC1,
+				   0, wire, lt );
+#if OscillationCut
+	  if( nhit>MaxMultiHitDC ) continue;
+#endif
+	  for( Int_t i=0; i<nhit; ++i ){
+	    UInt_t data = gUnpacker.get( DetIdSDC2, plane-NumOfLayersSDC1,
+					 0, wire, lt ,i );
+	    if( lt == 0 && ( data<MinTdcSDC2 || MaxTdcSDC2<data ) ) continue;
+	    if( lt == 1 && data<MinTdcSDC2 ) continue;
+	    AddDCRawHit( m_SdcInRawHC[plane+1],  plane+PlMinSdcIn, wire+1,
+			 data , lt);
+	  }
 	}
       }
     }
   }
 
-  // SdcOut (SDC2&SDC3)
-  for( Int_t plane=0; plane<NumOfLayersSDC2+NumOfLayersSDC3; ++plane ){
-    if( plane<NumOfLayersSDC2 ){
-      for( Int_t wire=0; wire<MaxWireSDC2; ++wire ){
+
+
+  // SdcOut (SDC3&SDC4)
+  for( Int_t plane=0; plane<NumOfLayersSDC3+NumOfLayersSDC4; ++plane ){
+    if( plane<NumOfLayersSDC3 ){
+      for( Int_t wire=0; wire<MaxWireSDC3; ++wire ){
 	for( Int_t lt=0; lt<2; ++lt ){
-	  Int_t nhit = gUnpacker.get_entries( DetIdSDC2, plane, 0, wire, lt );
+	  Int_t nhit = gUnpacker.get_entries( DetIdSDC3, plane, 0, wire, lt );
 #if OscillationCut
 	  if( nhit>MaxMultiHitDC ) continue;
 #endif
 	  for(Int_t i=0; i<nhit; i++ ){
-	    Int_t data = gUnpacker.get( DetIdSDC2, plane, 0, wire, lt, i );
-	    if( lt == 0 && ( data<MinTdcSDC2 || MaxTdcSDC2<data ) ) continue;
-	    if( lt == 1 && data<MinTdcSDC2 ) continue;
+	    Int_t data = gUnpacker.get( DetIdSDC3, plane, 0, wire, lt, i );
+	    if( lt == 0 && ( data<MinTdcSDC3 || MaxTdcSDC3<data ) ) continue;
+	    if( lt == 1 && data<MinTdcSDC3 ) continue;
 	    AddDCRawHit( m_SdcOutRawHC[plane+1], plane+PlMinSdcOut, wire+1,
 			 data , lt);
 	  }
 	}
       }
     } else {
-      Int_t MaxWireSDC3
-	= ( plane==NumOfLayersSDC2 || plane==(NumOfLayersSDC2+1) )
-	? MaxWireSDC3Y : MaxWireSDC3X;
-      for( Int_t wire=0; wire<MaxWireSDC3; ++wire ){
+      Int_t MaxWireSDC4
+	= ( plane==NumOfLayersSDC3 || plane==(NumOfLayersSDC3+1) )
+	? MaxWireSDC4Y : MaxWireSDC4X;
+      for( Int_t wire=0; wire<MaxWireSDC4; ++wire ){
 	for( Int_t lt=0; lt<2; ++lt ){
 	  UInt_t nhit =
-	    gUnpacker.get_entries( DetIdSDC3, plane-NumOfLayersSDC2,
+	    gUnpacker.get_entries( DetIdSDC4, plane-NumOfLayersSDC3,
 				   0, wire, lt );
 #if OscillationCut
 	  if( nhit>MaxMultiHitDC ) continue;
 #endif
 	  for( Int_t i=0; i<nhit; ++i ){
-	    UInt_t data = gUnpacker.get( DetIdSDC3, plane-NumOfLayersSDC2,
+	    UInt_t data = gUnpacker.get( DetIdSDC4, plane-NumOfLayersSDC3,
 					 0, wire, lt ,i );
-	    if( lt == 0 && ( data<MinTdcSDC3 || MaxTdcSDC3<data ) ) continue;
-	    if( lt == 1 && data<MinTdcSDC3 ) continue;
+	    if( lt == 0 && ( data<MinTdcSDC4 || MaxTdcSDC4<data ) ) continue;
+	    if( lt == 1 && data<MinTdcSDC4 ) continue;
 	    AddDCRawHit( m_SdcOutRawHC[plane+1],  plane+PlMinSdcOut, wire+1,
 			 data , lt);
 	  }

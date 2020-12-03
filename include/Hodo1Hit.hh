@@ -79,10 +79,6 @@ public:
   virtual
   int SegmentId( void )  const { return m_raw->SegmentId(); }
 
-  // For BGO
-  void   ClearACont( void )  { m_a.clear(); }
-  void   SetE( double energy )  { m_a.push_back(energy); }
-
   void   SetJoined( int m )           { m_flag_join.at(m) = true;         }
   bool   Joined( int m )        const { return m_flag_join.at(m);         }
   bool   JoinedAllMhit();

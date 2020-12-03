@@ -111,8 +111,6 @@ struct Event
 
   int ntBcOut;
 
-  // double ssdtime[NumOfSegSSDT];
-
   int nlayer;
   int nhSdcIn[NumOfLayersSdcIn];
   int tdc1st[NumOfLayersSdcIn][MaxHits];
@@ -126,28 +124,6 @@ struct Event
   double u0[MaxHits];
   double v0[MaxHits];
 
-  // // SsdPreTracking
-  // int    ntSsdX;
-  // int    nhSsdX[MaxHits];
-  // double chisqrSsdX[MaxHits];
-  // double x0SsdX[MaxHits];
-  // double u0SsdX[MaxHits];
-  // int    ntSsdY;
-  // int    nhSsdY[MaxHits];
-  // double chisqrSsdY[MaxHits];
-  // double y0SsdY[MaxHits];
-  // double v0SsdY[MaxHits];
-
-  // // SsdIn
-  // int    ntSsdIn;
-  // double chisqrSsdIn[MaxHits];
-  // double x0SsdIn[MaxHits];
-  // double y0SsdIn[MaxHits];
-  // double u0SsdIn[MaxHits];
-  // double v0SsdIn[MaxHits];
-
-  // double deKaon[NumOfLayersSsdIn][MaxHits];
-  // double deXi[NumOfLayersSsdIn][MaxHits];
 };
 
 //______________________________________________________________________________
@@ -176,13 +152,6 @@ EventSdcInTracking::ProcessingNormal( void )
   static const double MaxMultiHitBcOut = gUser.GetParameter("MaxMultiHitBcOut");
   static const double MaxMultiHitSdcIn = gUser.GetParameter("MaxMultiHitSdcIn");
 #endif
-  // static const double MinDeSSDKaon = gUser.GetParameter("DeSSDKaon", 0);
-  // static const double MaxDeSSDKaon = gUser.GetParameter("DeSSDKaon", 1);
-  // static const double MinDeSSDXi   = gUser.GetParameter("DeSSDXi",   0);
-  // static const double MaxDeSSDXi   = gUser.GetParameter("DeSSDXi",   1);
-  // static const double MinTimeSSD = gUser.GetParameter("TimeSSD", 0);
-  // static const double MaxTimeSSD = gUser.GetParameter("TimeSSD", 1);
-  // static const double MaxChisqrSSD = gUser.GetParameter("MaxChisqrSSD", 0);
 
   rawData = new RawData;
   rawData->DecodeHits();
@@ -214,20 +183,6 @@ EventSdcInTracking::ProcessingNormal( void )
 
   HF1( 1, 1. );
 
-  // //SSDT
-  // std::vector<double> t0Ssd( NumOfSegSSDT, 0. );
-  // {
-  //   hodoAna->DecodeSSDTHits( rawData );
-  //   int nh = hodoAna->GetNHitsSSDT();
-  //   for( int i=0; i<nh; ++i ){
-  //     Hodo1Hit *hit = hodoAna->GetHitSSDT(i);
-  //     if(!hit) continue;
-  //     int    seg   = hit->SegmentId()+1;
-  //     double time  = hit->Time();
-  //     t0Ssd[seg-1] = time;
-  //     event.ssdtime[seg-1] = time;
-  //   }
-  // }
 
   //////////////BH2 time 0
   hodoAna->DecodeBH2Hits(rawData);
@@ -650,24 +605,6 @@ ConfMan:: InitializeHistograms( void )
     int nwire = 0;
     double mintdc = 0., maxtdc = 0.;
     switch ( i ) {
-    case 7:
-      tag = "SFT-V";
-      nwire = NumOfSegSFT_UV;
-      mintdc = -10.;
-      maxtdc = 10.;
-      break;
-    case 8:
-      tag = "SFT-U";
-      nwire = NumOfSegSFT_UV;
-      mintdc = -10.;
-      maxtdc = 10.;
-      break;
-    case 9:
-      tag = "SFT-X";
-      nwire = 2*NumOfSegSFT_X;
-      mintdc = -10.;
-      maxtdc = 10.;
-      break;
     default:
       tag = "SDC1";
       nwire = MaxWireSDC1;
@@ -737,18 +674,6 @@ ConfMan:: InitializeHistograms( void )
     std::string tag;
     int nwire = 0;
     switch ( i ) {
-    case 7:
-      tag = "SFT-U";
-      nwire = NumOfSegSFT_UV;
-      break;
-    case 8:
-      tag = "SFT-V";
-      nwire = NumOfSegSFT_UV;
-      break;
-    case 9:
-      tag = "SFT-X";
-      nwire = 2*NumOfSegSFT_X;
-      break;
     default:
       tag = "SDC1";
       nwire = MaxWireSDC1;
@@ -841,8 +766,7 @@ ConfMan:: InitializeHistograms( void )
   //     "ssd2x0", "ssd2y0", "ssd2x1", "ssd2y1",
   //     "sdc1v0", "sdc1v1", "sdc1x0", "sdc1x1", "sdc1u0", "sdc1u1" };
   TString layer_name[NumOfLayersSdcIn] =
-    { "sftu", "sftv", "sftx",
-      "sdc1v0", "sdc1v1", "sdc1x0", "sdc1x1", "sdc1u0", "sdc1u1" };
+    { "sdc1v0", "sdc1v1", "sdc1x0", "sdc1x1", "sdc1u0", "sdc1u1" };
   for( int i=0; i<NumOfLayersSdcIn; ++i ){
     TString name = Form("%s_pos", layer_name[i].Data() );
     TString type = Form("%s_pos[%d]/D", layer_name[i].Data(), MaxHits );

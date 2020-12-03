@@ -201,11 +201,6 @@ ConfMan::InitializeHistograms( void )
     gScaler.Set( c, r++, ScalerInfo( "BGO-22",         1, 25 ) );
     gScaler.Set( c, r++, ScalerInfo( "BGO-23",         1, 26 ) );
     gScaler.Set( c, r++, ScalerInfo( "BGO-24",         1, 27 ) );
-    gScaler.Set( c, r++, ScalerInfo( "CFT-Phi1",       1, 55 ) );
-    gScaler.Set( c, r++, ScalerInfo( "CFT-Phi2",       1, 56 ) );
-    gScaler.Set( c, r++, ScalerInfo( "CFT-Phi3",       1, 57 ) );
-    gScaler.Set( c, r++, ScalerInfo( "CFT-Phi4",       1, 58 ) );
-    gScaler.Set( c, r++, ScalerInfo( "CFT-3Coin",      1, 53 ) );
     gScaler.Set( c, r++, ScalerInfo( "PiID",           1, 59 ) );
     gScaler.Set( c, r++, ScalerInfo( "pi-Scat",        1, 60 ) );
     gScaler.Set( c, r++, ScalerInfo( "p-Scat",         1, 61 ) );

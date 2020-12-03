@@ -42,8 +42,6 @@ public:
   void   SetHoneycomb( bool flag=true )              { m_honeycomb = flag;     }
   bool   IsHoneycomb( void )                   const { return m_honeycomb; }
   int    GetLayer( void )                      const { return m_hit->GetLayer(); }
-  int    GetMeanSeg( void )                    const { return m_hit->GetMeanSeg(); }
-  int    GetMaxSeg( void )                    const { return m_hit->GetMaxSeg(); }
   double GetWire( void )                       const { return m_hit->GetWire(); }
   int    GetTdcVal( void )                     const { return m_hit->GetTdcVal(m_nth_hit); }
   int    GetTdcSize( void )                    const { return m_hit->GetTdcSize(); }
@@ -76,28 +74,9 @@ public:
   ///// for TOF
   double GetZ( void ) const { return m_hit->GetZ(); }
 
-  ///// for CFT
-  double GetPositionR( void )   const { return m_hit->GetPositionR();  }
-  double GetPositionPhi( void ) const { return m_hit->GetPositionPhi();}
-  double GetPosPhi( void )   const { return m_hit->GetPosPhi();  }
-  double GetPosZ  ( void )   const { return m_hit->GetPosZ();}
-  double GetPosR  ( void )   const { return m_hit->GetPosR();}
-  double GetAdcLow( void )   const { return m_hit->GetAdcLow();  }
-  double GetMIPLow( void )   const { return m_hit->GetMIPLow();  }
-  double GetdELow( void )    const { return m_hit->GetdELow();  }
-  double GetMaxAdcLow( void ) const { return m_hit->GetMaxAdcLow();}
-  double GetMaxMIPLow( void ) const { return m_hit->GetMaxMIPLow();  }
-  double GetMaxdELow ( void ) const { return m_hit->GetMaxdELow();  }
-  ThreeVector GetVtx ( void ) const { return m_hit->GetVtx();  }
-  double GetTime  ( void )   const { return m_hit->GetTime();  }
-
   void JoinTrack( void ) { m_hit->JoinTrack(m_nth_hit); }
   void QuitTrack( void ) { m_hit->QuitTrack(m_nth_hit); }
   bool BelongToTrack( void ) const { return m_hit->BelongToTrack(m_nth_hit); }
-
-  void JoinTrackCFT( void ) { m_hit->JoinTrackCFT(m_nth_hit); }
-  void QuitTrackCFT( void ) { m_hit->QuitTrackCFT(m_nth_hit); }
-  bool BelongToTrackCFT( void ) const { return m_hit->BelongToTrackCFT(m_nth_hit); }
 
   void Print( const std::string& arg="" ) const;
 

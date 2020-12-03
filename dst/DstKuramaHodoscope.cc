@@ -89,11 +89,17 @@ struct Event
   double t0Bh2[NumOfSegBH2*MaxDepth];
   double deBh2[NumOfSegBH2*MaxDepth];
 
-  int    nhSac;
-  int    csSac[NumOfSegSAC*MaxDepth];
-  double SacSeg[NumOfSegSAC*MaxDepth];
-  double tSac[NumOfSegSAC*MaxDepth];
-  double deSac[NumOfSegSAC*MaxDepth];
+  int    nhPvac;
+  int    csPvac[NumOfSegPVAC*MaxDepth];
+  double PvacSeg[NumOfSegPVAC*MaxDepth];
+  double tPvac[NumOfSegPVAC*MaxDepth];
+  double dePvac[NumOfSegPVAC*MaxDepth];
+
+  int    nhFac;
+  int    csFac[NumOfSegFAC*MaxDepth];
+  double FacSeg[NumOfSegFAC*MaxDepth];
+  double tFac[NumOfSegFAC*MaxDepth];
+  double deFac[NumOfSegFAC*MaxDepth];
 
   int nhTof;
   int csTof[NumOfSegTOF];
@@ -161,11 +167,17 @@ struct Src
   double Time0;
   double CTime0;
 
-  int    nhSac;
-  int    csSac[NumOfSegSAC*MaxDepth];
-  double SacSeg[NumOfSegSAC*MaxDepth];
-  double tSac[NumOfSegSAC*MaxDepth];
-  double deSac[NumOfSegSAC*MaxDepth];
+  int    nhPvac;
+  int    csPvac[NumOfSegPVAC*MaxDepth];
+  double PvacSeg[NumOfSegPVAC*MaxDepth];
+  double tPvac[NumOfSegPVAC*MaxDepth];
+  double dePvac[NumOfSegPVAC*MaxDepth];
+
+  int    nhFac;
+  int    csFac[NumOfSegFAC*MaxDepth];
+  double FacSeg[NumOfSegFAC*MaxDepth];
+  double tFac[NumOfSegFAC*MaxDepth];
+  double deFac[NumOfSegFAC*MaxDepth];
 
   int    nhTof;
   int    csTof[NumOfSegTOF];
@@ -229,7 +241,8 @@ dst::InitializeEvent( void )
   event.ntKurama = 0;
   event.nhBh1    = 0;
   event.nhBh2    = 0;
-  event.nhSac    = 0;
+  event.nhPvac    = 0;
+  event.nhFac    = 0;
   event.nhTof    = 0;
   event.m2Combi  = 0;
 
@@ -277,11 +290,18 @@ dst::InitializeEvent( void )
     event.deBh2[i]  = -9999.;
   }
 
-  for(int i=0;i<NumOfSegSAC*MaxDepth;++i){
-    event.SacSeg[i] = -1;
-    event.csSac[i]  = 0;
-    event.tSac[i]   = -9999.;
-    event.deSac[i]  = -9999.;
+  for(int i=0;i<NumOfSegPVAC*MaxDepth;++i){
+    event.PvacSeg[i] = -1;
+    event.csPvac[i]  = 0;
+    event.tPvac[i]   = -9999.;
+    event.dePvac[i]  = -9999.;
+  }
+
+  for(int i=0;i<NumOfSegFAC*MaxDepth;++i){
+    event.FacSeg[i] = -1;
+    event.csFac[i]  = 0;
+    event.tFac[i]   = -9999.;
+    event.deFac[i]  = -9999.;
   }
 
   for(int i=0;i<NumOfSegTOF;++i){
@@ -343,7 +363,8 @@ dst::DstRead( int ievent )
   event.ntKurama = src.ntKurama;
   event.nhBh1    = src.nhBh1;
   event.nhBh2    = src.nhBh2;
-  event.nhSac    = src.nhSac;
+  event.nhPvac   = src.nhPvac;
+  event.nhFac    = src.nhFac;
   event.nhTof    = src.nhTof;
 
 #if 0
@@ -351,7 +372,6 @@ dst::DstRead( int ievent )
   std::cout<<"[ntKurama]: "<<std::setw(2)<<src.ntKurama<<" ";
   std::cout<<"[nhBh1]: "<<std::setw(2)<<src.nhBh1<<" ";
   std::cout<<"[nhBh2]: "<<std::setw(2)<<src.nhBh2<<" ";
-  // std::cout<<"[nhSac]: "<<std::setw(2)<<src.nhSac<<" ";
   std::cout<<"[nhTof]: "<<std::setw(2)<<src.nhTof<<" "<<std::endl;
 #endif
 
@@ -395,10 +415,16 @@ dst::DstRead( int ievent )
     if(i==0) btof = src.tBh1[i] - time0; 
   }
 
-  for( int i=0; i<src.nhSac; ++i ){
-    event.SacSeg[i] = src.SacSeg[i];
-    event.tSac[i]   = src.tSac[i];
-    event.deSac[i]  = src.deSac[i];
+  for( int i=0; i<src.nhPvac; ++i ){
+    event.PvacSeg[i] = src.PvacSeg[i];
+    event.tPvac[i]   = src.tPvac[i];
+    event.dePvac[i]  = src.dePvac[i];
+  }
+
+  for( int i=0; i<src.nhFac; ++i ){
+    event.FacSeg[i] = src.FacSeg[i];
+    event.tFac[i]   = src.tFac[i];
+    event.deFac[i]  = src.deFac[i];
   }
 
   int m2Combi = event.nhTof*event.ntKurama;
@@ -566,11 +592,17 @@ ConfMan::InitializeHistograms( void )
   tree->Branch("t0Bh2",  event.t0Bh2, "t0Bh2[nhBh2]/D");
   tree->Branch("deBh2",  event.deBh2, "deBh2[nhBh2]/D");
 
-  tree->Branch("nhSac",  &event.nhSac, "nhSac/I");
-  tree->Branch("csSac",   event.csSac, "csSac[nhSac]/D");
-  tree->Branch("SacSeg",  event.SacSeg,"SacSeg[nhSac]/D");
-  tree->Branch("tSac",    event.tSac,  "tSac[nhSac]/D");
-  tree->Branch("deSac",   event.deSac, "deSac[nhSac]/D");
+  tree->Branch("nhPvac",  &event.nhPvac, "nhPvac/I");
+  tree->Branch("csPvac",   event.csPvac, "csPvac[nhPvac]/D");
+  tree->Branch("PvacSeg",  event.PvacSeg,"PvacSeg[nhPvac]/D");
+  tree->Branch("tPvac",    event.tPvac,  "tPvac[nhPvac]/D");
+  tree->Branch("dePvac",   event.dePvac, "dePvac[nhPvac]/D");
+
+  tree->Branch("nhFac",  &event.nhFac, "nhFac/I");
+  tree->Branch("csFac",   event.csFac, "csFac[nhFac]/D");
+  tree->Branch("FacSeg",  event.FacSeg,"FacSeg[nhFac]/D");
+  tree->Branch("tFac",    event.tFac,  "tFac[nhFac]/D");
+  tree->Branch("deFac",   event.deFac, "deFac[nhFac]/D");
 
   tree->Branch("nhTof",  &event.nhTof, "nhTof/I");
   tree->Branch("csTof",   event.csTof, "csTof[nhTof]/D");
@@ -602,11 +634,16 @@ ConfMan::InitializeHistograms( void )
   TTreeCont[kHodoscope]->SetBranchStatus("dtBh2",     1);
   TTreeCont[kHodoscope]->SetBranchStatus("t0Bh2",     1);
   TTreeCont[kHodoscope]->SetBranchStatus("deBh2",     1);
-  TTreeCont[kHodoscope]->SetBranchStatus("nhSac",     1);
-  TTreeCont[kHodoscope]->SetBranchStatus("csSac",     1);
-  TTreeCont[kHodoscope]->SetBranchStatus("SacSeg",    1);
-  TTreeCont[kHodoscope]->SetBranchStatus("tSac",      1);
-  TTreeCont[kHodoscope]->SetBranchStatus("deSac",     1);
+  TTreeCont[kHodoscope]->SetBranchStatus("nhPvac",     1);
+  TTreeCont[kHodoscope]->SetBranchStatus("csPvac",     1);
+  TTreeCont[kHodoscope]->SetBranchStatus("PvacSeg",    1);
+  TTreeCont[kHodoscope]->SetBranchStatus("tPvac",      1);
+  TTreeCont[kHodoscope]->SetBranchStatus("dePvac",     1);
+  TTreeCont[kHodoscope]->SetBranchStatus("nhFac",     1);
+  TTreeCont[kHodoscope]->SetBranchStatus("csFac",     1);
+  TTreeCont[kHodoscope]->SetBranchStatus("FacSeg",    1);
+  TTreeCont[kHodoscope]->SetBranchStatus("tFac",      1);
+  TTreeCont[kHodoscope]->SetBranchStatus("deFac",     1);
   TTreeCont[kHodoscope]->SetBranchStatus("nhTof",     1);
   TTreeCont[kHodoscope]->SetBranchStatus("csTof",     1);
   TTreeCont[kHodoscope]->SetBranchStatus("TofSeg",    1);
@@ -637,11 +674,16 @@ ConfMan::InitializeHistograms( void )
   TTreeCont[kHodoscope]->SetBranchAddress("dtBh2", src.dtBh2);
   TTreeCont[kHodoscope]->SetBranchAddress("t0Bh2", src.t0Bh2);
   TTreeCont[kHodoscope]->SetBranchAddress("deBh2", src.deBh2);
-  TTreeCont[kHodoscope]->SetBranchAddress("nhSac", &src.nhSac);
-  TTreeCont[kHodoscope]->SetBranchAddress("csSac", src.csSac);
-  TTreeCont[kHodoscope]->SetBranchAddress("SacSeg",src.SacSeg);
-  TTreeCont[kHodoscope]->SetBranchAddress("tSac",  src.tSac);
-  TTreeCont[kHodoscope]->SetBranchAddress("deSac", src.deSac);
+  TTreeCont[kHodoscope]->SetBranchAddress("nhPvac", &src.nhPvac);
+  TTreeCont[kHodoscope]->SetBranchAddress("csPvac", src.csPvac);
+  TTreeCont[kHodoscope]->SetBranchAddress("PvacSeg",src.PvacSeg);
+  TTreeCont[kHodoscope]->SetBranchAddress("tPvac",  src.tPvac);
+  TTreeCont[kHodoscope]->SetBranchAddress("dePvac", src.dePvac);
+  TTreeCont[kHodoscope]->SetBranchAddress("nhFac", &src.nhFac);
+  TTreeCont[kHodoscope]->SetBranchAddress("csFac", src.csFac);
+  TTreeCont[kHodoscope]->SetBranchAddress("FacSeg",src.FacSeg);
+  TTreeCont[kHodoscope]->SetBranchAddress("tFac",  src.tFac);
+  TTreeCont[kHodoscope]->SetBranchAddress("deFac", src.deFac);
   TTreeCont[kHodoscope]->SetBranchAddress("nhTof", &src.nhTof);
   TTreeCont[kHodoscope]->SetBranchAddress("csTof", src.csTof);
   TTreeCont[kHodoscope]->SetBranchAddress("TofSeg",src.TofSeg);

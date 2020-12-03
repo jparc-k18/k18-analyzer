@@ -1,0 +1,101 @@
+#
+#  user_20170927.txt
+#
+### BH1 dE gate
+DeBH1 0.3 4
+
+### BH2 dE gate
+DeBH2 0.3 4
+
+### BH2 Mt gate (for Time0)
+MtBH2 -2 2
+
+### BTOF gate
+BTOF -2 2
+
+### TOF dE gate
+DeTOF 0.3 4
+
+### TOF time range
+TimeTOF 7 25
+
+### TOF offset
+OffsetToF 0
+
+### BH1 TDC gate range
+BH1_TDC 0 1000
+
+### BFT TDC gate range
+TdcBFT 620 650
+
+### BFT Time gate range
+TimeBFT -6 12
+
+### SCH TDC gate range
+TdcSCH 440 480
+
+### SCH Time gate range
+TimeSCH -6 15
+
+### BC3 TDC gate range
+TdcBC3 250 440
+
+### BC4 TDC gate range
+TdcBC4 250 440
+
+### SDC1 TDC gate range
+TdcSDC1 100 500
+#TdcSDC1 250 450
+
+### SDC2 TDC gate range
+TdcSDC2 100 1000
+#TdcSDC2 600 1150
+
+### SDC3 TDC gate range
+TdcSDC3 100 1000
+#TdcSDC3 400 1200
+
+### SDC4 TDC gate range
+TdcSDC4 100 1000
+#TdcSDC4 400 1200
+
+### BCOUT multiplicity gate
+MaxMultiHitBcOut 16
+
+### BCOUT plane multiplicity gate
+#MinLayerBcOut 12
+MinLayerBcOut 8
+
+###BC3,4 Sdc1 TOT cut 
+MinTotBcOut 15
+MinTotSDC1 25
+MinTotSDC2 25
+
+### SDCIN multiplicity gate
+MaxMultiHitSdcIn 16
+
+### SDCIN plane multiplicity gate
+MinLayerSdcIn 4
+#MinLayerSdcIn 9
+
+### SDCOUT multiplicity gate
+MaxMultiHitSdcOut 16
+
+### SDCOUT plane multiplicity gate (+2 in SdcOutTracking)
+MinLayerSdcOut 4
+#MinLayerSdcOut 8
+
+### L1 timing of TOF stop
+TimeL1 230 260
+
+### SdcOut dT offset for L1 stop timing
+dTOfs 150.
+
+
+### SdcOut TOT cut
+MinTotSDC3 50.
+MinTotSDC4 80.
+
+
+### TOF KID
+TOFKID 2.1 300 840

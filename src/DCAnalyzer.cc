@@ -306,43 +306,36 @@ DCAnalyzer::DecodeSdcInHits( RawData *rawData )
 
   ClearSdcInHits();
 
-  // SFT
+
+  // SDC1
   {
-    // HodoAnalyzer& hodoAna = HodoAnalyzer::GetInstance();
-    HodoAnalyzer hodoAna;
-    hodoAna.DecodeSFTHits( rawData );
-    for ( int l = 0; l < NumOfLayersSFT; ++l ) {
-      int layerId = l + PlMinSdcIn + NumOfLayersSDC1;
-
-      hodoAna.TimeCutSFT( l, -10, 5 );
-      int ncl = hodoAna.GetNClustersSFT( l );
-
-      for ( int j = 0; j < ncl; ++j ) {
-
-  	FiberCluster* cl = hodoAna.GetClusterSFT( l, j );
-	double seg  = cl->MeanSeg();
-  	double pos  = cl->MeanPosition();
-  	double time = cl->CMeanTime();
-
-  	// DCHit *hit = new DCHit( l + PlMinSdcIn );
-  	DCHit *hit = new DCHit( layerId, seg );
-  	hit->SetTdcVal( static_cast<int>( time ) );
-
-  	if ( hit->CalcFiberObservables() ) {
-  	  hit->SetWirePosition( pos );
-	  m_SdcInHC[layerId].push_back( hit );
-	  // m_SdcInHC[layer - 1].push_back(hit);
-  	} else {
-  	  delete hit;
-  	}
-
+    for( int layer=1; layer<=NumOfLayersSDC1; ++layer ){
+      const DCRHitContainer &RHitCont=rawData->GetSdcInRawHC(layer);
+      int nh = RHitCont.size();
+      for( int i=0; i<nh; ++i ){
+	DCRawHit *rhit  = RHitCont[i];
+	DCHit    *hit   = new DCHit( rhit->PlaneId(), rhit->WireId() );
+	int       nhtdc      = rhit->GetTdcSize();
+	int       nhtrailing = rhit->GetTrailingSize();
+	if(!hit) continue;
+	for( int j=0; j<nhtdc; ++j ){
+	  hit->SetTdcVal( rhit->GetTdc(j) );
+	}
+	for( int j=0; j<nhtrailing; ++j ){
+	  hit->SetTdcTrailing( rhit->GetTrailing(j) );
+	}
+	if( hit->CalcDCObservables() ) {
+	  m_SdcInHC[layer].push_back(hit);
+	} else {
+	  delete hit;
+	}
       }
     }
   }
 
-  // SDC1
+  // SDC2
   {
-    for( int layer=1; layer<=NumOfLayersSdcIn - NumOfLayersSFT; ++layer ){
+    for( int layer=1; layer<=NumOfLayersSdcIn - NumOfLayersSDC1; ++layer ){
       const DCRHitContainer &RHitCont=rawData->GetSdcInRawHC(layer);
       int nh = RHitCont.size();
       for( int i=0; i<nh; ++i ){
@@ -396,7 +389,6 @@ DCAnalyzer::DecodeSdcOutHits( RawData *rawData , double ofs_dt)
 	int       nhtrailing = rhit->GetTrailingSize();
 	if(!hit) continue;
 
-	hit->SetOfsdT(ofs_dt);
 	for( int j=0; j<nhtdc; ++j ){
 	  hit->SetTdcVal( rhit->GetTdc(j) );
 	}
@@ -411,105 +403,6 @@ DCAnalyzer::DecodeSdcOutHits( RawData *rawData , double ofs_dt)
     }
   }
  //*
-  // FBT1
-  {
-    HodoAnalyzer hodoAna;
-    hodoAna.DecodeFBT1Hits( rawData );
-
-    for ( int l = 0; l < 2; ++l ) {
-      hodoAna.TimeCutFBT1( l, 0, -10, 5 ); //FBT1-U
-      hodoAna.TimeCutFBT1( l, 1, -10, 5 ); //FBT1-D
-
-      int nclU = hodoAna.GetNClustersFBT1( l, 0 );
-      int nclD = hodoAna.GetNClustersFBT1( l, 1 );
-
-      for ( int j = 0; j < nclU; ++j ) {
-        FiberCluster* clU = hodoAna.GetClusterFBT1( l, 0, j );
-        double segU  = clU->MeanSeg();
-        double posU  = clU->MeanPosition();
-        double timeU = clU->CMeanTime();
-
-        DCHit *hitU = new DCHit( 1+2*l+PlOffsFht, segU );
-        hitU->SetTdcVal( static_cast<int>( timeU ) );
-
-        int layer = NumOfLayersSdcOut-7 + 1 + 2*l;
-        if ( hitU->CalcFiberObservables() ) {
-          hitU->SetWirePosition( posU );
-          m_SdcOutHC[layer].push_back( hitU );
-	} else {
-          delete hitU;
-        }
-      }
-
-      for ( int j = 0; j < nclD; ++j ) {
-        FiberCluster* clD = hodoAna.GetClusterFBT1( l, 1, j );
-	double segD  = clD->MeanSeg();
-        double posD  = clD->MeanPosition();
-        double timeD = clD->CMeanTime();
-
-        DCHit *hitD = new DCHit( 2*l+PlOffsFht, segD );
-        hitD->SetTdcVal( static_cast<int>( timeD ) );
-
-        int layer = NumOfLayersSdcOut-7 + 2*l;
-        if ( hitD->CalcFiberObservables() ) {
-          hitD->SetWirePosition( posD );
-          m_SdcOutHC[layer].push_back( hitD );
-	} else {
-          delete hitD;
-        }
-      }
-    }
-  }
-
-  // FBT2
-  {
-    HodoAnalyzer hodoAna;
-    hodoAna.DecodeFBT2Hits( rawData );
-
-    for ( int l = 0; l < 2; ++l ) {
-      hodoAna.TimeCutFBT2( l, 0, -10, 5 ); //FBT2-U
-      hodoAna.TimeCutFBT2( l, 1, -10, 5 ); //FBT2-D
-
-      int nclU = hodoAna.GetNClustersFBT2( l, 0 );
-      int nclD = hodoAna.GetNClustersFBT2( l, 1 );
-
-      for ( int j = 0; j < nclU; ++j ) {
-        FiberCluster* clU = hodoAna.GetClusterFBT2( l, 0, j );
-        double segU  = clU->MeanSeg();
-        double posU  = clU->MeanPosition();
-        double timeU = clU->CMeanTime();
-
-        DCHit *hitU = new DCHit( 5+2*l+PlOffsFht, segU );
-	hitU->SetTdcVal( timeU );
-
-        int layer = NumOfLayersSdcOut-3 + 1 + 2*l;
-        if ( hitU->CalcFiberObservables() ) {
-          hitU->SetWirePosition( posU );
-          m_SdcOutHC[layer].push_back( hitU );
-        } else {
-          delete hitU;
-	}
-      }
-
-      for ( int j = 0; j < nclD; ++j ) {
-        FiberCluster* clD = hodoAna.GetClusterFBT2( l, 1, j );
-        double segD  = clD->MeanSeg();
-	double posD  = clD->MeanPosition();
-        double timeD = clD->CMeanTime();
-
-        DCHit *hitD = new DCHit( 4+2*l+PlOffsFht, segD );
-        hitD->SetTdcVal( timeD );
-
-	int layer = NumOfLayersSdcOut-3 + 2*l;
-        if ( hitD->CalcFiberObservables() ) {
-          hitD->SetWirePosition( posD );
-          m_SdcOutHC[layer].push_back( hitD );
-        } else {
-          delete hitD;
-        }
-      }
-    }
-  }
 
   m_is_decoded[k_SdcOut] = true;
   return true;
@@ -714,8 +607,8 @@ DCAnalyzer::TrackSearchSdcIn( void )
 {
   static const int MinLayer = gUser.GetParameter("MinLayerSdcIn");
 
-  // track::LocalTrackSearch( m_SdcInHC, PPInfoSdcIn, NPPInfoSdcIn, m_SdcInTC, MinLayer );
-  track::LocalTrackSearchSdcInFiber( m_SdcInHC, PPInfoSdcIn, NPPInfoSdcIn, m_SdcInTC, MinLayer );
+  track::LocalTrackSearch( m_SdcInHC, PPInfoSdcIn, NPPInfoSdcIn, m_SdcInTC, MinLayer );
+  //  track::LocalTrackSearchSdcInFiber( m_SdcInHC, PPInfoSdcIn, NPPInfoSdcIn, m_SdcInTC, MinLayer );
   return true;
 }
 
@@ -1521,8 +1414,8 @@ DCAnalyzer::TotCutBCOut(double min_tot)
 void
 DCAnalyzer::TotCutSDC1(double min_tot)
 {
-  for(int i = 0; i<NumOfLayersSdcIn - NumOfLayersSFT; ++i){
-    TotCut(m_SdcInHC[i + NumOfLayersSFT +1], min_tot, false);
+  for(int i = 0; i<NumOfLayersSDC1; ++i){
+    TotCut(m_SdcInHC[i+1], min_tot, false);
   }// for(i)
 }
 
@@ -1531,7 +1424,7 @@ void
 DCAnalyzer::TotCutSDC2(double min_tot)
 {
   for(int i = 0; i<NumOfLayersSDC2; ++i){
-    TotCut(m_SdcOutHC[i + 1], min_tot, false);
+    TotCut(m_SdcInHC[i + NumOfLayersSDC2 +1], min_tot, false);
   }// for(i)
 }
 
@@ -1540,7 +1433,16 @@ void
 DCAnalyzer::TotCutSDC3(double min_tot)
 {
   for(int i = 0; i<NumOfLayersSDC3; ++i){
-    TotCut(m_SdcOutHC[i + NumOfLayersSDC2 +1], min_tot, false);
+    TotCut(m_SdcOutHC[i + 1], min_tot, false);
+  }// for(i)
+}
+
+//_____________________________________________________________________________
+void
+DCAnalyzer::TotCutSDC4(double min_tot)
+{
+  for(int i = 0; i<NumOfLayersSDC4; ++i){
+    TotCut(m_SdcOutHC[i + NumOfLayersSDC3 +1], min_tot, false);
   }// for(i)
 }
 
@@ -1579,10 +1481,19 @@ DCAnalyzer::DriftTimeCutBC34(double min_dt, double max_dt)
 
 //_____________________________________________________________________________
 void
+DCAnalyzer::DriftTimeCutSDC1(double min_dt, double max_dt)
+{
+  for(int i = 0; i<NumOfLayersSDC1; ++i){
+    DriftTimeCut(m_SdcInHC[i + 1], min_dt, max_dt, true);
+  }// for(i)
+}
+
+//_____________________________________________________________________________
+void
 DCAnalyzer::DriftTimeCutSDC2(double min_dt, double max_dt)
 {
   for(int i = 0; i<NumOfLayersSDC2; ++i){
-    DriftTimeCut(m_SdcOutHC[i + 1], min_dt, max_dt, true);
+    DriftTimeCut(m_SdcInHC[i + 1], min_dt, max_dt, true);
   }// for(i)
 }
 
@@ -1591,7 +1502,16 @@ void
 DCAnalyzer::DriftTimeCutSDC3(double min_dt, double max_dt)
 {
   for(int i = 0; i<NumOfLayersSDC3; ++i){
-    DriftTimeCut(m_SdcOutHC[i + NumOfLayersSDC2 + 1], min_dt, max_dt, true);
+    DriftTimeCut(m_SdcOutHC[i + 1], min_dt, max_dt, true);
+  }// for(i)
+}
+
+//_____________________________________________________________________________
+void
+DCAnalyzer::DriftTimeCutSDC4(double min_dt, double max_dt)
+{
+  for(int i = 0; i<NumOfLayersSDC4; ++i){
+    DriftTimeCut(m_SdcOutHC[i + NumOfLayersSDC3 + 1], min_dt, max_dt, true);
   }// for(i)
 }
 

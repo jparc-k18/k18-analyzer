@@ -97,26 +97,6 @@ FiberHit::Calculate( void )
       m_pair_id  = 1;
     }
     m_pair_id += 2*m_raw->SegmentId();
-  }else if(false
-	   || "FBT1-UX1" == m_detector_name
-	   || "FBT1-UX2" == m_detector_name
-	   || "FBT2-UX1" == m_detector_name
-	   || "FBT2-UX2" == m_detector_name
-	   ){
-    m_ud = 0;
-    m_pair_id = seg;
-  }else if(false
-	   || "FBT1-DX1" == m_detector_name
-	   || "FBT1-DX2" == m_detector_name
-	   || "FBT2-DX1" == m_detector_name
-	   || "FBT2-DX2" == m_detector_name
-	   ){
-    m_ud = 1;
-    m_pair_id = seg;
-  }else{
-    // case of SFT UV layers & CFT
-    // They have only 1 plane in 1 layer.
-    m_pair_id = m_raw->SegmentId();
   }
 
   int DetectorId = gGeom.GetDetectorId( m_detector_name );
@@ -220,62 +200,7 @@ FiberHit::Calculate( void )
     m_pair_cont.at(i).tot     = tot;
   }// for(i)
 
-#if 0
-  if(cid==113){// CFT ADC
-    double nhit_adc = m_raw->SizeAdc1();
-    if(nhit_adc>0){
-      double hi  =  m_raw->GetAdc1();
-      double low =  m_raw->GetAdc2();
-      double pedeHi  = gHodo.GetP0(cid, plid, seg, 0);
-      double pedeLow = gHodo.GetP0(cid, plid, seg, 1);
-      double gainHi  = gHodo.GetP1(cid, plid, seg, 0);// pedestal+mip(or peak)
-      double gainLow = gHodo.GetP1(cid, plid, seg, 1);// pedestal+mip(or peak)
-      double Alow = gHodo.GetP0(cid,plid,0/*seg*/,3);// same value for the same layer
-      double Blow = gHodo.GetP1(cid,plid,0/*seg*/,3);// same value for the same layer
 
-      if (hi>0)
-	m_adc_hg  = hi  - pedeHi;
-      if (low>0)
-	m_adc_lg = low - pedeLow;
-      //m_mip_hg  = (hi  - pedeHi )/(gainHi  - pedeHi );
-      //m_mip_lg = (low - pedeLow)/(gainLow - pedeLow);
-      if (m_pedcor_hg>-2000 && hi >0)
-	m_adc_hg  = hi  + m_pedcor_hg;
-      if (m_pedcor_lg>-2000 && low >0)
-	m_adc_lg  = low  + m_pedcor_lg;
-
-      if (m_adc_hg>0/* && gainHi > 0*/)
-	m_mip_hg  = m_adc_hg/gainHi ;
-      if (m_adc_lg>0/* && gainLow >0*/)
-	m_mip_lg = m_adc_lg/gainLow;
-
-      if(m_mip_lg>0){
-	m_dE_lg = -(Alow/Blow) * log(1. - m_mip_lg/Alow);// [MeV]
-	if(1-m_mip_lg/Alow<0){ // when pe is too big
-	  m_dE_lg = -(Alow/Blow) * log(1. - (Alow-0.001)/Alow);// [MeV] almost max
-	}
-      }else{
-	m_dE_lg = 0;// [MeV]
-      }
-
-      /*
-      if (m_dE_lg>10) {
-	std::cout << "layer = " << plid << ", seg = " << seg << ", adcLow = " << m_adc_lg << ", dE = " << m_dE_lg << ", mip_lg = " << m_mip_lg << ", gainLow = " << gainLow << ", gainHi = " << gainHi << std::endl;
-      }
-      */
-
-      for (int j=0; j< m_pair_cont.size(); j++) {
-	double time= m_pair_cont.at(j).time_l;
-	double ctime = -100;
-	if (m_adc_hg>20) {
-	  gPHC.DoCorrection( cid, plid, seg, m_ud, time, m_adc_hg, ctime);
-	  m_pair_cont.at(j).ctime_l = ctime;
-	} else
-	  m_pair_cont.at(j).ctime_l = time;
-      }
-    }
-  }
-#endif
   m_status = true;
   return true;
 }

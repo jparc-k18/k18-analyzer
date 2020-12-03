@@ -81,17 +81,6 @@ namespace track
   int MWPCLocalTrackSearch( const std::vector< std::vector<DCHitContainer> >& hcList,
 			    std::vector<DCLocalTrack*>& trackCont );
 
-  //___________________________________________________________________________
-  int LocalTrackSearchCFT( const std::vector<DCHitContainer>& HC,
-			   const DCPairPlaneInfo *PpInfo,
-			   int npp, std::vector<DCLocalTrack*>& trackCont,
-			   int MinNumOfHits=3 );
-
-  //___________________________________________________________________________
-  int LocalTrackSearchCFTppPhi( const std::vector<DCHitContainer>& HC,
-			   const DCPairPlaneInfo *PpInfo,
-			   int npp, std::vector<DCLocalTrack*>& trackCont,
-			   int MinNumOfHits=3 );
 }
 
 

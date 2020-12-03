@@ -36,8 +36,7 @@ DCHit::DCHit( void )
   : m_layer(-1), m_wire(-1),
     m_wpos(-9999.), m_angle(0.),
     m_cluster_size(0.),
-    m_mwpc_flag(false),
-    m_ofs_dt(0.)
+    m_mwpc_flag(false)
 {
   debug::ObjectCounter::increase(class_name);
 }
@@ -47,8 +46,7 @@ DCHit::DCHit( int layer )
   : m_layer( layer ), m_wire(-1),
     m_wpos(-9999.), m_angle(0.),
     m_cluster_size(0.),
-    m_mwpc_flag(false),
-    m_ofs_dt(0.)
+    m_mwpc_flag(false)
 {
   debug::ObjectCounter::increase(class_name);
 }
@@ -58,8 +56,7 @@ DCHit::DCHit( int layer, double wire )
   : m_layer(layer), m_wire(wire),
     m_wpos(-9999.), m_angle(0.),
     m_cluster_size(0.),
-    m_mwpc_flag(false),
-    m_ofs_dt(0.)
+    m_mwpc_flag(false)
 {
   debug::ObjectCounter::increase(class_name);
 }
@@ -71,11 +68,6 @@ DCHit::~DCHit( void )
   debug::ObjectCounter::decrease(class_name);
 }
 
-void DCHit::SetTdcCFT( int tdc )
-{
-  m_tdc.push_back(tdc);
-  m_belong_track.push_back(false);
-}
 
 //______________________________________________________________________________
 void
@@ -181,8 +173,7 @@ DCHit::CalcDCObservables( void )
     }
 
     double dtime, dlength;
-    double corrected_ctime = ctime + m_ofs_dt;
-    if( !gDrift.CalcDrift( m_layer, m_wire, corrected_ctime, dtime, dlength ) ){
+    if( !gDrift.CalcDrift( m_layer, m_wire, ctime, dtime, dlength ) ){
       status = false;
     }
 
@@ -209,8 +200,9 @@ DCHit::CalcDCObservables( void )
       }
       break;
 
-      // SDC1,2,3
+      // SDC1,2,3,4
     case 1: case 2: case 3: case 4: case 5: case 6:
+    case 7: case 8: case 9: case 10:
     case 31: case 32: case 33: case 34:
     case 35: case 36: case 37: case 38:
       //      m_pair_cont.at(i).dl_range = true;
@@ -379,32 +371,6 @@ DCHit::CalcFiberObservables( void )
   return status;
 }
 
-//______________________________________________________________________________
-bool
-DCHit::CalcCFTObservables( void )
-{
-  static const std::string func_name("["+class_name+"::"+__func__+"()]");
-
-  if( !gGeom.IsReady() ) return false;
-
-  //m_angle = gGeom.GetTiltAngle( m_layer );
-  //m_z     = gGeom.GetLocalZ( m_layer );
-
-  bool status = true;
-
-  std::size_t nh_tdc = m_tdc.size();
-  for( std::size_t i=0; i<nh_tdc; i++ ){
-    data_pair a_pair = {(double)m_tdc[i], 0.,
-			std::numeric_limits<double>::quiet_NaN(),
-			std::numeric_limits<double>::quiet_NaN(),
-			//-1, false, true};
-			-1, false, false};
-    m_pair_cont.push_back( a_pair );
-  }
-
-
-  return status;
-}
 
 //______________________________________________________________________________
 double

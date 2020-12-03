@@ -28,7 +28,7 @@ namespace
 
 //______________________________________________________________________________
 BH2Hit::BH2Hit( HodoRawHit *rhit, double max_time_diff )
-  : Hodo2Hit(rhit, max_time_diff),
+  : Hodo1Hit(rhit, max_time_diff),
     m_time_offset(0.)
 {
   debug::ObjectCounter::increase(class_name);
@@ -46,12 +46,11 @@ BH2Hit::Calculate( void )
 {
   static const std::string func_name("["+class_name+"::"+__func__+"()]");
 
-  if(!Hodo2Hit::Calculate()) return false;
+  if(!Hodo1Hit::Calculate()) return false;
 
   int cid  = m_raw->DetectorId();
   int plid = m_raw->PlaneId();
   int seg  = m_raw->SegmentId();
   gHodo.GetTime( cid, plid, seg, 2, 0, m_time_offset );
-
   return true;
 }

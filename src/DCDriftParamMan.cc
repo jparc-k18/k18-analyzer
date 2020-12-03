@@ -240,12 +240,8 @@ DCDriftParamMan::DriftLength6( int PlaneId, double dt,
     break;
     // SDC1
   case 1: case 2: case 3: case 4: case 5: case 6:
-    if( dt<-10 || 150<dt ) // Loose drift time selection
+    if( dt<-10 || dt>150 ) // Loose drift time selection
       return 999.9;
-    // if( dt>120. ){
-    //   dt = 120.;
-    //   dl = dt*p1+dt*dt*p2+p3*pow(dt, 3.0)+p4*pow(dt, 4.0)+p5*pow(dt, 5.0);
-    // }
     if( dl>3.0 || dt>120. )
       return 3.0;
     if( dl<0. )
@@ -253,9 +249,18 @@ DCDriftParamMan::DriftLength6( int PlaneId, double dt,
     else
       return dl;
     break;
-  case 7: case 8: case 9:
-    return 0.;
     // SDC2
+  case 7: case 8: case 9: case 10:
+    if( dt<-10. || dt>150. )
+      return 999.9;
+    if( dl>5.0 || dt>120. )
+      return 5.0;
+    if( dl<0. )
+      return 0.;
+    else
+      return dl;
+    break;
+    // SDC3
   case 31: case 32: case 33: case 34:
     if( dt<-20. || dt>150. )
       return 999.9;
@@ -266,7 +271,7 @@ DCDriftParamMan::DriftLength6( int PlaneId, double dt,
     else
       return dl;
     break;
-    //For SDC3
+    //For SDC4
   case 35: case 36: case 37: case 38:
     if( dt<-20. || dt>300. )
       return 999.9;

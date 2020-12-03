@@ -101,37 +101,21 @@ UserEventDisplay::ProcessingNormal( void )
   static const double MaxTimeBFT = gUser.GetParameter("TimeBFT", 1);
   static const double MinTdcSCH  = gUser.GetParameter("TdcSCH", 0);
   static const double MaxTdcSCH  = gUser.GetParameter("TdcSCH", 1);
-  static const double MinTdcSFT  = gUser.GetParameter("TdcSFT", 0);
-  static const double MaxTdcSFT  = gUser.GetParameter("TdcSFT", 1);
-  static const double MinTdcFBT1  = gUser.GetParameter("TdcFBT1", 0);
-  static const double MaxTdcFBT1  = gUser.GetParameter("TdcFBT1", 1);
-  static const double MinTdcFBT2  = gUser.GetParameter("TdcFBT2", 0);
-  static const double MaxTdcFBT2  = gUser.GetParameter("TdcFBT2", 1);
 
   static const double OffsetToF  = gUser.GetParameter("OffsetToF");
   static const double dTOfs      = gUser.GetParameter("dTOfs",   0);
   static const double MinTimeL1  = gUser.GetParameter("TimeL1",  0);
   static const double MaxTimeL1  = gUser.GetParameter("TimeL1",  1);
-  static const double MinTotSDC2 = gUser.GetParameter("MinTotSDC2", 0);
   static const double MinTotSDC3 = gUser.GetParameter("MinTotSDC3", 0);
+  static const double MinTotSDC4 = gUser.GetParameter("MinTotSDC4", 0);
 
   // static const int IdBH2 = gGeom.GetDetectorId("BH2");
-  static const int IdSFT_U = gGeom.GetDetectorId("SFT-U");
-  static const int IdSFT_V = gGeom.GetDetectorId("SFT-V");
-  static const int IdSFT_X = gGeom.GetDetectorId("SFT-X");
   static const int IdSCH = gGeom.GetDetectorId("SCH");
   static const int IdTOF = gGeom.GetDetectorId("TOF");
-  static const int IdFBT1_D1 = gGeom.DetectorId("FBT1-DX1");
-  static const int IdFBT1_U1 = gGeom.DetectorId("FBT1-UX1");
-  static const int IdFBT1_D2 = gGeom.DetectorId("FBT1-DX2");
-  static const int IdFBT1_U2 = gGeom.DetectorId("FBT1-UX2");
-  static const int IdFBT2_D1 = gGeom.DetectorId("FBT2-DX1");
-  static const int IdFBT2_U1 = gGeom.DetectorId("FBT2-UX1");
-  static const int IdFBT2_D2 = gGeom.DetectorId("FBT2-DX2");
-  static const int IdFBT2_U2 = gGeom.DetectorId("FBT2-UX2");
   static const int IdSDC1 = gGeom.DetectorId("SDC1-X1");
   static const int IdSDC2 = gGeom.DetectorId("SDC2-X1");
   static const int IdSDC3 = gGeom.DetectorId("SDC3-X1");
+  static const int IdSDC4 = gGeom.DetectorId("SDC4-X1");
   // static const int PlOffsBcOut =  gGeom.DetectorId("BC3-X1");
   // static const int IdBC3 = gGeom.DetectorId("BC3-X1") - PlOffsBcOut + 1;
   // static const int IdBC4 = gGeom.DetectorId("BC4-X1") - PlOffsBcOut + 1;
@@ -283,68 +267,6 @@ UserEventDisplay::ProcessingNormal( void )
     return true;
   }
 
-  // SFT-X raw data
-  {
-    for (int layer=SFT_X1; layer<=SFT_X2; layer++) {
-      const HodoRHitContainer &cont = rawData->GetSFTRawHC(layer);
-      int nh = cont.size();
-      for( int i=0; i<nh; ++i ){
-	HodoRawHit *hit = cont[i];
-	if( !hit ) continue;
-	int mh  = hit->GetSizeTdcUp();
-
-	int seg = hit->SegmentId();
-	for (int j=0; j<mh; j++) {
-	  int Tu = hit->GetTdcUp(j);
-	  //std::cout << "SFT-X : seg " << seg << ", " << Tu << std::endl;
-	  if (Tu>0)
-	    gEvDisp.DrawSFT_X(seg, Tu);
-	}
-      }
-    }
-  }
-
-  // SFT-U raw data
-  {
-    for (int layer=SFT_U; layer<=SFT_U; layer++) {
-      const HodoRHitContainer &cont = rawData->GetSFTRawHC(layer);
-      int nh = cont.size();
-      for( int i=0; i<nh; ++i ){
-	HodoRawHit *hit = cont[i];
-	if( !hit ) continue;
-	int mh  = hit->GetSizeTdcUp();
-
-	int seg = hit->SegmentId();
-	for (int j=0; j<mh; j++) {
-	  int Tu = hit->GetTdcUp(j);
-	  //std::cout << "SFT-X : seg " << seg << ", " << Tu << std::endl;
-	  if (Tu>0)
-	    gEvDisp.DrawSFT_U(seg, Tu);
-	}
-      }
-    }
-  }
-
-  // SFT-V raw data
-  {
-    for (int layer=SFT_V; layer<=SFT_V; layer++) {
-      const HodoRHitContainer &cont = rawData->GetSFTRawHC(layer);
-      int nh = cont.size();
-      for( int i=0; i<nh; ++i ){
-	HodoRawHit *hit = cont[i];
-	if( !hit ) continue;
-	int mh  = hit->GetSizeTdcUp();
-
-	int seg = hit->SegmentId();
-	for (int j=0; j<mh; j++) {
-	  int Tu = hit->GetTdcUp(j);
-	  //std::cout << "SFT-X : seg " << seg << ", " << Tu << std::endl;
-	  if (Tu>0)
-	    gEvDisp.DrawSFT_V(seg, Tu);
-	}
-      }
-    }
-  }
 
   // SCH
   {
@@ -491,9 +413,11 @@ UserEventDisplay::ProcessingNormal( void )
 
   }
 
+
+
   // SDC2
   {
-    const DCRHitContainer &cont = rawData->GetSdcOutRawHC(IdSDC2-30);
+    const DCRHitContainer &cont = rawData->GetSdcInRawHC(IdSDC2);
     int nh = cont.size();
     for( int i=0; i<nh; ++i ){
       DCRawHit *hit = cont[i];
@@ -521,7 +445,7 @@ UserEventDisplay::ProcessingNormal( void )
 
   // SDC2Xp
   {
-    const DCRHitContainer &cont = rawData->GetSdcOutRawHC(IdSDC2+1-30);
+    const DCRHitContainer &cont = rawData->GetSdcInRawHC(IdSDC2+1);
     int nh = cont.size();
     for( int i=0; i<nh; ++i ){
       DCRawHit *hit = cont[i];
@@ -546,6 +470,8 @@ UserEventDisplay::ProcessingNormal( void )
     }
 
   }
+
+  
 
   // SDC3
   {
@@ -604,6 +530,63 @@ UserEventDisplay::ProcessingNormal( void )
   }
 
 
+  // SDC4
+  {
+    const DCRHitContainer &cont = rawData->GetSdcOutRawHC(IdSDC4-30);
+    int nh = cont.size();
+    for( int i=0; i<nh; ++i ){
+      DCRawHit *hit = cont[i];
+      if( !hit ) continue;
+
+      int mh  = hit->GetTdcSize();
+      int wire = hit->WireId();
+      for (int j=0; j<mh; j++) {
+	int tdc = hit->GetTdc(j);
+	if (tdc>0)
+	  gEvDisp.DrawSDC4_Leading(wire, tdc);
+      }
+
+      mh  = hit->GetTrailingSize();
+      for (int j=0; j<mh; j++) {
+	int tdc = hit->GetTrailing(j);
+	if (tdc>0)
+	  gEvDisp.DrawSDC4_Trailing(wire, tdc);
+      }
+
+      //std::cout << "SCH : seg " << seg << ", " << Tu << std::endl;
+    }
+
+  }
+
+  // SDC4Xp
+  {
+    const DCRHitContainer &cont = rawData->GetSdcOutRawHC(IdSDC4+1-30);
+    int nh = cont.size();
+    for( int i=0; i<nh; ++i ){
+      DCRawHit *hit = cont[i];
+      if( !hit ) continue;
+
+      int mh  = hit->GetTdcSize();
+      int wire = hit->WireId();
+      for (int j=0; j<mh; j++) {
+	int tdc = hit->GetTdc(j);
+	if (tdc>0)
+	  gEvDisp.DrawSDC4p_Leading(wire, tdc);
+      }
+
+      mh  = hit->GetTrailingSize();
+      for (int j=0; j<mh; j++) {
+	int tdc = hit->GetTrailing(j);
+	if (tdc>0)
+	  gEvDisp.DrawSDC4p_Trailing(wire, tdc);
+      }
+
+      //std::cout << "SCH : seg " << seg << ", " << Tu << std::endl;
+    }
+
+  }
+
+
   /*
   if ( 1 )
     gEvDisp.GetCommand();
@@ -637,208 +620,7 @@ UserEventDisplay::ProcessingNormal( void )
     }
   }
 
-  hodoAna->DecodeSFTHits(rawData);
-  //hodoAna->WidthCutSFT( 0, 40. , 100.);
-  //hodoAna->WidthCutSFT( 1, 40. , 100.);
-  //hodoAna->WidthCutSFT( 2, 40. , 100.);
-  ////////// SFT-U
-  {
-    // Fiber Hit
-    int nh = hodoAna->GetNHitsSFT(SFT_U);
-    for( int i=0; i<nh; ++i ){
-      const FiberHit* hit = hodoAna->GetHitSFT(SFT_U, i);
-      if(!hit) continue;
-      int mh = hit->GetNLeading();
-      int seg    = hit->SegmentId();
 
-      bool hit_flag = false;
-      bool hit_flag2 = false;
-      for( int m=0; m<mh; ++m ){
-  	double leading = hit->GetLeading(m);
-  	if( 530<leading && leading<MaxTdcSFT ){
-  	  hit_flag = true;
-	  //std::cout << "SFT_U : " << seg << ", " << leading<< std::endl;
-  	} else if( MinTdcSFT <leading && leading<MaxTdcSFT ){
-  	  hit_flag2 = true;
-	  //std::cout << "SFT_U : " << seg << ", " << leading<< std::endl;
-  	}
-
-      }
-      if( hit_flag){
-  	gEvDisp.DrawHitHodoscope( IdSFT_U, seg );
-      } else if (hit_flag2){
-  	gEvDisp.DrawHitHodoscope( IdSFT_U, seg , 1, -1);
-      }
-
-    }
-  }
-
-  ////////// SFT-V
-  {
-    // Fiber Hit
-    int nh = hodoAna->GetNHitsSFT(SFT_V);
-    for( int i=0; i<nh; ++i ){
-      const FiberHit* hit = hodoAna->GetHitSFT(SFT_V, i);
-      if(!hit) continue;
-      int mh = hit->GetNLeading();
-      int seg    = hit->SegmentId();
-
-      bool hit_flag = false;
-      bool hit_flag2 = false;
-
-      for( int m=0; m<mh; ++m ){
-  	double leading = hit->GetLeading(m);
-  	if( 530<leading && leading<MaxTdcSFT ){
-  	  hit_flag = true;
-	  //std::cout << "SFT_V : " << seg << ", " << leading<< std::endl;
-  	} else if( MinTdcSFT <leading && leading<MaxTdcSFT ){
-  	  hit_flag2 = true;
-	  //std::cout << "SFT_V : " << seg << ", " << leading<< std::endl;
-  	}
-      }
-      if( hit_flag ){
-  	gEvDisp.DrawHitHodoscope( IdSFT_V, seg );
-      } else if ( hit_flag2 ){
-  	gEvDisp.DrawHitHodoscope( IdSFT_V, seg , 1, -1);
-      }
-    }
-  }
-
-  ////////// SFT-X
-  {
-    // Fiber Hit
-    for(int p = SFT_X1; p<NumOfPlaneSFT; ++p){
-      int nh = hodoAna->GetNHitsSFT(p);
-      enum { U, D };
-      for( int i=0; i<nh; ++i ){
-	const FiberHit* hit = hodoAna->GetHitSFT(p, i);
-	if(!hit) continue;
-	int mh = hit->GetNLeading();
-	int seg    = hit->SegmentId();
-
-	bool hit_flag = false;
-	bool hit_flag2 = false;
-	// raw leading data
-	for( int m=0; m<mh; ++m ){
-	  double leading  = hit->GetLeading(m);
-
-	  if( 530<leading && leading<MaxTdcSFT ){
-	    hit_flag = true;
-	    //std::cout << "SFT_X : " << seg << ", " << leading<< std::endl;
-	  } else if( MinTdcSFT <leading && leading<MaxTdcSFT ){
-	    hit_flag2 = true;
-	    //std::cout << "SFT_X : " << seg << ", " << leading<< std::endl;
-	  }
-	}// for(m)
-
-	if( hit_flag ){
-	  gEvDisp.DrawHitHodoscope( IdSFT_X, seg );
-	} else if ( hit_flag2 ){
-	  gEvDisp.DrawHitHodoscope( IdSFT_X, seg , 1, -1);
-	}
-
-      }
-    }
-  }
-
-  // bool flagFBT=false;
-  {
-    ////////// FBT1
-    hodoAna->DecodeFBT1Hits( rawData );
-    // Fiber Hit
-    enum { U, D };
-    for(int layer = 0; layer<NumOfLayersFBT1; ++layer){
-      for(int UorD = 0; UorD<2; ++UorD){
-	int nh = hodoAna->GetNHitsFBT1(layer, UorD);
-	for( int i=0; i<nh; ++i ){
-	  const FiberHit* hit = hodoAna->GetHitFBT1(layer, UorD, i);
-	  if(!hit) continue;
-	  int mh  = hit->GetNLeading();
-	  int seg   = hit->SegmentId();
-
-	  bool hit_flag = false;
-	  bool hit_flag2 = false;
-	  // raw leading data
-	  for( int m=0; m<mh; ++m ){
-	    double leading  = hit->GetLeading(m);
-	    if( 505<leading && leading<MaxTdcFBT1 ){
-	      hit_flag = true;
-	      // flagFBT = true;
-	      //std::cout << "FBT1 : " << seg << ", " << leading<< std::endl;
-	    } else if( MinTdcFBT1 <leading && leading<MaxTdcFBT1 ){
-	      // flagFBT = true;	//
-	      hit_flag2 = true;
-	      //std::cout << "FBT1 : " << seg << ", " << leading<< std::endl;
-	    }
-	  }// for(m)
-
-	  int IdFBT = 0;
-	  if (layer == 0 && UorD ==D)
-	    IdFBT = IdFBT1_D1;
-	  else if (layer == 0 && UorD ==U)
-	    IdFBT = IdFBT1_U1;
-	  else if (layer == 1 && UorD ==D)
-	    IdFBT = IdFBT1_D2;
-	  else if (layer == 1 && UorD ==U)
-	    IdFBT = IdFBT1_U2;
-
-	  if( hit_flag ){
-	    gEvDisp.DrawHitHodoscope( IdFBT, seg );
-	  } else if ( hit_flag2 ){
-	    gEvDisp.DrawHitHodoscope( IdFBT, seg , 1, -1);
-	  }
-
-	}
-      }
-    }
-
-    ////////// FBT2
-    hodoAna->DecodeFBT2Hits( rawData );
-    for(int layer = 0; layer<NumOfLayersFBT2; ++layer){
-      for(int UorD = 0; UorD<2; ++UorD){
-	int nh = hodoAna->GetNHitsFBT2(layer, UorD);
-	for( int i=0; i<nh; ++i ){
-	  const FiberHit* hit = hodoAna->GetHitFBT2(layer, UorD, i);
-	  if(!hit) continue;
-	  int mh  = hit->GetNLeading();
-	  int seg   = hit->SegmentId();
-
-	  bool hit_flag = false;
-	  bool hit_flag2 = false;
-	  // raw leading data
-	  for( int m=0; m<mh; ++m ){
-	    double leading  = hit->GetLeading(m);
-	    if( 505<leading && leading<MaxTdcFBT2 ){
-	      // flagFBT = true;
-	      hit_flag = true;
-	      std::cout << "FBT2 : " << seg << ", " << leading<< std::endl;
-	    } else if( MinTdcFBT2 <leading && leading<MaxTdcFBT2 ){
-	      // flagFBT = true;
-	      hit_flag2 = true;
-	      std::cout << "FBT2 : " << seg << ", " << leading<< std::endl;
-	    }
-	  }// for(m)
-
-	  int IdFBT = 0;
-	  if (layer == 0 && UorD ==D)
-	    IdFBT = IdFBT2_D1;
-	  else if (layer == 0 && UorD ==U)
-	    IdFBT = IdFBT2_U1;
-	  else if (layer == 1 && UorD ==D)
-	    IdFBT = IdFBT2_D2;
-	  else if (layer == 1 && UorD ==U)
-	    IdFBT = IdFBT2_U2;
-
-	  if( hit_flag ){
-	    gEvDisp.DrawHitHodoscope( IdFBT, seg );
-	  } else if ( hit_flag2 ){
-	    gEvDisp.DrawHitHodoscope( IdFBT, seg , 1, -1);
-	  }
-
-	}
-      }
-    }
-  }
 
 
   // BH1
@@ -935,8 +717,8 @@ UserEventDisplay::ProcessingNormal( void )
   // SdcIn
   double multi_SdcIn = 0.;
   {
-    //for( int layer=1; layer<=NumOfLayersSdcIn; ++layer ){
-    for( int layer=1; layer<=NumOfLayersSDC1; ++layer ){
+    const int NumOfLayersSdcIn = PlMaxSdcIn - PlMinSdcIn + 1;
+    for( int layer=1; layer<=NumOfLayersSdcIn; ++layer ){
       const DCHitContainer &contIn =DCAna->GetSdcInHC(layer);
       int nhIn=contIn.size();
       if ( nhIn > MaxMultiHitSdcIn )
@@ -944,19 +726,8 @@ UserEventDisplay::ProcessingNormal( void )
       for( int i=0; i<nhIn; ++i ){
 	DCHit  *hit  = contIn[i];
 	double  wire = hit->GetWire();
-	int     mhit = hit->GetTdcSize();
-	bool    goodFlag = false;
 	++multi_SdcIn;
-	for (int j=0; j<mhit; j++) {
-	  if (hit->IsWithinRange(j)) {
-	    goodFlag = true;
-	    break;
-	  }
-	}
-	if( goodFlag )
 	  gEvDisp.DrawHitWire( layer, int(wire) );
-	else
-	  gEvDisp.DrawHitWire( layer, int(wire), false, false );
       }
     }
   }
@@ -970,13 +741,13 @@ UserEventDisplay::ProcessingNormal( void )
   // SdcOut
   double offset = flag_tof_stop ? 0 : dTOfs;
   DCAna->DecodeSdcOutHits( rawData, offset );
-  DCAna->TotCutSDC2( MinTotSDC2 );
   DCAna->TotCutSDC3( MinTotSDC3 );
+  DCAna->TotCutSDC4( MinTotSDC4 );
 
   double multi_SdcOut = 0.;
   {
-    const int NumOfLayersSdcOut_wo_FBT = PlMaxSdcOut - PlMinSdcOut + 1;
-    for( int layer=1; layer<=NumOfLayersSdcOut_wo_FBT; ++layer ){
+    const int NumOfLayersSdcOut = PlMaxSdcOut- PlMinSdcOut + 1;
+    for( int layer=1; layer<=NumOfLayersSdcOut; ++layer ){
       const DCHitContainer &contOut =DCAna->GetSdcOutHC(layer);
       int nhOut = contOut.size();
       if ( nhOut > MaxMultiHitSdcOut )
@@ -984,21 +755,8 @@ UserEventDisplay::ProcessingNormal( void )
       for( int i=0; i<nhOut; ++i ){
 	DCHit  *hit  = contOut[i];
 	double  wire = hit->GetWire();
-
-	int     mhit = hit->GetDriftTimeSize();
-	bool    goodFlag = false;
-	for (int j=0; j<mhit; j++) {
-	  if (hit->IsWithinRange(j)) {
-	    goodFlag = true;
-	    break;
-	  }
-	}
-
 	++multi_SdcOut;
-	if( goodFlag )
-	  gEvDisp.DrawHitWire( layer+30, int(wire) );
-	else
-	  gEvDisp.DrawHitWire( layer+30, int(wire), false, false );
+	gEvDisp.DrawHitWire( layer+30, int(wire) );
       }
     }
   }
