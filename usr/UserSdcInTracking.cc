@@ -140,6 +140,9 @@ EventSdcInTracking::ProcessingNormal( void )
 {
   const std::string func_name("["+classname+"::"+__func__+"]");
 
+  //  static const double MinTotSDC1 = gUser.GetParameter("MinTotSDC1", 0);
+  //  static const double MinTotSDC2 = gUser.GetParameter("MinTotSDC2", 0);
+
 #if HodoCut
   static const double MinDeBH2   = gUser.GetParameter("DeBH2", 0);
   static const double MaxDeBH2   = gUser.GetParameter("DeBH2", 1);
@@ -266,6 +269,8 @@ EventSdcInTracking::ProcessingNormal( void )
   HF1( 1, 9. );
 
   DCAna->DecodeRawHits( rawData );
+  //  DCAna->TotCutSDC1( MinTotSDC1 );
+  //  DCAna->TotCutSDC2( MinTotSDC2 );
 
   //BC3&BC4
   double multi_BcOut=0.;
@@ -430,10 +435,7 @@ EventSdcInTracking::ProcessingNormal( void )
       if( !hit ) continue;
       int layerId = hit->GetLayer();
       HF1( 13, layerId );
-      // if( hit->IsSsd() && layerId>=7 && layerId<=10 ){
-      // 	double de  = hit->GetDe();
-      // 	event.deKaon[layerId-7][it]  = de;
-      // }
+
       double wire=hit->GetWire();
       double dt=hit->GetDriftTime(), dl=hit->GetDriftLength();
       HF1( 100*layerId+11, wire-0.5 );
@@ -535,26 +537,6 @@ EventSdcInTracking::InitializeEvent( void )
     }
   }
 
-  // for( int it=0; it<MaxHits; it++){
-  //   event.nhSsdX[it]     = 0;
-  //   event.chisqrSsdX[it] = -9999.;
-  //   event.x0SsdX[it]     = -9999.;
-  //   event.u0SsdX[it]     = -9999.;
-  //   event.nhSsdY[it]     = 0;
-  //   event.chisqrSsdY[it] = -9999.;
-  //   event.y0SsdY[it]     = -9999.;
-  //   event.v0SsdY[it]     = -9999.;
-
-  //   event.chisqrSsdIn[it] = -1.0;
-  //   event.x0SsdIn[it] = -9999.;
-  //   event.y0SsdIn[it] = -9999.;
-  //   event.u0SsdIn[it] = -9999.;
-  //   event.v0SsdIn[it] = -9999.;
-  //   for( int ih=0; ih<NumOfLayersSsdIn; ih++){
-  //     event.deKaon[ih][it] = -9999.;
-  //     event.deXi[ih][it]   = -9999.;
-  //   }
-  // }
 }
 
 //______________________________________________________________________________
@@ -575,17 +557,23 @@ ConfMan::EventAllocator( void )
 //______________________________________________________________________________
 namespace
 {
-  const int NbinTdc   = 1000;
-  const double MinTdc =  200.;
-  const double MaxTdc = 1200.;
+  const int    NbinSdcInTdc = 2000;
+  const double MinSdcInTdc  =    0.;
+  const double MaxSdcInTdc  = 2000.;
 
-  const int NbinDT   =  180;
-  const double MinDT =  -30.;
-  const double MaxDT =  150.;
+  const int    NbinSDC1DT = 240;
+  const double MinSDC1DT  = -50.;
+  const double MaxSDC1DT  = 150.;
+  const int    NbinSDC1DL =  90;
+  const double MinSDC1DL  =  -2.;
+  const double MaxSDC1DL  =   7.;
 
-  const int NbinDL   =  90;
-  const double MinDL = -0.5;
-  const double MaxDL =  4.0;
+  const int    NbinSDC2DT = 480;
+  const double MinSDC2DT  = -50.;
+  const double MaxSDC2DT  = 350.;
+  const int    NbinSDC2DL = 180;
+  const double MinSDC2DL  =  -3.;
+  const double MaxSDC2DL  =  15.;
 
   const int NbinRes   =  200;
   const double MinRes = -1.;
@@ -602,15 +590,26 @@ ConfMan:: InitializeHistograms( void )
   for( int i=1; i<=NumOfLayersSdcIn; ++i ){
 
     std::string tag;
-    int nwire = 0;
-    double mintdc = 0., maxtdc = 0.;
-    switch ( i ) {
-    default:
-      tag = "SDC1";
-      nwire = MaxWireSDC1;
-      mintdc = MinTdc;
-      maxtdc = MaxTdc;
-      break;
+    int nwire = 0, nbindt = 0, nbindl = 0;
+    double mindt = 0., maxdt = 0., mindl = 0., maxdl = 0.;
+    if(i<=NumOfLayersSDC1){
+      tag    = "SDC1";
+      nwire  = MaxWireSDC1;
+      nbindt = NbinSDC1DT;
+      mindt  = MinSDC1DT;
+      maxdt  = MaxSDC1DT;
+      nbindl = NbinSDC1DL;
+      mindl  = MinSDC1DL;
+      maxdl  = MaxSDC1DL;
+    }else if(i<=NumOfLayersSdcIn){
+      tag = "SDC2";
+      nwire   = ( i==7 || i==8 ) ? MaxWireSDC2X : MaxWireSDC2Y;
+      nbindt = NbinSDC2DT;
+      mindt  = MinSDC2DT;
+      maxdt  = MaxSDC2DT;
+      nbindl = NbinSDC2DL;
+      mindl  = MinSDC2DL;
+      maxdl  = MaxSDC2DL;
     }
 
     TString title0 = Form("#Hits %s#%2d", tag.c_str(), i);
@@ -621,19 +620,19 @@ ConfMan:: InitializeHistograms( void )
     TString title9 = Form("#Hits w/ TDC cut %s#%2d", tag.c_str(), i);
     HB1( 100*i+0, title0, nwire+1, 0., double(nwire+1) );
     HB1( 100*i+1, title1, nwire, 0., double(nwire) );
-    HB1( 100*i+2, title2, NbinTdc, mintdc, maxtdc );
-    HB1( 100*i+3, title3, NbinDT, MinDT, MaxDT );
-    HB1( 100*i+4, title4, NbinDL, MinDL, MaxDL );
+    HB1( 100*i+2, title2, NbinSdcInTdc, MinSdcInTdc, MaxSdcInTdc );
+    HB1( 100*i+3, title3, nbindt, mindt, maxdt );
+    HB1( 100*i+4, title4, nbindl, mindl, maxdl );
     HB1( 100*i+9, title9, nwire+1, 0., double(nwire+1) );
     for ( int wire=1; wire<=nwire; wire++ ){
       TString title11 = Form("Tdc %s#%2d  Wire#%4d", tag.c_str(), i, wire);
       TString title12 = Form("DriftTime %s#%2d Wire#%4d", tag.c_str(), i, wire);
       TString title13 = Form("DriftLength %s#%2d Wire#%d", tag.c_str(), i, wire);
       TString title14 = Form("DriftTime %s#%2d Wire#%4d [Track]", tag.c_str(), i, wire);
-      HB1( 10000*i+wire, title11, NbinTdc, mintdc, maxtdc );
-      HB1( 10000*i+1000+wire, title12, NbinDT, MinDT, MaxDT );
-      HB1( 10000*i+2000+wire, title13, NbinDL, MinDL, MaxDL );
-      HB1( 10000*i+5000+wire, title14, NbinDT, MinDT, MaxDT );
+      HB1( 10000*i+wire, title11, NbinSdcInTdc, MinSdcInTdc, MaxSdcInTdc );
+      HB1( 10000*i+1000+wire, title12, nbindt, mindt, maxdt );
+      HB1( 10000*i+2000+wire, title13, nbindl, mindl, maxdl );
+      HB1( 10000*i+5000+wire, title14, nbindt, mindt, maxdt );
     }
   }
 
@@ -672,12 +671,26 @@ ConfMan:: InitializeHistograms( void )
   for( int i=1; i<=NumOfLayersSdcIn; ++i ){
 
     std::string tag;
-    int nwire = 0;
-    switch ( i ) {
-    default:
-      tag = "SDC1";
-      nwire = MaxWireSDC1;
-      break;
+    int nwire = 0, nbindt = 0, nbindl = 0;
+    double mindt = 0., maxdt = 0., mindl = 0., maxdl = 0.;
+    if(i<=NumOfLayersSDC1){
+      tag    = "SDC1";
+      nwire  = MaxWireSDC1;
+      nbindt = NbinSDC1DT;
+      mindt  = MinSDC1DT;
+      maxdt  = MaxSDC1DT;
+      nbindl = NbinSDC1DL;
+      mindl  = MinSDC1DL;
+      maxdl  = MaxSDC1DL;
+    }else if(i<=NumOfLayersSdcIn){
+      tag = "SDC2";
+      nwire   = ( i==7 || i==8 ) ? MaxWireSDC2X : MaxWireSDC2Y;
+      nbindt = NbinSDC2DT;
+      mindt  = MinSDC2DT;
+      maxdt  = MaxSDC2DT;
+      nbindl = NbinSDC2DL;
+      mindl  = MinSDC2DL;
+      maxdl  = MaxSDC2DL;
     }
 
     TString title11 = Form("HitPat SdcIn%2d [Track]", i);
@@ -696,17 +709,17 @@ ConfMan:: InitializeHistograms( void )
     TString title72 = Form("Residual SdcIn%2d (15<theta<30)", i);
     TString title73 = Form("Residual SdcIn%2d (30<theta<45)", i);
     TString title74 = Form("Residual SdcIn%2d (45<theta)", i);
-    HB1( 100*i+11, title11, MaxWireSDC1, 0., double(nwire) );
-    HB1( 100*i+12, title12, NbinDT, MinDT, MaxDT );
-    HB1( 100*i+13, title13, NbinDL, MinDL, MaxDL );
+    HB1( 100*i+11, title11, nwire, 0., double(nwire) );
+    HB1( 100*i+12, title12, nbindt, mindt, maxdt );
+    HB1( 100*i+13, title13, nbindl, mindl, maxdl );
     HB1( 100*i+14, title14, 100, -250., 250. );
     HB1( 100*i+15, title15, NbinRes, MinRes, MaxRes );
     HB2( 100*i+16, title16, 250, -250., 250., NbinRes, MinRes, MaxRes );
     HB2( 100*i+17, title17, 100, -250., 250., 100, -250., 250. );
     HB2( 100*i+18, title18, 100, -3., 3., NbinRes, MinRes, MaxRes );
-    HB2( 100*i+19, title19, NbinDT, MinDT, MaxDT, 100, -4., 4. );
-    HBProf( 100*i+20, title20, NbinDT, MinDT, MaxDT, MinDL, MaxDL );
-    HB2( 100*i+22, title22, NbinDT, MinDT, MaxDT, NbinDL, MinDL, MaxDL );
+    HB2( 100*i+19, title19, nbindt, mindt, maxdt, 100, -4., 4. );
+    HBProf( 100*i+20, title20, nbindt, mindt, maxdt, mindl, maxdl );
+    HB2( 100*i+22, title22, nbindt, mindt, maxdt, nbindl, mindl, maxdl );
     HB1( 100*i+21, title21, 200, -5.0, 5.0 );
     HB1( 100*i+71, title71, 200, -5.0, 5.0 );
     HB1( 100*i+72, title72, 200, -5.0, 5.0 );
@@ -761,40 +774,14 @@ ConfMan:: InitializeHistograms( void )
   tree->Branch("u0",        event.u0,       "u0[ntrack]/D");
   tree->Branch("v0",        event.v0,       "v0[ntrack]/D");
 
-  // TString layer_name[NumOfLayersSdcIn] =
-  //   { "ssd1y0", "ssd1x0", "ssd1y1", "ssd1x1",
-  //     "ssd2x0", "ssd2y0", "ssd2x1", "ssd2y1",
-  //     "sdc1v0", "sdc1v1", "sdc1x0", "sdc1x1", "sdc1u0", "sdc1u1" };
   TString layer_name[NumOfLayersSdcIn] =
-    { "sdc1v0", "sdc1v1", "sdc1x0", "sdc1x1", "sdc1u0", "sdc1u1" };
+    { "sdc1v0", "sdc1v1", "sdc1x0", "sdc1x1", "sdc1u0", "sdc1u1",
+      "sdc2x0", "sdc2x1", "sdc2y0", "sdc2y1"};
   for( int i=0; i<NumOfLayersSdcIn; ++i ){
     TString name = Form("%s_pos", layer_name[i].Data() );
     TString type = Form("%s_pos[%d]/D", layer_name[i].Data(), MaxHits );
     tree->Branch( name, event.pos[i], type );
   }
-
-  // tree->Branch("ntSsdX",     &event.ntSsdX,     "ntSsdX/I");
-  // tree->Branch("nhSsdX",      event.nhSsdX,     "nhSsdX[ntSsdX]/I");
-  // tree->Branch("chisqrSsdX",  event.chisqrSsdX, "chisqrSsdX[ntSsdX]/D");
-  // tree->Branch("x0SsdX",      event.x0SsdX,     "x0SsdX[ntSsdX]/D");
-  // tree->Branch("u0SsdX",      event.u0SsdX,     "u0SsdX[ntSsdX]/D");
-
-  // tree->Branch("ntSsdY",     &event.ntSsdY,     "ntSsdY/I");
-  // tree->Branch("nhSsdY",      event.nhSsdY,     "nhSsdY[ntSsdY]/I");
-  // tree->Branch("chisqrSsdY",  event.chisqrSsdY, "chisqrSsdY[ntSsdY]/D");
-  // tree->Branch("y0SsdY",      event.y0SsdY,     "y0SsdY[ntSsdY]/D");
-  // tree->Branch("v0SsdY",      event.v0SsdY,     "v0SsdY[ntSsdY]/D");
-
-  // tree->Branch("ntSsdIn",     &event.ntSsdIn,     "ntSsdIn/I");
-  // tree->Branch("chisqrSsdIn",  event.chisqrSsdIn, "chisqrSsdIn[ntSsdIn]/D");
-  // tree->Branch("x0SsdIn",      event.x0SsdIn,     "x0SsdIn[ntSsdIn]/D");
-  // tree->Branch("y0SsdIn",      event.y0SsdIn,     "y0SsdIn[ntSsdIn]/D");
-  // tree->Branch("u0SsdIn",      event.u0SsdIn,     "u0SsdIn[ntSsdIn]/D");
-  // tree->Branch("v0SsdIn",      event.v0SsdIn,     "v0SsdIn[ntSsdIn]/D");
-  // tree->Branch("deKaon",       event.deKaon,      Form("deKaon[%d][%d]/D",
-  // 						       NumOfLayersSsdIn, MaxHits ) );
-  // tree->Branch("deXi",         event.deXi,        Form("deXi[%d][%d]/D",
-  // 						       NumOfLayersSsdIn, MaxHits ) );
   HPrint();
   return true;
 }
@@ -809,7 +796,6 @@ ConfMan::InitializeParameterFiles( void )
       InitializeParameter<DCTdcCalibMan>("DCTDC")    &&
       InitializeParameter<HodoParamMan>("HDPRM")     &&
       InitializeParameter<HodoPHCMan>("HDPHC")       &&
-      // InitializeParameter<SsdParamMan>("SSDPRM")     &&
       InitializeParameter<UserParamMan>("USER")      );
 }
 

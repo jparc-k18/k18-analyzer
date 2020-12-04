@@ -239,6 +239,7 @@ DCLocalTrack::DoFit( void )
       double ds = dl * dcos;
       double dz = dl * dsin;
       double scal = iItr==0 ? ss : GetS(z[i],aa);
+
       if( honeycomb[i] ){
 	s[i] = scal-wp[i]>0 ? wp[i]+ds : wp[i]-ds;
 	z[i] = scal-wp[i]>0 ? z0[i]-dz : z0[i]+dz;
@@ -263,8 +264,8 @@ DCLocalTrack::DoFit( void )
       double res  = honeycomb[i] ? (ss-scal)*coss[i] : s[i]-scal;
       chisqr += w[i]*res*res;
     }
-    chisqr /= GetNDF();
 
+    chisqr /= GetNDF();
     if( iItr==0 ) m_chisqr1st = chisqr;
 
     // if worse, not update
@@ -276,7 +277,6 @@ DCLocalTrack::DoFit( void )
       m_chisqr = chisqr;
       m_de     = de;
     }
-
     // judge convergence
     if( prev_chisqr-chisqr<MaxChisqrDiff ){
 #if 0
@@ -294,7 +294,6 @@ DCLocalTrack::DoFit( void )
       m_n_iteration = iItr;
       break;
     }
-
     prev_chisqr = chisqr;
   }
 

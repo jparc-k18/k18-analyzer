@@ -31,7 +31,7 @@ namespace track
 			int MinNumOfHits=6, int T0Seg = -1 );
 
   //___________________________________________________________________________
-  int LocalTrackSearchSdcInFiber( const std::vector<DCHitContainer>& HC,
+  int LocalTrackSearchSdcIn( const std::vector<DCHitContainer>& SdcInHC,
 				  const DCPairPlaneInfo *PpInfo,
 				  int npp, std::vector<DCLocalTrack*>& trackCont,
 				  int MinNumOfHits=6 );

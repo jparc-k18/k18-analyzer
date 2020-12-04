@@ -984,7 +984,7 @@ namespace track
 
   //___________________________________________________________________________
   int /* Local Track Search SdcIn */
-  LocalTrackSearchSdcInFiber( const std::vector<DCHitContainer>& HC,
+  LocalTrackSearchSdcIn( const std::vector<DCHitContainer>& SdcInHC,
 			      const DCPairPlaneInfo *PpInfo,
 			      int npp, std::vector<DCLocalTrack*>& TrackCont,
 			      int MinNumOfHits /*=6*/ )
@@ -1001,12 +1001,10 @@ namespace track
       int  layer2    = PpInfo[i].id2;
 
       if(ppFlag) {
-	MakePairPlaneHitCluster( HC[layer1], HC[layer2],
+	MakePairPlaneHitCluster( SdcInHC[layer1], SdcInHC[layer2],
 				 PpInfo[i].CellSize, CandCont[i], honeycomb );
-      }else if(layer1==layer2){
-	MakeMWPCPairPlaneHitCluster( HC[layer1], CandCont[i] );
       }else{
-	MakeUnPairPlaneHitCluster( HC[layer1], CandCont[i], honeycomb );
+	MakeUnPairPlaneHitCluster( SdcInHC[layer1], CandCont[i], honeycomb );
       }
     }
 
@@ -1022,6 +1020,7 @@ namespace track
     for( int i=0, n=CombiIndex.size(); i<n; ++i ){
       DCLocalTrack *track = MakeTrack( CandCont, CombiIndex[i] );
       if( !track ) continue;
+
       if(true
 	 && track->GetNHit()>=MinNumOfHits
 	 && track->DoFit()
@@ -1033,7 +1032,7 @@ namespace track
 	delete track;
     }
 
-    FinalizeTrack( func_name, TrackCont, DCLTrackCompSdcInFiber(), CandCont );
+    FinalizeTrack( func_name, TrackCont, DCLTrackComp(), CandCont );
     return status? TrackCont.size() : -1;
   }
 
@@ -1493,11 +1492,80 @@ namespace track
 
     }
 
+    ClearFlags( TrackCont );
+
     std::stable_sort( TrackCont.begin(), TrackCont.end(), DCLTrackComp1() );
 
-    FinalizeTrack( func_name, TrackCont, DCLTrackCompSdcInFiber(), CandCont );
+#if 1
+    // Delete Tracks about  (Nhit1 > Nhit2+1) (Nhit1 > Nhit2  && chi1 < chi2)
+    for( int i=0; i<int(TrackCont.size()); ++i ){
+      DCLocalTrack *tp=TrackCont[i];
+      int nh=tp->GetNHit();
+      double chi=tp->GetChiSquare();
+      for( int j=0; j<nh; ++j ) tp->GetHit(j)->JoinTrack();
+
+      for( int i2=TrackCont.size()-1; i2>i; --i2 ){
+	DCLocalTrack *tp2=TrackCont[i2];
+	int nh2=tp2->GetNHit(), flag=0;
+	double chi2=tp2->GetChiSquare();
+	for( int j=0; j<nh2; ++j )
+	  if( tp2->GetHit(j)->BelongToTrack() ) ++flag;
+	if((flag>=2) && ((nh==nh2) || ((nh>nh2) && (chi<chi2)))){
+	  //      if((flag) && ((nh>nh2+1) || ((nh==nh2) || (nh>nh2) && (chi<chi2)))){
+	  //if((nh>nh2) && (chi<chi2)){
+	  delete tp2;
+	  TrackCont.erase(TrackCont.begin()+i2);
+	}
+      }
+    }
+#endif
+
+    FinalizeTrack( func_name, TrackCont, DCLTrackComp(), CandCont );
 
     std::stable_sort( TrackCont.begin(), TrackCont.end(), DCLTrackComp() );
+
+    // Clear Flags
+    {
+      int nbefore=TrackCont.size();
+      for( int i=0; i<nbefore; ++i ){
+	DCLocalTrack *tp=TrackCont[i];
+	int nh=tp->GetNHit();
+	for( int j=0; j<nh; ++j ){
+	  tp->GetHit(j)->QuitTrack();
+	}
+      }
+    }
+
+    // Delete Duplicated Tracks
+
+    for( int i=0; i<int(TrackCont.size()); ++i ){
+      DCLocalTrack *tp=TrackCont[i];
+      int nh=tp->GetNHit();
+      for( int j=0; j<nh; ++j ) tp->GetHit(j)->JoinTrack();
+
+      for( int i2=TrackCont.size()-1; i2>i; --i2 ){
+	DCLocalTrack *tp2=TrackCont[i2];
+	int nh2=tp2->GetNHit(), flag=0;
+	for( int j=0; j<nh2; ++j )
+	  if( tp2->GetHit(j)->BelongToTrack() ) ++flag;
+	if(flag){
+	  delete tp2;
+	  TrackCont.erase(TrackCont.begin()+i2);
+	}
+      }
+    }
+
+    // Clear Flags
+    {
+      int nbefore=TrackCont.size();
+      for( int i=0; i<nbefore; ++i ){
+	DCLocalTrack *tp=TrackCont[i];
+	int nh=tp->GetNHit();
+	for( int j=0; j<nh; ++j ){
+	  tp->GetHit(j)->QuitTrack();
+	}
+      }
+    }
 
     {
       int nn=TrackCont.size();

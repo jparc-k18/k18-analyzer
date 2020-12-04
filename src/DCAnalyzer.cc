@@ -307,9 +307,9 @@ DCAnalyzer::DecodeSdcInHits( RawData *rawData )
   ClearSdcInHits();
 
 
-  // SDC1
+  // SDC1, SDC2
   {
-    for( int layer=1; layer<=NumOfLayersSDC1; ++layer ){
+    for( int layer=1; layer<=NumOfLayersSdcIn; ++layer ){
       const DCRHitContainer &RHitCont=rawData->GetSdcInRawHC(layer);
       int nh = RHitCont.size();
       for( int i=0; i<nh; ++i ){
@@ -333,32 +333,6 @@ DCAnalyzer::DecodeSdcInHits( RawData *rawData )
     }
   }
 
-  // SDC2
-  {
-    for( int layer=1; layer<=NumOfLayersSdcIn - NumOfLayersSDC1; ++layer ){
-      const DCRHitContainer &RHitCont=rawData->GetSdcInRawHC(layer);
-      int nh = RHitCont.size();
-      for( int i=0; i<nh; ++i ){
-	DCRawHit *rhit  = RHitCont[i];
-	DCHit    *hit   = new DCHit( rhit->PlaneId(), rhit->WireId() );
-	// DCHit    *hit   = new DCHit( rhit->PlaneId() + NumOfLayersSFT, rhit->WireId() );
-	int       nhtdc      = rhit->GetTdcSize();
-	int       nhtrailing = rhit->GetTrailingSize();
-	if(!hit) continue;
-	for( int j=0; j<nhtdc; ++j ){
-	  hit->SetTdcVal( rhit->GetTdc(j) );
-	}
-	for( int j=0; j<nhtrailing; ++j ){
-	  hit->SetTdcTrailing( rhit->GetTrailing(j) );
-	}
-	if( hit->CalcDCObservables() ) {
-	  m_SdcInHC[layer].push_back(hit);
-	} else {
-	  delete hit;
-	}
-      }
-    }
-  }
   m_is_decoded[k_SdcIn] = true;
   return true;
 }
@@ -607,8 +581,7 @@ DCAnalyzer::TrackSearchSdcIn( void )
 {
   static const int MinLayer = gUser.GetParameter("MinLayerSdcIn");
 
-  track::LocalTrackSearch( m_SdcInHC, PPInfoSdcIn, NPPInfoSdcIn, m_SdcInTC, MinLayer );
-  //  track::LocalTrackSearchSdcInFiber( m_SdcInHC, PPInfoSdcIn, NPPInfoSdcIn, m_SdcInTC, MinLayer );
+  track::LocalTrackSearchSdcIn( m_SdcInHC, PPInfoSdcIn, NPPInfoSdcIn, m_SdcInTC, MinLayer );
   return true;
 }
 

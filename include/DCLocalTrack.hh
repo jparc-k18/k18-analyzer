@@ -258,7 +258,7 @@ struct DCLTrackComp_Chisqr
 
 
 //______________________________________________________________________________
-struct DCLTrackCompSdcInFiber
+struct DCLTrackCompSdcIn     // for SDC1+SFT   not used in e03 data
   : public std::binary_function <DCLocalTrack *, DCLocalTrack *, bool>
 {
   bool operator()( const DCLocalTrack * const p1,
