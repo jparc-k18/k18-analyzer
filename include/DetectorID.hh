@@ -128,6 +128,12 @@ const int MaxWireSDC4Y    =  64;
 const int NumOfPlaneBFT   =   2;
 const int NumOfSegBFT     = 160;
 
+// HBX -----------------------------------------------
+const int DetIdGe     = 27;
+const int DetIdBGO    = 114;
+const int NumOfSegGe  = 16;
+const int NumOfSegBGO = 48;
+
 // HulRm -----------------------------------------------
 const int NumOfHulRm   = 4;
 
