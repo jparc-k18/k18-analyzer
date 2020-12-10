@@ -38,8 +38,12 @@ const int DetIdMsTRM      = 82;
 const int DetIdHulRM      = 83;
 const int NumOfSegTrig    = 32;
 const int NumOfSegScaler  = 96;
+const int NumOfPlaneVmeRm =  2;
 const int SpillEndFlag    = 27; // 0-based
-const int NumOfPlaneVmeRm = 2;
+const int LSOGeFlag       =  0; // HbxTrig
+const int GeCoinFlag      =  1; // HbxTrig
+const int SpillOnFlag     =  2; // HbxTrig
+const int SpillOffFlag    =  3; // HbxTrig
 
 enum eTriggerFlag
   {
@@ -131,8 +135,10 @@ const int NumOfSegBFT     = 160;
 // HBX -----------------------------------------------
 const int DetIdGe     = 27;
 const int DetIdBGO    = 114;
+const int DetIdHbxTrig= 23;
 const int NumOfSegGe  = 16;
 const int NumOfSegBGO = 48;
+const int NumOfSegHbxTrig =  4;
 
 // HulRm -----------------------------------------------
 const int NumOfHulRm   = 4;

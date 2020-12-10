@@ -22,5 +22,6 @@ runmanager/log
 runmanager/stat
 runmanager/tmp
 runmanager/unpack
+runmanager/macro
 scaler
 param/KURAMA

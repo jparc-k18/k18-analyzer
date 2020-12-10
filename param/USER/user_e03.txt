@@ -91,11 +91,24 @@ TimeL1 230 260
 ### SdcOut dT offset for L1 stop timing
 dTOfs 150.
 
-
 ### SdcOut TOT cut
 MinTotSDC3 50.
 MinTotSDC4 80.
 
-
 ### TOF KID
-TOFKID 2.1 300 840
+TOFKID 2.1 300 84 0
+
+### TFA TDC range
+TdcTFA 0 8000
+
+### CRM TDC range
+TdcCRM 0 8000
+
+### TFA cut for Ge ADC
+TCut 3000 6000
+
+### CRM cut for Ge ADC
+CCut 3000 6000
+
+### BGO cut for Ge ADC
+BCut 0 1000

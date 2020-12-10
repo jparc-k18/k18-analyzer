@@ -148,7 +148,7 @@ EventSdcInTracking::ProcessingNormal( void )
   static const double MaxDeBH2   = gUser.GetParameter("DeBH2", 1);
   static const double MinDeBH1   = gUser.GetParameter("DeBH1", 0);
   static const double MaxDeBH1   = gUser.GetParameter("DeBH1", 1);
-  static const double MinBeamToF = gUser.GetParameter("BTOF",  1);
+  static const double MinBeamToF = gUser.GetParameter("BTOF",  0);
   static const double MaxBeamToF = gUser.GetParameter("BTOF",  1);
 #endif
 #if MaxMultiCut
