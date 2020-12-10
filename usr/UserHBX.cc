@@ -219,7 +219,7 @@ EventHBX::ProcessingNormal( void )
       if( event.hbxtrigflag[LSOGeFlag]>0  ) event.lsogeadc[seg]      = adc;	 
       if( event.hbxtrigflag[GeCoinFlag]>0 ) event.coingeadc[seg]     = adc;	 
       if( event.hbxtrigflag[SpillOnFlag]>0) event.spillongeadc[seg]  = adc;
-      if( event.hbxtrigflag[LSOGeFlag]>0  ) event.spilloffgeadc[seg] = adc;
+      if( event.hbxtrigflag[SpillOffFlag]>0  ) event.spilloffgeadc[seg] = adc;
 
       //adc w/ tfa
       if( nhit_t>0){
