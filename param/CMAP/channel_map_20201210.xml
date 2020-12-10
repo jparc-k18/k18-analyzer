@@ -726,8 +726,8 @@
       <for var="ch" from="16" to="31"><for var="data" from="0" to="2">
     	<FE ch="ch" data="data"><D Device="Ge" segment="ch - 16" ch="0" data="data + 4"/></FE>
       </for></for>
-      <for var="ch" from="32" to="35"><for var="data" from="0" to="3">
-    	<FE ch="ch" data="data"><D Device="HBXTFlag" segment="ch - 32" ch="0" data="data"/></FE>
+      <for var="ch" from="32" to="35"><for var="data" from="0" to="2">
+    	<FE ch="ch" data="data"><D Device="HBXTFlag" segment="ch - 32" ch="0" data="data + 1"/></FE>
       </for></for>
       <for var="ch" from="36" to="127"><for var="data" from="0" to="2">
 	<FE ch="ch"  data="data"><D Device="HULMHTDCdummy" plane="10" ch="ch" data="data"/></FE>

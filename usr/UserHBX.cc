@@ -20,6 +20,7 @@
 #include "RootHelper.hh"
 #include "UnpackerManager.hh"
 #include "VEvent.hh"
+#include "Unpacker.hh"
 
 namespace
 {
@@ -145,6 +146,11 @@ namespace root
 bool
 EventHBX::ProcessingBegin( void )
 {
+  //for debug///////////////////////////////////////////////
+  //Unpacker *node = gUnpacker.get_root()->get_child(2004);
+  //node->set_dump_mode(defines::k_hex);
+  //////////////////////////////////////////////////////////
+
   InitializeEvent();
   return true;
 }
