@@ -184,7 +184,7 @@ EventBcOutTracking::ProcessingNormal( void )
   }
   HF1( 1, 0. );
 
-  if( trigflag[SpillEndFlag] ) return true;
+  if( trigflag[trigger::kSpillEnd] ) return true;
 
   HF1( 1, 1. );
 

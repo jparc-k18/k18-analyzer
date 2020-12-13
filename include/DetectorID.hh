@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include <TString.h>
+
 // Counters ___________________________________________________________
 const int DetIdBH1      =  1;
 const int DetIdBH2      =  2;
@@ -36,50 +38,91 @@ const int DetIdFpgaBH2Mt  = 29;
 const int DetIdVmeRm      = 81;
 const int DetIdMsTRM      = 82;
 const int DetIdHulRM      = 83;
-const int NumOfSegTrig    = 32;
+// const int NumOfSegTrig    = ; defined later
 const int NumOfSegScaler  = 96;
 const int NumOfPlaneVmeRm =  2;
-const int SpillEndFlag    = 27; // 0-based
 const int LSOGeFlag       =  0; // HbxTrig
 const int GeCoinFlag      =  1; // HbxTrig
 const int SpillOnFlag     =  2; // HbxTrig
 const int SpillOffFlag    =  3; // HbxTrig
 
-enum eTriggerFlag
+// Trigger Flag
+namespace trigger
+{
+  enum ETriggerFlag
   {
-    kBh21K      =  0,
-    kBh22K      =  1,
-    kBh23K      =  2,
-    kBh24K      =  3,
-    kBh25K      =  4,
-    kBh26K      =  5,
-    kBh27K      =  6,
-    kBh28K      =  7,
-    kBh2K       =  8,
-    kElseOr     =  9,
-    kBeam       = 10,
-    kBeamTof    = 11,
-    kBeamPi     = 12,
-    kBeamP      = 13,
-    kCoin1      = 14,
-    kCoin2      = 15,
-    kE03        = 16,
-    kBh2KPs     = 17,
-    kBeamPs     = 18,
-    kBeamTofPs  = 19,
-    kBeamPiPs   = 10,
-    kBeamPPs    = 21,
-    kCoin1Ps    = 22,
-    kCoin2Ps    = 23,
-    kE03Ps      = 24,
-    kClock      = 25,
-    kReserve2   = 26,
-    kSpillEnd   = 27,
-    kMatrix     = 28,
-    kMstAccept  = 29,
-    kMstClear   = 30,
-    kTofTiming  = 31
+    kL1SpillOn,
+    kL1SpillOff,
+    kSpillEnd,
+    kSpillOnEnd,
+    kTofTiming,
+    kMatrix2D1,
+    kMatrix2D2,
+    kMatrix3D,
+    kBeamA,
+    kBeamB,
+    kBeamC,
+    kBeamD,
+    kBeamE,
+    kBeamF,
+    kTrigA,
+    kTrigB,
+    kTrigC,
+    kTrigD,
+    kTrigE,
+    kTrigF,
+    kTrigAPS,
+    kTrigBPS,
+    kTrigCPS,
+    kTrigDPS,
+    kTrigEPS,
+    kTrigFPS,
+    kLevel1A,
+    kLevel1B,
+    kClockPS,
+    kReserve2PS,
+    kLevel1OR,
+    kEssDischarge,
+    NTriggerFlag
   };
+
+  const std::vector<TString> STriggerFlag =
+    {
+     "L1SpillOn",
+     "L1SpillOff",
+     "SpillEnd",
+     "SpillOnEnd",
+     "TofTiming",
+     "Matrix2D1",
+     "Matrix2D2",
+     "Matrix3D",
+     "BeamA",
+     "BeamB",
+     "BeamC",
+     "BeamD",
+     "BeamE",
+     "BeamF",
+     "TrigA",
+     "TrigB",
+     "TrigC",
+     "TrigD",
+     "TrigE",
+     "TrigF",
+     "TrigA-PS",
+     "TrigB-PS",
+     "TrigC-PS",
+     "TrigD-PS",
+     "TrigE-PS",
+     "TrigF-PS",
+     "Level1A",
+     "Level1B",
+     "Clock-PS",
+     "Reserve2-PS",
+     "Level1OR",
+     "EssDischarge",
+    };
+}
+const Int_t NumOfSegTrig = trigger::NTriggerFlag;
 
 const int DetIdVmeCalib      = 999;
 const int NumOfPlaneVmeCalib =   5;

@@ -215,10 +215,13 @@
 	<for var="ch" from="0" to="23">
 	  <FE ch="ch+40"  data="data"><D Device="HULMHTDCdummy" plane="1" ch="2" data="data"/></FE>
 	</for>
-	<for var="ch" from="0" to="19">
+	<FE ch="64"  data="data"><D Device="WC" segment="0" ch="2" data="data+1"/></FE>
+	<FE ch="65"  data="data"><D Device="HULMHTDCdummy" plane="1" ch="2" data="data"/></FE>
+	<for var="ch" from="2" to="19">
 	  <FE ch="ch+64"  data="data"><D Device="WC" segment="ch" ch="2" data="data+1"/></FE>
 	</for>
-	<for var="ch" from="0" to="11">
+	<FE ch="84"  data="data"><D Device="WC" segment="1" ch="2" data="data+1"/></FE>
+	<for var="ch" from="1" to="11">
 	  <FE ch="ch+84"  data="data"><D Device="HULMHTDCdummy" plane="1" ch="2" data="data"/></FE>
 	</for>
 	<for var="ch" from="0" to="29">
@@ -237,6 +240,7 @@
 	</for>
         <FE ch="2" data="data"><D Device="PVAC" segment="0" data="data + 1"/></FE>
         <FE ch="3" data="data"><D Device="FAC" segment="0" data="data + 1"/></FE>
+        <FE ch="10" data="data"><D Device="TFlag" segment="31" data="data + 1"/></FE>
 	<for var="ch" from="11" to="15">
           <FE ch="ch" data="data"><D Device="TFlag" segment="ch - 11" data="data + 1"/></FE>
 	</for>
@@ -247,10 +251,10 @@
           <FE ch="ch" data="data"><D Device="TFlag" segment="ch - 27" data="data + 1"/></FE>
 	</for>
     	<FE ch="47" data="data"><D Device="HULMHTDCdummy" plane="0" ch="47" data="data"/></FE>
-	<for var="ch" from="48" to="63">
+	<for var="ch" from="48" to="58">
           <FE ch="ch" data="data"><D Device="TFlag" segment="ch - 28" data="data + 1"/></FE>
 	</for>
-	<for var="ch" from="64" to="127">
+	<for var="ch" from="59" to="127">
     	  <FE ch="ch" data="data"><D Device="HULMHTDCdummy" plane="0" ch="ch" data="data"/></FE>
 	</for>
       </for>
@@ -274,11 +278,11 @@
       </for>
     </HulScaler>
     <!-- ________________________________________________________________ -->
-    <HulScaler node_id="0x603" name="hul01scr-3">
-      <for var="ch" from="0" to="63">
-    	  <FE ch="ch" data="0"><D Device="Scaler" plane="2" ch="ch" data="0"/></FE>
-      </for>
-    </HulScaler>
+    <!-- <HulScaler node_id="0x603" name="hul01scr-3"> -->
+    <!--   <for var="ch" from="0" to="63"> -->
+    <!-- 	  <FE ch="ch" data="0"><D Device="Scaler" plane="2" ch="ch" data="0"/></FE> -->
+    <!--   </for> -->
+    <!-- </HulScaler> -->
     <!--________________________________________________________________-->
     <HulHRTdc node_id="0x606" name="hul01hr-1">
      <for var="ch" from="0" to="4"><for var="data" from="0" to="3">
@@ -685,7 +689,7 @@
     <!--Ge_____________________________ -->
     <HulScaler node_id="2001" name="hul_hbx_scr">
       <for var="ch" from="0" to="63">
-    	<FE ch="ch" data="0"><D Device="Scaler" plane="3" ch="ch" data="0"/></FE>
+    	<FE ch="ch" data="0"><D Device="Scaler" plane="2" ch="ch" data="0"/></FE>
       </for>
       <for var="data" from="0" to="3">
     	<FE ch="0" data="data + 1"><D Device="HUL-RM" plane="hul_hbx_scr" ch="0" data="data"/></FE>

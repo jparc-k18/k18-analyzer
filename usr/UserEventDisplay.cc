@@ -140,7 +140,7 @@ UserEventDisplay::ProcessingNormal( void )
       int tdc = hit->GetTdc1();
       trigflag[seg-1] = tdc;
     }
-    if( trigflag[SpillEndFlag]>0 ) return true;
+    if( trigflag[trigger::kSpillEnd]>0 ) return true;
   }
 
   // Trigger flag
@@ -149,9 +149,9 @@ UserEventDisplay::ProcessingNormal( void )
     static const int device_id    = gUnpacker.get_device_id("TFlag");
     static const int data_type_id = gUnpacker.get_data_id("TFlag", "tdc");
 
-    int mhit = gUnpacker.get_entries(device_id, 0, kTofTiming, 0, data_type_id);
+    int mhit = gUnpacker.get_entries(device_id, 0, trigger::kTofTiming, 0, data_type_id);
     for(int m = 0; m<mhit; ++m){
-      int tof_timing = gUnpacker.get(device_id, 0, kTofTiming, 0, data_type_id, m);
+      int tof_timing = gUnpacker.get(device_id, 0, trigger::kTofTiming, 0, data_type_id, m);
       if(!(MinTimeL1 < tof_timing && tof_timing < MaxTimeL1)) flag_tof_stop = true;
     }// for(m)
   }
@@ -471,7 +471,7 @@ UserEventDisplay::ProcessingNormal( void )
 
   }
 
-  
+
 
   // SDC3
   {
