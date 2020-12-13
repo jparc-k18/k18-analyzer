@@ -26,8 +26,8 @@ const int NumOfSegSCH   = 64;
 const int NumOfSegTOF   = 24;
 const int NumOfSegPVAC  =  1;
 const int NumOfSegFAC   =  1;
-const int NumOfSegLAC   = 15;
-const int NumOfSegWC    =  2; //for E40 data analysis
+const int NumOfSegLAC   = 30;
+const int NumOfSegWC    = 20; //for E40 data analysis
 
 // Misc _______________________________________________________________
 const int DetIdTrig       = 21;

@@ -43,6 +43,7 @@ RawData::RawData( void )
     m_TOFRawHC(),
     m_LACRawHC(),
     m_WCRawHC(),
+    m_WCSUMRawHC(),
     m_BFTRawHC(NumOfPlaneBFT),
     m_SCHRawHC(),
     m_BcInRawHC(NumOfLayersBcIn+1),
@@ -75,6 +76,7 @@ RawData::ClearAll( void )
   del::ClearContainer( m_TOFRawHC );
   del::ClearContainer( m_LACRawHC );
   del::ClearContainer( m_WCRawHC );
+  del::ClearContainer( m_WCSUMRawHC );
 
   del::ClearContainerAll( m_BFTRawHC );
 
@@ -131,6 +133,18 @@ RawData::DecodeHits( void )
   DecodeHodo( DetIdLAC,  NumOfSegLAC,  kOneSide,  m_LACRawHC );
   // WC
   DecodeHodo( DetIdWC, NumOfSegWC, kBothSide, m_WCRawHC );
+
+  // WC SUM
+  for( Int_t seg=0; seg<NumOfSegWC; ++seg ){
+    for( Int_t AorT=0; AorT<2; ++AorT ){
+      UInt_t nhit = gUnpacker.get_entries( DetIdWC, 0, seg, 2, AorT );
+      if( nhit == 0 ) continue;
+      for( Int_t m=0; m<nhit; ++m ){
+	UInt_t data = gUnpacker.get( DetIdWC, 0, seg, 2, AorT, m );
+	AddHodoRawHit( m_WCSUMRawHC, DetIdWC, 0, seg, 0, AorT, data );
+      }
+    }
+  }
 
   //BFT
   for( Int_t plane=0; plane<NumOfPlaneBFT; ++plane ){

@@ -34,6 +34,7 @@ namespace
   const Double_t MaxTimeDifFAC  = -1.0;
   const Double_t MaxTimeDifTOF  = -1.0;
   const Double_t MaxTimeDifLAC  = -1.0;
+  const Double_t MaxTimeDifWC   = -1.0;
   const Double_t MaxTimeDifBFT  =  8.0;
   const Double_t MaxTimeDifSCH  = 10.0;
   const Int_t    MaxSizeCl      = 8;
@@ -55,6 +56,7 @@ HodoAnalyzer::~HodoAnalyzer( void )
   ClearFACHits();
   ClearTOFHits();
   ClearLACHits();
+  ClearWCHits();
   ClearBFTHits();
   ClearSCHHits();
   debug::ObjectCounter::decrease(ClassName().Data());
@@ -116,6 +118,14 @@ HodoAnalyzer::ClearLACHits( void )
   del::ClearContainer( m_LACClCont );
 }
 
+//_____________________________________________________________________________
+void
+HodoAnalyzer::ClearWCHits( void )
+{
+  del::ClearContainer( m_WCCont );
+  del::ClearContainer( m_WCClCont );
+}
+
 
 //_____________________________________________________________________________
 void
@@ -148,6 +158,7 @@ HodoAnalyzer::DecodeRawHits( RawData *rawData )
   DecodeFACHits( rawData );
   DecodeTOFHits( rawData );
   DecodeLACHits( rawData );
+  DecodeWCHits( rawData );
   DecodeBFTHits( rawData );
   DecodeSCHHits( rawData );
   return true;
@@ -321,6 +332,31 @@ HodoAnalyzer::DecodeLACHits( RawData *rawData )
 
 #if Cluster
   MakeUpClusters( m_LACCont, m_LACClCont, MaxTimeDifLAC );
+#endif
+
+  return true;
+}
+
+//_____________________________________________________________________________
+Bool_t
+HodoAnalyzer::DecodeWCHits( RawData *rawData )
+{
+  ClearWCHits();
+  const HodoRHitContainer &cont = rawData->GetWCRawHC();
+  for( Int_t i=0, nh=cont.size(); i<nh; ++i ){
+    HodoRawHit *hit = cont[i];
+    if( !hit ) continue;
+    if( hit->GetTdcUp()<=0 || hit->GetTdcDown()<=0 ) continue;
+    Hodo2Hit *hp = new Hodo2Hit( hit, 30. );
+    if( !hp ) continue;
+    if( hp->Calculate() )
+      m_WCCont.push_back(hp);
+    else
+      delete hp;
+  }//for(i)
+
+#if Cluster
+  MakeUpClusters( m_WCCont, m_WCClCont, MaxTimeDifWC );
 #endif
 
   return true;
@@ -913,6 +949,18 @@ HodoAnalyzer::ReCalcLACHits( Bool_t applyRecursively )
   return true;
 }
 
+//_____________________________________________________________________________
+Bool_t
+HodoAnalyzer::ReCalcWCHits( Bool_t applyRecursively )
+{
+  for( Int_t i=0, n=m_WCCont.size(); i<n; ++i ){
+    Hodo2Hit *hit = m_WCCont[i];
+    if(hit) hit->ReCalc(applyRecursively);
+  }
+  return true;
+
+}
+
 
 //_____________________________________________________________________________
 Bool_t
@@ -991,6 +1039,17 @@ HodoAnalyzer::ReCalcLACClusters( Bool_t applyRecursively )
   return true;
 }
 
+//_____________________________________________________________________________
+Bool_t
+HodoAnalyzer::ReCalcWCClusters( Bool_t applyRecursively )
+{
+  for( Int_t i=0, n=m_WCClCont.size(); i<n; ++i ){
+    HodoCluster *cl = m_WCClCont[i];
+    if(cl) cl->ReCalc(applyRecursively);
+  }
+  return true;
+}
+
 
 //_____________________________________________________________________________
 Bool_t
@@ -1003,6 +1062,7 @@ HodoAnalyzer::ReCalcAll( void )
   ReCalcFACHits();
   ReCalcTOFHits();
   ReCalcLACHits();
+  ReCalcWCHits();
   ReCalcBH1Clusters();
   ReCalcBH2Clusters();
   ReCalcBACClusters();
@@ -1010,6 +1070,7 @@ HodoAnalyzer::ReCalcAll( void )
   ReCalcFACClusters();
   ReCalcTOFClusters();
   ReCalcLACClusters();
+  ReCalcWCClusters();
   return true;
 }
 
