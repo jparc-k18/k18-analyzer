@@ -195,8 +195,10 @@ HodoAnalyzer::DecodeBH2Hits( RawData *rawData )
 {
   ClearBH2Hits();
   const HodoRHitContainer &cont = rawData->GetBH2RawHC();
+  
   for( Int_t i=0, nh=cont.size(); i<nh; ++i ){
     HodoRawHit *hit = cont[i];
+
     if( !hit ) continue;
     if( hit->GetTdcUp()<=0 ) continue;
     BH2Hit *hp = new BH2Hit( hit );
@@ -205,6 +207,7 @@ HodoAnalyzer::DecodeBH2Hits( RawData *rawData )
       m_BH2Cont.push_back(hp);
     else
       delete hp;
+ 
   }//for(i)
 
 #if Cluster
@@ -499,7 +502,7 @@ HodoAnalyzer::MakeUpClusters( const Hodo1HitContainer& HitCont,
       }
     }// for(ma:hitA)
   }// for(i:hitA)
-  return ClusterCont.size();
+  //  return ClusterCont.size();
 }
 
 

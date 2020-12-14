@@ -120,7 +120,8 @@ RawData::DecodeHits( void )
   // BH1
   DecodeHodo( DetIdBH1, NumOfSegBH1, kBothSide, m_BH1RawHC );
   // BH2
-  DecodeHodo( DetIdBH2, NumOfSegBH2, kBothSide, m_BH2RawHC );
+  //  DecodeHodo( DetIdBH2, NumOfSegBH2, kBothSide, m_BH2RawHC );
+  DecodeHodo( DetIdBH2, NumOfSegBH2, kOneSide, m_BH2RawHC );
   // BAC
   DecodeHodo( DetIdBAC, NumOfSegBAC, kOneSide,  m_BACRawHC );
   // PVAC

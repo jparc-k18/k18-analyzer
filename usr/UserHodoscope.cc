@@ -863,8 +863,10 @@ EventHodoscope::ProcessingNormal( void )
     }//for(i1)
   }
 
+
   // BH2
   hodoAna->DecodeBH2Hits( rawData );
+  return true;
   hodoAna->TimeCutBH2(-2, 2);
   {
     Int_t nh = hodoAna->GetNHitsBH2();
@@ -905,6 +907,7 @@ EventHodoscope::ProcessingNormal( void )
 	}
       }
     }//for(i)
+    
     HF1( BH2Hid+14, Double_t(nh2) );
     for( Int_t i1=0; i1<nh; ++i1 ){
       BH2Hit *hit1 = hodoAna->GetHitBH2(i1);
