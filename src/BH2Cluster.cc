@@ -78,7 +78,6 @@ BH2Cluster::Calculate( void )
     mt += m_hitB->MeanTime(m_indexB);
     cmt+= m_hitB->CMeanTime(m_indexB);
     de += m_hitB->DeltaE();
-    de += m_hitB->DeltaE(m_indexB);
     t0 += m_hitB->Time0(m_indexB);
     ct0+= m_hitB->CTime0(m_indexB);
     dt += ( m_hitB->GetTDown(m_indexB) - m_hitB->GetTUp(m_indexB) );
@@ -90,7 +89,7 @@ BH2Cluster::Calculate( void )
     de += m_hitC->DeltaE();
     t0 += m_hitC->Time0(m_indexC);
     ct0+= m_hitC->CTime0(m_indexC);
-    dt += ( m_hitC->GetTDown(m_indexC) - m_hitB->GetTUp(m_indexC) );    
+    dt += ( m_hitC->GetTDown(m_indexC) - m_hitC->GetTUp(m_indexC) );    
   }
   
   ms /= double(m_cluster_size);

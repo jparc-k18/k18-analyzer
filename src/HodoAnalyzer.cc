@@ -213,8 +213,8 @@ HodoAnalyzer::DecodeBH2Hits( RawData *rawData )
 #if Cluster
   MakeUpClusters( m_BH2Cont, m_BH2ClCont, MaxTimeDifBH2 );
 #endif
-
-  return true;
+  
+ return true;
 }
 
 

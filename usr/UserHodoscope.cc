@@ -1219,7 +1219,7 @@ EventHodoscope::ProcessingNormal( void )
       }
     }
   }
-  //return true;
+
   // TOF
   hodoAna->DecodeTOFHits( rawData );
   {
