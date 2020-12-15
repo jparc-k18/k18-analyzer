@@ -56,6 +56,7 @@ private:
   Hodo2HitContainer           m_TOFCont;
   Hodo1HitContainer           m_LACCont;
   Hodo2HitContainer           m_WCCont;
+  Hodo1HitContainer           m_WCSUMCont;
   MultiPlaneFiberHitContainer m_BFTCont;
   FiberHitContainer           m_SCHCont;
 
@@ -67,6 +68,7 @@ private:
   HodoClusterContainer            m_TOFClCont;
   HodoClusterContainer            m_LACClCont;
   HodoClusterContainer            m_WCClCont;
+  HodoClusterContainer            m_WCSUMClCont;
   FiberClusterContainer           m_BFTClCont;
   FiberClusterContainer           m_SCHClCont;
 
@@ -80,6 +82,7 @@ public:
   Bool_t DecodeTOFHits( RawData* rawData );
   Bool_t DecodeLACHits( RawData* rawData );
   Bool_t DecodeWCHits( RawData* rawData );
+  Bool_t DecodeWCSUMHits( RawData* rawData );
   Bool_t DecodeBFTHits( RawData* rawData );
   Bool_t DecodeSCHHits( RawData* rawData );
   Int_t  GetNHitsBH1( void ) const { return m_BH1Cont.size(); };
@@ -90,6 +93,7 @@ public:
   Int_t  GetNHitsTOF( void ) const { return m_TOFCont.size(); };
   Int_t  GetNHitsLAC( void ) const { return m_LACCont.size(); };
   Int_t  GetNHitsWC( void ) const { return m_WCCont.size(); };
+  Int_t  GetNHitsWCSUM( void ) const { return m_WCSUMCont.size(); };
   Int_t  GetNHitsBFT( Int_t plane) const
   { return m_BFTCont.at( plane ).size(); };
   Int_t  GetNHitsSCH( void )  const { return m_SCHCont.size(); };
@@ -102,6 +106,7 @@ public:
   inline Hodo2Hit* GetHitTOF( UInt_t i ) const;
   inline Hodo1Hit* GetHitLAC( UInt_t i ) const;
   inline Hodo2Hit* GetHitWC( UInt_t i ) const;
+  inline Hodo1Hit* GetHitWCSUM( UInt_t i ) const;
   inline FiberHit* GetHitBFT( Int_t plane, UInt_t seg ) const;
   inline FiberHit* GetHitSCH( UInt_t seg ) const;
 
@@ -113,6 +118,7 @@ public:
   Int_t GetNClustersTOF( void ) const { return m_TOFClCont.size(); }
   Int_t GetNClustersLAC( void ) const { return m_LACClCont.size(); }
   Int_t GetNClustersWC( void ) const { return m_WCClCont.size(); }
+  Int_t GetNClustersWCSUM( void ) const { return m_WCSUMClCont.size(); }
   Int_t GetNClustersBFT( void ) const { return m_BFTClCont.size(); };
   Int_t GetNClustersSCH( void ) const { return m_SCHClCont.size(); };
   inline HodoCluster*  GetClusterBH1( UInt_t i ) const;
@@ -123,6 +129,7 @@ public:
   inline HodoCluster*  GetClusterTOF( UInt_t i ) const;
   inline HodoCluster*  GetClusterLAC( UInt_t i ) const;
   inline HodoCluster*  GetClusterWC( UInt_t i ) const;
+  inline HodoCluster*  GetClusterWCSUM( UInt_t i ) const;
   inline FiberCluster* GetClusterBFT( UInt_t i ) const;
   inline FiberCluster* GetClusterSCH( UInt_t i ) const;
 
@@ -134,6 +141,7 @@ public:
   Bool_t ReCalcTOFHits( Bool_t applyRecursively=false );
   Bool_t ReCalcLACHits( Bool_t applyRecursively=false );
   Bool_t ReCalcWCHits( Bool_t applyRecursively=false );
+  Bool_t ReCalcWCSUMHits( Bool_t applyRecursively=false );
   Bool_t ReCalcBH1Clusters( Bool_t applyRecursively=false );
   Bool_t ReCalcBH2Clusters( Bool_t applyRecursively=false );
   Bool_t ReCalcBACClusters( Bool_t applyRecursively=false );
@@ -142,6 +150,7 @@ public:
   Bool_t ReCalcTOFClusters( Bool_t applyRecursively=false );
   Bool_t ReCalcLACClusters( Bool_t applyRecursively=false );
   Bool_t ReCalcWCClusters( Bool_t applyRecursively=false );
+  Bool_t ReCalcWCSUMClusters( Bool_t applyRecursively=false );
   Bool_t ReCalcAll( void );
 
   void TimeCutBH1( Double_t tmin, Double_t tmax );
@@ -164,6 +173,7 @@ private:
   void ClearTOFHits( void );
   void ClearLACHits( void );
   void ClearWCHits( void );
+  void ClearWCSUMHits( void );
   void ClearBFTHits( void );
   void ClearSCHHits( void );
 
@@ -296,6 +306,16 @@ HodoAnalyzer::GetClusterWC( UInt_t i ) const
 }
 
 //_____________________________________________________________________________
+inline HodoCluster*
+HodoAnalyzer::GetClusterWCSUM( UInt_t i ) const
+{
+  if( i<m_WCSUMClCont.size() )
+    return m_WCSUMClCont[i];
+  else
+    return nullptr;
+}
+
+//_____________________________________________________________________________
 inline FiberCluster*
 HodoAnalyzer::GetClusterBFT( UInt_t i ) const
 {
@@ -392,6 +412,16 @@ HodoAnalyzer::GetHitWC( UInt_t i ) const
 {
   if( i<m_WCCont.size() )
     return m_WCCont[i];
+  else
+    return nullptr;
+}
+
+//_____________________________________________________________________________
+inline Hodo1Hit*
+HodoAnalyzer::GetHitWCSUM( UInt_t i ) const
+{
+  if( i<m_WCSUMCont.size() )
+    return m_WCSUMCont[i];
   else
     return nullptr;
 }

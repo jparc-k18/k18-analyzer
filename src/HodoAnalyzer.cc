@@ -27,17 +27,18 @@
 
 namespace
 {
-  const Double_t MaxTimeDifBH1  =  2.0;
-  const Double_t MaxTimeDifBH2  =  2.0;
-  const Double_t MaxTimeDifBAC  = -1.0;
-  const Double_t MaxTimeDifPVAC = -1.0;
-  const Double_t MaxTimeDifFAC  = -1.0;
-  const Double_t MaxTimeDifTOF  = -1.0;
-  const Double_t MaxTimeDifLAC  = -1.0;
-  const Double_t MaxTimeDifWC   = -1.0;
-  const Double_t MaxTimeDifBFT  =  8.0;
-  const Double_t MaxTimeDifSCH  = 10.0;
-  const Int_t    MaxSizeCl      = 8;
+  const Double_t MaxTimeDifBH1   =  2.0;
+  const Double_t MaxTimeDifBH2   =  2.0;
+  const Double_t MaxTimeDifBAC   = -1.0;
+  const Double_t MaxTimeDifPVAC  = -1.0;
+  const Double_t MaxTimeDifFAC   = -1.0;
+  const Double_t MaxTimeDifTOF   = -1.0;
+  const Double_t MaxTimeDifLAC   = -1.0;
+  const Double_t MaxTimeDifWC    = -1.0;
+  const Double_t MaxTimeDifWCSUM = -1.0;
+  const Double_t MaxTimeDifBFT   =  8.0;
+  const Double_t MaxTimeDifSCH   = 10.0;
+  const Int_t    MaxSizeCl       = 8;
 }
 
 //_____________________________________________________________________________
@@ -57,6 +58,7 @@ HodoAnalyzer::~HodoAnalyzer( void )
   ClearTOFHits();
   ClearLACHits();
   ClearWCHits();
+  ClearWCSUMHits();
   ClearBFTHits();
   ClearSCHHits();
   debug::ObjectCounter::decrease(ClassName().Data());
@@ -126,6 +128,14 @@ HodoAnalyzer::ClearWCHits( void )
   del::ClearContainer( m_WCClCont );
 }
 
+//_____________________________________________________________________________
+void
+HodoAnalyzer::ClearWCSUMHits( void )
+{
+  del::ClearContainer( m_WCSUMCont );
+  del::ClearContainer( m_WCSUMClCont );
+}
+
 
 //_____________________________________________________________________________
 void
@@ -159,6 +169,7 @@ HodoAnalyzer::DecodeRawHits( RawData *rawData )
   DecodeTOFHits( rawData );
   DecodeLACHits( rawData );
   DecodeWCHits( rawData );
+  DecodeWCSUMHits( rawData );
   DecodeBFTHits( rawData );
   DecodeSCHHits( rawData );
   return true;
@@ -363,6 +374,30 @@ HodoAnalyzer::DecodeWCHits( RawData *rawData )
 
 #if Cluster
   MakeUpClusters( m_WCCont, m_WCClCont, MaxTimeDifWC );
+#endif
+
+  return true;
+}
+
+//_____________________________________________________________________________
+Bool_t
+HodoAnalyzer::DecodeWCSUMHits( RawData *rawData )
+{
+  ClearWCSUMHits();
+  const HodoRHitContainer &cont = rawData->GetWCSUMRawHC();
+  for( Int_t i=0, nh=cont.size(); i<nh; ++i ){
+    HodoRawHit *hit = cont[i];
+    if( !hit ) continue;
+    Hodo1Hit *hp = new Hodo1Hit( hit );
+    if( !hp ) continue;
+    if( hp->Calculate() )
+      m_WCSUMCont.push_back(hp);
+    else
+      delete hp;
+  }//for(i)
+
+#if Cluster
+  MakeUpClusters( m_WCSUMCont, m_WCSUMClCont, MaxTimeDifWCSUM );
 #endif
 
   return true;
@@ -967,6 +1002,18 @@ HodoAnalyzer::ReCalcWCHits( Bool_t applyRecursively )
 
 }
 
+//_____________________________________________________________________________
+Bool_t
+HodoAnalyzer::ReCalcWCSUMHits( Bool_t applyRecursively )
+{
+  for( Int_t i=0, n=m_WCSUMCont.size(); i<n; ++i ){
+    Hodo1Hit *hit = m_WCSUMCont[i];
+    if(hit) hit->ReCalc(applyRecursively);
+  }
+  return true;
+
+}
+
 
 //_____________________________________________________________________________
 Bool_t
@@ -1056,6 +1103,17 @@ HodoAnalyzer::ReCalcWCClusters( Bool_t applyRecursively )
   return true;
 }
 
+//_____________________________________________________________________________
+Bool_t
+HodoAnalyzer::ReCalcWCSUMClusters( Bool_t applyRecursively )
+{
+  for( Int_t i=0, n=m_WCSUMClCont.size(); i<n; ++i ){
+    HodoCluster *cl = m_WCSUMClCont[i];
+    if(cl) cl->ReCalc(applyRecursively);
+  }
+  return true;
+}
+
 
 //_____________________________________________________________________________
 Bool_t
@@ -1069,6 +1127,7 @@ HodoAnalyzer::ReCalcAll( void )
   ReCalcTOFHits();
   ReCalcLACHits();
   ReCalcWCHits();
+  ReCalcWCSUMHits();
   ReCalcBH1Clusters();
   ReCalcBH2Clusters();
   ReCalcBACClusters();
@@ -1077,6 +1136,7 @@ HodoAnalyzer::ReCalcAll( void )
   ReCalcTOFClusters();
   ReCalcLACClusters();
   ReCalcWCClusters();
+  ReCalcWCSUMClusters();
   return true;
 }
 

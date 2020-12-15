@@ -19,6 +19,7 @@ const int DetIdTOF      =  7;
 
 const int DetIdLAC      = 12;
 const int DetIdWC       = 13;
+const int DetIdWCSUM    = 14;
 const int NumOfSegBH1   = 11;
 const int NumOfSegBH2   =  5;
 const int NumOfSegBAC   =  2;

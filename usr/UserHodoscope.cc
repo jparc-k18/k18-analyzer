@@ -161,6 +161,9 @@ struct Event
   Double_t wcmt[NumOfSegWC][MaxDepth];
   Double_t wcde[NumOfSegWC];
 
+  Double_t wcsumde[NumOfSegWC];
+
+
   // Time0
   Double_t Time0Seg;
   Double_t deTime0;
@@ -233,6 +236,13 @@ struct Dst
   Double_t dtWc[NumOfSegWC*MaxDepth];
   Double_t deWc[NumOfSegWC*MaxDepth];
 
+  Int_t    nhWcSum;
+  Int_t    csWcSum[NumOfSegWC*MaxDepth];
+  Double_t WcSumSeg[NumOfSegWC*MaxDepth];
+  Double_t tWcSum[NumOfSegWC*MaxDepth];
+  Double_t dtWcSum[NumOfSegWC*MaxDepth];
+  Double_t deWcSum[NumOfSegWC*MaxDepth];
+
   Int_t    nhPvac;
   Int_t    csPvac[NumOfSegPVAC*MaxDepth];
   Double_t PvacSeg[NumOfSegPVAC*MaxDepth];
@@ -255,6 +265,9 @@ struct Dst
   Double_t dtWcSeg[NumOfSegWC][MaxDepth];
   Double_t udeWcSeg[NumOfSegWC];
   Double_t ddeWcSeg[NumOfSegWC];
+
+  Double_t tWcSumSeg[NumOfSegWC][MaxDepth];
+  Double_t deWcSumSeg[NumOfSegWC];
 
 };
 
@@ -1387,13 +1400,63 @@ EventHodoscope::ProcessingNormal( void )
     }
   }
 
-
-
-
   // WC SUM
+  hodoAna->DecodeWCSUMHits( rawData );
+  {
+    Int_t nh = hodoAna->GetNHitsWCSUM();
+    HF1( WCSUMHid+10, Double_t(nh) );
+    Int_t nh2 = 0;
+    for( Int_t i=0; i<nh; ++i ){
+      Hodo1Hit *hit = hodoAna->GetHitWCSUM(i);
+      if(!hit) continue;
+      Int_t seg = hit->SegmentId()+1;
+
+      Int_t n_mhit = hit->GetNumOfHit();
+      for(Int_t m = 0; m<n_mhit; ++m){
+	HF1( WCSUMHid+11, seg-0.5 );
+
+	Double_t au  = hit->GetA();
+	Double_t tu  = hit->GetT();
+	Double_t ctu = hit->GetCT();
+	Double_t de  = hit->DeltaE();
+	event.wcsumde[seg-1]    = de;
+	HF1( WCSUMHid+100*seg+11, tu );
+	HF1( WCSUMHid+100*seg+17, ctu );
+	//HF2( WCHid+100*seg+21, tu, au );  HF2( WCHid+100*seg+22, td, ad );
+	//HF2( WCHid+100*seg+23, ctu, au ); HF2( WCHid+100*seg+24, ctd, ad );
+
+	dst.tWcSumSeg[seg-1][m]  = tu;
+	dst.deWcSumSeg[seg-1]    = au;
+
+	if( m == 0){
+	  HF1( WCSUMHid+100*seg+14, au );
+	  HF1( WCSUMHid+100*seg+16, de );    HF1( WCSUMHid+13, de );
+	}
+
+	if( de>0.5 ){
+	  HF1( WCSUMHid+15, seg-0.5 );
+	  ++nh2;
+	}
+      }
+    }
+
+    HF1( WCSUMHid+14, Double_t(nh2) );
 
 
-
+    Int_t nc = hodoAna->GetNClustersWCSUM();
+    HF1( WCSUMHid+30, Double_t(nc) );
+    for( Int_t i=0; i<nc; ++i ){
+      HodoCluster *cluster = hodoAna->GetClusterWCSUM(i);
+      if(!cluster) continue;
+      Int_t cs = cluster->ClusterSize();
+      Double_t ms  = cluster->MeanSeg()+1;
+      Double_t cmt = cluster->CMeanTime();
+      Double_t de  = cluster->DeltaE();
+      HF1( WCSUMHid+31, Double_t(cs) );
+      HF1( WCSUMHid+32, ms-0.5 );
+      HF1( WCSUMHid+33, cmt ); HF1( WCSUMHid+34, de );
+    }
+  }
 
 
 
@@ -1507,6 +1570,20 @@ EventHodoscope::ProcessingNormal( void )
     }
   }
 
+  {
+    Int_t nc = hodoAna->GetNClustersWCSUM();
+    dst.nhWcSum = nc;
+    for( Int_t i=0; i<nc; ++i ){
+      HodoCluster *cl = hodoAna->GetClusterWCSUM(i);
+      if( !cl ) continue;
+      dst.csWcSum[i]  = cl->ClusterSize();
+      dst.WcSumSeg[i] = cl->MeanSeg()+1;
+      dst.tWcSum[i]   = cl->CMeanTime();
+      dst.dtWcSum[i]  = cl->TimeDif();
+      dst.deWcSum[i]  = cl->DeltaE();
+    }
+  }
+
 #if 0
   // BH1 (for parameter tuning)
   if(dst.Time0Seg==4){
@@ -1573,6 +1650,7 @@ EventHodoscope::InitializeEvent( void )
   dst.nhFac  = 0;
   dst.nhTof  = 0;
   dst.nhWc  = 0;
+  dst.nhWcSum  = 0;
 
   event.Time0Seg = -999;
   event.deTime0  = -999;
@@ -1754,9 +1832,20 @@ EventHodoscope::InitializeEvent( void )
 
   for( Int_t it=0; it<NumOfSegWC; ++it ){
     event.wcsuma[it] = -9999.;
+    event.wcsumde[it] = -9999.;
+
+    dst.deWcSumSeg[it] = -9999.;
 
     for(Int_t m = 0; m<MaxDepth; ++m){
       event.wcsumt[it][m] = -9999.;
+
+      dst.tWcSumSeg[it][m]  = -9999.;
+
+      dst.csWcSum[MaxDepth*it + m]  = 0;
+      dst.WcSumSeg[MaxDepth*it + m] = -1;
+      dst.tWcSum[MaxDepth*it + m]   = -9999.;
+      dst.dtWcSum[MaxDepth*it + m]  = -9999.;
+      dst.deWcSum[MaxDepth*it + m]  = -9999.;
     }
   }
 
@@ -2324,6 +2413,40 @@ ConfMan::InitializeHistograms( void )
     HB1( WCSUMHid +100*i +7, title7, NbinAdc,   MinAdc,   MaxAdc );
   }
 
+  HB1( WCSUMHid +10, "#Hits WcSum[Hodo]",  NumOfSegWC+1, 0., Double_t(NumOfSegWC+1) );
+  HB1( WCSUMHid +11, "Hitpat WcSum[Hodo]", NumOfSegWC,   0., Double_t(NumOfSegWC)   );
+  HB1( WCSUMHid +13, "dE WcSum", 200, -0.5, 4.5 );
+  HB1( WCSUMHid +14, "#Hits WcSum[HodoGood]",  NumOfSegWC+1, 0., Double_t(NumOfSegWC+1) );
+  HB1( WCSUMHid +15, "Hitpat WcSum[HodoGood]", NumOfSegWC,   0., Double_t(NumOfSegWC)   );
+
+  for( Int_t i=1; i<=NumOfSegWC; ++i ){
+    TString title11 = Form("WCSUM-%d Time", i);
+    TString title14 = Form("WCSUM-%d NPE", i);
+    TString title16 = Form("WCSUM-%d NPE", i);
+    TString title17 = Form("WCSUM-%d Up CTime", i);
+    TString title21 = Form("WCSUM-%d dE (w/ WC-HT)", i);
+    HB1( WCSUMHid +100*i +11, title11, 500, -5., 45. );
+    HB1( WCSUMHid +100*i +14, title14, 110, -10., 100. );
+    HB1( WCSUMHid +100*i +16, title16, 110, -10., 100. );
+    HB1( WCSUMHid +100*i +17, title17, 500, -5., 45. );
+    HB1( WCSUMHid +100*i +21, title21, 200, -0.5, 4.5 );
+  }
+
+  HB2( WCSUMHid +21, "WcSumHitPat%WcSumHitPat[HodoGood]", NumOfSegWC,   0., Double_t(NumOfSegWC),
+       NumOfSegWC,   0., Double_t(NumOfSegWC) );
+  HB2( WCSUMHid +22, "CMeanTimeWcSum%CMeanTimeWcSum[HodoGood]",
+       120, 10., 40., 120, 10., 40. );
+  HB1( WCSUMHid +23, "TDiff WcSum[HodoGood]", 200, -10., 10. );
+  HB2( WCSUMHid +24, "WcSumHitPat%WcSumHitPat[HodoGood2]", NumOfSegWC,   0., Double_t(NumOfSegWC),
+       NumOfSegWC,   0., Double_t(NumOfSegWC) );
+
+  HB1( WCSUMHid +30, "#Clusters WcSum", NumOfSegWC+1, 0., Double_t(NumOfSegWC+1) );
+  HB1( WCSUMHid +31, "ClusterSize WcSum", 5, 0., 5. );
+  HB1( WCSUMHid +32, "HitPat Cluster WcSum", 2*NumOfSegWC, 0., Double_t(NumOfSegWC) );
+  HB1( WCSUMHid +33, "CMeamTime Cluster WcSum", 500, -5., 45. );
+  HB1( WCSUMHid +34, "DeltaE Cluster WcSum", 100, -0.5, 4.5 );
+
+
   ////////////////////////////////////////////
   //Tree
   HBTree( "tree","tree of Counter" );
@@ -2409,6 +2532,8 @@ ConfMan::InitializeHistograms( void )
   tree->Branch("wcmt",     event.wcmt,     Form("wcmt[%d][%d]/D", NumOfSegWC, MaxDepth));
   tree->Branch("wcde",     event.wcde,     Form("wcde[%d]/D", NumOfSegWC));
 
+  tree->Branch("wcsumde",     event.wcsumde,     Form("wcsumde[%d]/D", NumOfSegWC));
+
   tree->Branch("t0",        event.t0,        Form("t0[%d][%d]/D",  NumOfSegBH2, MaxDepth));
   tree->Branch("ct0",       event.ct0,       Form("ct0[%d][%d]/D", NumOfSegBH2, MaxDepth));
   tree->Branch("btof",      event.btof,      Form("btof[%d][%d]/D",  NumOfSegBH1, NumOfSegBH2));
@@ -2489,6 +2614,13 @@ ConfMan::InitializeHistograms( void )
   hodo->Branch("dtWc",      dst.dtWc,     "dtWc[nhWc]/D");
   hodo->Branch("deWc",      dst.deWc,     "deWc[nhWc]/D");
 
+  hodo->Branch("nhWcSum",     &dst.nhWcSum,     "nhWcSum/I");
+  hodo->Branch("csWcSum",      dst.csWcSum,     "csWcSum[nhWcSum]/I");
+  hodo->Branch("WcSumSeg",     dst.WcSumSeg,    "WcSumSeg[nhWcSum]/D");
+  hodo->Branch("tWcSum",       dst.tWcSum,      "tWcSum[nhWcSum]/D");
+  hodo->Branch("dtWcSum",      dst.dtWcSum,     "dtWcSum[nhWcSum]/D");
+  hodo->Branch("deWcSum",      dst.deWcSum,     "deWcSum[nhWcSum]/D");
+
   hodo->Branch("utTofSeg",   dst.utTofSeg,
 	       Form("utTofSeg[%d][%d]/D", NumOfSegTOF, MaxDepth) );
   hodo->Branch("dtTofSeg",   dst.dtTofSeg,
@@ -2506,6 +2638,12 @@ ConfMan::InitializeHistograms( void )
 	       Form("udeWcSeg[%d][%d]/D", NumOfSegWC, MaxDepth) );
   hodo->Branch("ddeWcSeg",  dst.ddeWcSeg,
 	       Form("ddeWcSeg[%d]/D", NumOfSegWC) );
+
+  hodo->Branch("tWcSumSeg",   dst.tWcSumSeg,
+	       Form("tWcSumSeg[%d][%d]/D", NumOfSegWC, MaxDepth) );
+  hodo->Branch("deWcSumSeg",  dst.deWcSumSeg,
+	       Form("deWcSumSeg[%d][%d]/D", NumOfSegWC, MaxDepth) );
+
 
   // HPrint();
   return true;
