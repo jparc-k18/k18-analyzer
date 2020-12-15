@@ -505,7 +505,7 @@ HodoAnalyzer::MakeUpClusters( const Hodo1HitContainer& HitCont,
       }
     }// for(ma:hitA)
   }// for(i:hitA)
-  //  return ClusterCont.size();
+  return ClusterCont.size();
 }
 
 
