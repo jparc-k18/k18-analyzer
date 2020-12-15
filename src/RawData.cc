@@ -142,7 +142,7 @@ RawData::DecodeHits( void )
       if( nhit == 0 ) continue;
       for( Int_t m=0; m<nhit; ++m ){
 	UInt_t data = gUnpacker.get( DetIdWC, 0, seg, 2, AorT, m );
-	AddHodoRawHit( m_WCSUMRawHC, DetIdWC, 0, seg, 0, AorT, data );
+	AddHodoRawHit( m_WCSUMRawHC, DetIdWCSUM, 0, seg, 0, AorT, data );
       }
     }
   }
