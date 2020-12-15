@@ -235,7 +235,8 @@ HodoAnalyzer::DecodeBACHits( RawData *rawData )
       delete hp;
   }
 
-#if Cluster
+  //#if Cluster
+#if 0
   MakeUpClusters( m_BACCont, m_BACClCont, MaxTimeDifBAC );
 #endif
 
@@ -259,7 +260,8 @@ HodoAnalyzer::DecodePVACHits( RawData *rawData )
       delete hp;
   }//for(i)
 
-#if Cluster
+  //#if Cluster
+#if 0
   MakeUpClusters( m_PVACCont, m_PVACClCont, MaxTimeDifPVAC );
 #endif
 
@@ -283,7 +285,8 @@ HodoAnalyzer::DecodeFACHits( RawData *rawData )
       delete hp;
   }//for(i)
 
-#if Cluster
+  //#if Cluster
+#if 0
   MakeUpClusters( m_FACCont, m_FACClCont, MaxTimeDifFAC );
 #endif
 

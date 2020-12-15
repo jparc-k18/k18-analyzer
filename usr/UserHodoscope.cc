@@ -866,10 +866,11 @@ EventHodoscope::ProcessingNormal( void )
 
   // BH2
   hodoAna->DecodeBH2Hits( rawData );
-  return true;
   hodoAna->TimeCutBH2(-2, 2);
+  
   {
     Int_t nh = hodoAna->GetNHitsBH2();
+    
     HF1( BH2Hid+10, Double_t(nh) );
     Int_t nh2 = 0;
     for( Int_t i=0; i<nh; ++i ){
@@ -907,7 +908,7 @@ EventHodoscope::ProcessingNormal( void )
 	}
       }
     }//for(i)
-    
+
     HF1( BH2Hid+14, Double_t(nh2) );
     for( Int_t i1=0; i1<nh; ++i1 ){
       BH2Hit *hit1 = hodoAna->GetHitBH2(i1);
@@ -966,7 +967,6 @@ EventHodoscope::ProcessingNormal( void )
       }//for(i2)
     }//for(i)
     HF1( BH2Hid+35, Double_t(nc2) );
-
     BH2Cluster *cl_time0 = hodoAna->GetTime0BH2Cluster();
     if(cl_time0){
       event.Time0Seg = cl_time0->MeanSeg()+1;
@@ -979,6 +979,7 @@ EventHodoscope::ProcessingNormal( void )
       dst.Time0    = cl_time0->Time0();
       dst.CTime0   = cl_time0->CTime0();
     }
+
 
     // BTOF0 segment
     HodoCluster *cl_btof0 = dst.Time0Seg > 0? hodoAna->GetBtof0BH1Cluster(dst.CTime0) : NULL;
@@ -1025,6 +1026,7 @@ EventHodoscope::ProcessingNormal( void )
 	}// for(bh1:seg)
       }// for(m2)
     }
+
     for( Int_t i2=0; i2<nhbh2; ++i2 ){
       Int_t    seg2 = hodoAna->GetHitBH2(i2)->SegmentId()+1;
       Int_t n_mhit2 = hodoAna->GetHitBH2(0)->GetNumOfHit();
@@ -1056,6 +1058,7 @@ EventHodoscope::ProcessingNormal( void )
       }// for(m2)
     }// for(bh2:seg)
   }
+
 
   // BH1-BH2
   {
@@ -1140,6 +1143,7 @@ EventHodoscope::ProcessingNormal( void )
       }// for(m2)
     }// for(bh2:seg)
   }
+
 #endif
 
 
@@ -1149,6 +1153,7 @@ EventHodoscope::ProcessingNormal( void )
     Int_t nh=hodoAna->GetNHitsBAC();
     dst.nhBac = nh;
     HF1( BACHid+10, Double_t(nh) );
+    
     for( Int_t i=0; i<nh; ++i ){
       Hodo1Hit *hit=hodoAna->GetHitBAC(i);
       if(!hit) continue;
@@ -1214,7 +1219,7 @@ EventHodoscope::ProcessingNormal( void )
       }
     }
   }
-
+  //return true;
   // TOF
   hodoAna->DecodeTOFHits( rawData );
   {
