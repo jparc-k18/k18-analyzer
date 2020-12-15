@@ -48,8 +48,8 @@ private:
   HodoAnalyzer* hodoAna;
 
 public:
-        EventHodoscope( void );
-       ~EventHodoscope( void );
+  EventHodoscope( void );
+  ~EventHodoscope( void );
   bool  ProcessingBegin( void );
   bool  ProcessingEnd( void );
   bool  ProcessingNormal( void );
@@ -71,6 +71,7 @@ EventHodoscope::~EventHodoscope( void )
   delete hodoAna;
   delete rawData;
 }
+
 
 //_____________________________________________________________________________
 struct Event
