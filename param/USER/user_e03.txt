@@ -38,35 +38,30 @@ TdcSCH 440 480
 TimeSCH -6 15
 
 ### BC3 TDC gate range
-TdcBC3 250 440
+TdcBC3 300 460
 
 ### BC4 TDC gate range
-TdcBC4 250 440
+TdcBC4 300 460
 
 ### SDC1 TDC gate range
-TdcSDC1 100 500
-#TdcSDC1 250 450
+TdcSDC1 250 460
 
 ### SDC2 TDC gate range
-TdcSDC2 100 1000
-#TdcSDC2 600 1150
+TdcSDC2 250 500
 
 ### SDC3 TDC gate range
-TdcSDC3 100 1000
-#TdcSDC3 400 1200
+TdcSDC3 680 920
 
 ### SDC4 TDC gate range
-TdcSDC4 100 1000
-#TdcSDC4 400 1200
+TdcSDC4 450 920
 
 ### BCOUT multiplicity gate
 MaxMultiHitBcOut 16
 
 ### BCOUT plane multiplicity gate
-#MinLayerBcOut 12
-MinLayerBcOut 8
+MinLayerBcOut 10
 
-###BC3,4 Sdc1 TOT cut 
+###BC3,4 Sdc1 TOT cut
 MinTotBcOut 15
 MinTotSDC1 25
 MinTotSDC2 25

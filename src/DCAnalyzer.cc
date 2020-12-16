@@ -127,7 +127,7 @@ DCAnalyzer::DCAnalyzer( void )
     m_MWPCClCont(NumOfLayersBcIn+1),
     m_TempBcInHC(NumOfLayersBcIn+1),
     m_BcInHC(NumOfLayersBcIn+1),
-    m_BcOutHC(NumOfLayersBcOut+2),
+    m_BcOutHC(NumOfLayersBcOut+1),
     m_SdcInHC(NumOfLayersSdcIn+1),
     m_SdcOutHC(NumOfLayersSdcOut+1),
     m_SdcInExTC(NumOfLayersSdcIn+1),

@@ -106,7 +106,8 @@ namespace
 
   //_____________________________________________________________________
   inline void
-  DeleteDuplicatedTracks( std::vector<DCLocalTrack*>& trackCont, int first, int second, double ChisqrCut=0. )
+  DeleteDuplicatedTracks( std::vector<DCLocalTrack*>& trackCont,
+			  int first, int second, double ChisqrCut=0. )
   {
     std::vector <int> delete_index;
     // evaluate container size in every iteration
@@ -318,7 +319,6 @@ namespace
 
     std::stable_sort( trackCont.begin(), trackCont.end(), DCLTrackComp_Nhit() );
 
-
 #if 0
     DebugPrint( trackCont, arg+" After Sorting (Nhit) " );
 #endif
@@ -364,12 +364,13 @@ namespace
       DebugPrint( trackCont, arg+" After Deleting in each hit number" );
 #endif
 
-
     std::stable_sort( trackCont.begin(), trackCont.end(), comp );
 
 #if 0
     DebugPrint( trackCont, arg+" After Sorting with comp func " );
 #endif
+
+    DeleteDuplicatedTracks( trackCont );
 
 #if 0
     DebugPrint( trackCont, arg+" After Deleting " );

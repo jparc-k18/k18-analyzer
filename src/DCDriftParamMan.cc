@@ -227,10 +227,10 @@ DCDriftParamMan::DriftLength6( int PlaneId, double dt,
       return 999.9;
     if( PlaneId==123 || PlaneId==124 ){
       if( dt>35 ) dt=35.;
-      dl = dt*p1+dt*dt*p2+p3*pow(dt, 3.0)+p4*pow(dt, 4.0)+p5*pow(dt, 5.0);
     }else if( dt>32. ){
       dt = 32.;
     }
+    dl = dt*p1+dt*dt*p2+p3*pow(dt, 3.0)+p4*pow(dt, 4.0)+p5*pow(dt, 5.0);
     if( dl>1.5 )
       return 1.5;
     if( dl<0. )

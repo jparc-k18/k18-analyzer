@@ -48,8 +48,8 @@ private:
 		k_SdcIn, k_SdcOut,
 		k_SsdIn, k_SsdOut,
 		k_TOF, n_type };
-  std::vector<bool>     m_is_decoded;
-  std::vector<int>      m_much_combi;
+  std::vector<bool>                 m_is_decoded;
+  std::vector<int>                  m_much_combi;
   std::vector<MWPCClusterContainer> m_MWPCClCont;
   std::vector<DCHitContainer>       m_TempBcInHC;
   std::vector<DCHitContainer>       m_BcInHC;
@@ -97,7 +97,7 @@ public:
 
   bool TrackSearchBcIn( void );
   bool TrackSearchBcIn( const std::vector< std::vector<DCHitContainer> >& hc );
-  bool TrackSearchBcOut( int T0Seg );
+  bool TrackSearchBcOut( int T0Seg=-1 );
   bool TrackSearchBcOut( const std::vector< std::vector<DCHitContainer> >& hc, int T0Seg );
   bool TrackSearchSdcIn( void );
   bool TrackSearchSdcInFiber( void );

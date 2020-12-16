@@ -1,24 +1,22 @@
-/*a*
- *  file: DCParameters.hh
- *  date: 2017.04.10
- *
- */
+// -*- C++ -*-
 
 #ifndef DC_PARAMETERS_HH
 #define DC_PARAMETERS_HH
 
+#include <TString.h>
+
 #include <std_ostream.hh>
 
-//______________________________________________________________________________
+//_____________________________________________________________________________
 struct DCPairPlaneInfo
 {
-  bool pair;
-  bool honeycomb;
-  bool fiber;
-  int  id1, id2;
-  double CellSize;
+  Bool_t pair;
+  Bool_t honeycomb;
+  Bool_t fiber;
+  Int_t  id1, id2;
+  Double_t CellSize;
 
-  void Print( const std::string& arg="", std::ostream& ost=hddaq::cout ) const
+  void Print( const TString& arg="", std::ostream& ost=hddaq::cout ) const
   {
     ost << "[DCPairPlaneInfo::Print()] " << arg << std::endl
 	<< " pair      : " << pair      << std::endl
@@ -31,7 +29,7 @@ struct DCPairPlaneInfo
 };
 
 extern const DCPairPlaneInfo PPInfoBcOut[], PPInfoSdcIn[], PPInfoSdcOut[];
-extern const int NPPInfoBcOut, NPPInfoSdcIn, NPPInfoSdcOut;
+extern const Int_t NPPInfoBcOut, NPPInfoSdcIn, NPPInfoSdcOut;
 
 #ifdef DefStatic
 const DCPairPlaneInfo PPInfoBcOut[] = {
@@ -39,7 +37,9 @@ const DCPairPlaneInfo PPInfoBcOut[] = {
   { true, false, false, 1,  2,  3.0 }, { true, false, false,  3,  4,  3.0 },
   { true, false, false, 5,  6,  3.0 }, { true, false, false,  7,  8,  3.0 },
   { true, false, false, 9, 10,  3.0 }, { true, false, false, 11, 12,  3.0 },
+#ifdef UseBH2BcOut
   { false, false, false, 13, 13, 10.0 }
+#endif
 };
 
 const DCPairPlaneInfo PPInfoSdcIn[] = {
@@ -56,14 +56,14 @@ const DCPairPlaneInfo PPInfoSdcOut[] = {
 
 };
 
-const int NPPInfoBcOut  = sizeof(PPInfoBcOut)/sizeof(DCPairPlaneInfo);
-const int NPPInfoSdcIn  = sizeof(PPInfoSdcIn)/sizeof(DCPairPlaneInfo);
-const int NPPInfoSdcOut = sizeof(PPInfoSdcOut)/sizeof(DCPairPlaneInfo);
+const Int_t NPPInfoBcOut  = sizeof(PPInfoBcOut)/sizeof(DCPairPlaneInfo);
+const Int_t NPPInfoSdcIn  = sizeof(PPInfoSdcIn)/sizeof(DCPairPlaneInfo);
+const Int_t NPPInfoSdcOut = sizeof(PPInfoSdcOut)/sizeof(DCPairPlaneInfo);
 
 #endif
 
 //DL Ranges (BC1&2 for Time range -5 ns <[Time gate]<75 ns)
-const double MinDLBc[25] = {
+const Double_t MinDLBc[25] = {
    0.0,
    // BC1
   -5.0, -5.0, -5.0, -5.0, -5.0, -5.0,
@@ -75,7 +75,7 @@ const double MinDLBc[25] = {
   -0.5, -0.5, -0.5, -0.5, -0.5, -0.5
 };
 
-const double MaxDLBc[25] = {
+const Double_t MaxDLBc[25] = {
   0.0,
   // BC1
   75.0, 75.0, 75.0, 75.0, 75.0, 75.0,
@@ -87,7 +87,7 @@ const double MaxDLBc[25] = {
   1.8, 1.8, 1.8, 1.8, 1.8, 1.8
 };
 
-const double MinDLSdc[] = {
+const Double_t MinDLSdc[] = {
   0.0,
   //SDC1
   -0.5, -0.5, -0.5, -0.5, -0.5, -0.5,
@@ -102,7 +102,7 @@ const double MinDLSdc[] = {
   -0.5, -0.5, -0.5, -0.5
 };
 
-const double MaxDLSdc[] = {
+const Double_t MaxDLSdc[] = {
   0.0,
   // SDC1
   10.0, 10.0, 10.0, 10.0, 10.0, 10.0,
