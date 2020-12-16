@@ -237,6 +237,8 @@ struct Dst
   Double_t dtWc[NumOfSegWC*MaxDepth];
   Double_t deWc[NumOfSegWC*MaxDepth];
 
+  Int_t    nhLAC;
+
   Int_t    nhWcSum;
   Int_t    csWcSum[NumOfSegWC*MaxDepth];
   Double_t WcSumSeg[NumOfSegWC*MaxDepth];
@@ -1458,8 +1460,9 @@ EventHodoscope::ProcessingNormal( void )
       HF1( WCSUMHid+33, cmt ); HF1( WCSUMHid+34, de );
     }
   }
-
-
+  
+  // LAC
+  hodoAna->DecodeLACHits( rawData );
 
 
 
@@ -1558,6 +1561,12 @@ EventHodoscope::ProcessingNormal( void )
   }
 
   {
+    Int_t nc = hodoAna->GetNClustersLAC();
+    dst.nhLAC = nc;
+  }
+
+
+  {
     Int_t nc = hodoAna->GetNClustersWC();
     dst.nhWc = nc;
     for( Int_t i=0; i<nc; ++i ){
@@ -1650,6 +1659,7 @@ EventHodoscope::InitializeEvent( void )
   dst.nhPvac  = 0;
   dst.nhFac  = 0;
   dst.nhTof  = 0;
+  dst.nhLAC  = 0;
   dst.nhWc  = 0;
   dst.nhWcSum  = 0;
 
@@ -2607,6 +2617,8 @@ ConfMan::InitializeHistograms( void )
   hodo->Branch("tTof",       dst.tTof,      "tTof[nhTof]/D");
   hodo->Branch("dtTof",      dst.dtTof,     "dtTof[nhTof]/D");
   hodo->Branch("deTof",      dst.deTof,     "deTof[nhTof]/D");
+
+  hodo->Branch("nhLAC",     &dst.nhLAC,     "nhLAC/I");
 
   hodo->Branch("nhWc",     &dst.nhWc,     "nhWc/I");
   hodo->Branch("csWc",      dst.csWc,     "csWc[nhWc]/I");
