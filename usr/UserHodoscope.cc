@@ -2634,16 +2634,16 @@ ConfMan::InitializeHistograms( void )
   hodo->Branch("utWcSeg",   dst.utWcSeg,
 	       Form("utWcSeg[%d][%d]/D", NumOfSegWC, MaxDepth) );
   hodo->Branch("dtWcSeg",   dst.dtWcSeg,
-	       Form("dtWcSeg[%d]/D", NumOfSegWC) );
+	       Form("dtWcSeg[%d][%d]/D", NumOfSegWC, MaxDepth) );
   hodo->Branch("udeWcSeg",  dst.udeWcSeg,
-	       Form("udeWcSeg[%d][%d]/D", NumOfSegWC, MaxDepth) );
+	       Form("udeWcSeg[%d]/D", NumOfSegWC) );
   hodo->Branch("ddeWcSeg",  dst.ddeWcSeg,
 	       Form("ddeWcSeg[%d]/D", NumOfSegWC) );
 
   hodo->Branch("tWcSumSeg",   dst.tWcSumSeg,
 	       Form("tWcSumSeg[%d][%d]/D", NumOfSegWC, MaxDepth) );
   hodo->Branch("deWcSumSeg",  dst.deWcSumSeg,
-	       Form("deWcSumSeg[%d][%d]/D", NumOfSegWC, MaxDepth) );
+	       Form("deWcSumSeg[%d]/D", NumOfSegWC) );
 
 
   // HPrint();
