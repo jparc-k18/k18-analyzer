@@ -1252,9 +1252,9 @@ EventHodoscope::ProcessingNormal( void )
 	HF1( TOFHid+11, seg-0.5 );
 
 	Double_t au  = hit->GetAUp(),   ad  = hit->GetADown();
-	Double_t tu  = hit->GetTUp(),   td  = hit->GetTDown();
-	Double_t ctu = hit->GetCTUp(),  ctd = hit->GetCTDown();
-	Double_t mt  = hit->MeanTime(), cmt = hit->CMeanTime();
+	Double_t tu  = hit->GetTUp(m),   td  = hit->GetTDown(m);
+	Double_t ctu = hit->GetCTUp(m),  ctd = hit->GetCTDown(m);
+	Double_t mt  = hit->MeanTime(m), cmt = hit->CMeanTime(m);
 	Double_t de  = hit->DeltaE();
 	event.tofmt[seg-1][m] = mt;
 	event.tofde[seg-1]    = de;
@@ -1336,9 +1336,9 @@ EventHodoscope::ProcessingNormal( void )
 	HF1( WCHid+11, seg-0.5 );
 
 	Double_t au  = hit->GetAUp(),   ad  = hit->GetADown();
-	Double_t tu  = hit->GetTUp(),   td  = hit->GetTDown();
-	Double_t ctu = hit->GetCTUp(),  ctd = hit->GetCTDown();
-	Double_t mt  = hit->MeanTime(), cmt = hit->CMeanTime();
+	Double_t tu  = hit->GetTUp(m),   td  = hit->GetTDown(m);
+	Double_t ctu = hit->GetCTUp(m),  ctd = hit->GetCTDown(m);
+	Double_t mt  = hit->MeanTime(m), cmt = hit->CMeanTime(m);
 	Double_t de  = hit->DeltaE();
 	event.wcmt[seg-1][m] = mt;
 	event.wcde[seg-1]    = de;
@@ -1419,8 +1419,8 @@ EventHodoscope::ProcessingNormal( void )
 	HF1( WCSUMHid+11, seg-0.5 );
 
 	Double_t au  = hit->GetA();
-	Double_t tu  = hit->GetT();
-	Double_t ctu = hit->GetCT();
+	Double_t tu  = hit->GetT(m);
+	Double_t ctu = hit->GetCT(m);
 	Double_t de  = hit->DeltaE();
 	event.wcsumde[seg-1]    = de;
 	HF1( WCSUMHid+100*seg+11, tu );
