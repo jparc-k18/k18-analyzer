@@ -812,17 +812,7 @@ RK::MakeHPContainer( void )
     container.push_back( std::make_pair( plid, RKcalcHitPoint() ) );
   }
   for( std::size_t i=0; i<NumOfLayersSdcOut; ++i ){
-    std::size_t plid = 80;
-    if( i<4 ){
-      plid = i +PlOffsFht;
-    }
-    else if( i<12 ){
-      plid = i -3 +PlOffsSdcOut;
-    }
-    else{
-      plid = i -8 +PlOffsFht;
-    }
-
+    std::size_t plid = i +PlOffsSdcOut +1;
     container.push_back( std::make_pair( plid, RKcalcHitPoint() ) );
   }
 
