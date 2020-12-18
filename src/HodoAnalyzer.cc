@@ -27,7 +27,7 @@
 
 namespace
 {
-  const Double_t MaxTimeDifBH1   =  2.0;
+  const Double_t MaxTimeDifBH1   =  2.0;  
   const Double_t MaxTimeDifBH2   =  2.0;
   const Double_t MaxTimeDifBAC   = -1.0;
   const Double_t MaxTimeDifPVAC  = -1.0;
@@ -314,7 +314,7 @@ HodoAnalyzer::DecodeTOFHits( RawData *rawData )
     HodoRawHit *hit = cont[i];
     if( !hit ) continue;
     if( hit->GetTdcUp()<=0 || hit->GetTdcDown()<=0 ) continue;
-    Hodo2Hit *hp = new Hodo2Hit( hit );
+    Hodo2Hit *hp = new Hodo2Hit( hit , 20.);
     if( !hp ) continue;
     hp->MakeAsTof();
     if( hp->Calculate() )
@@ -364,7 +364,7 @@ HodoAnalyzer::DecodeWCHits( RawData *rawData )
     HodoRawHit *hit = cont[i];
     if( !hit ) continue;
     if( hit->GetTdcUp()<=0 || hit->GetTdcDown()<=0 ) continue;
-    Hodo2Hit *hp = new Hodo2Hit( hit, 30. );
+    Hodo2Hit *hp = new Hodo2Hit( hit, 50. );
     if( !hp ) continue;
     if( hp->Calculate() )
       m_WCCont.push_back(hp);

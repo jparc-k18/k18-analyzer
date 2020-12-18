@@ -27,7 +27,7 @@ namespace
   using namespace root;
   const std::string& class_name("EventHodoscope");
   RMAnalyzer& gRM = RMAnalyzer::GetInstance();
-
+  const UserParamMan& gUser = UserParamMan::GetInstance();
 }
 
 //_____________________________________________________________________________
@@ -813,8 +813,10 @@ EventHodoscope::ProcessingNormal( void )
 
   //BH1
   hodoAna->DecodeBH1Hits( rawData );
-  //  hodoAna->TimeCutBH1(-10, 10);
-  hodoAna->TimeCutBH1(-2, 2);
+  static const Double_t MinTBH1 = gUser.GetParameter("TimeBH1",  0);
+  static const Double_t MaxTBH1 = gUser.GetParameter("TimeBH1",  1);
+  //hodoAna->TimeCutBH1(-2, 2);
+  hodoAna->TimeCutBH1(MinTBH1, MaxTBH1);
   {
     Int_t nh = hodoAna->GetNHitsBH1();
     HF1( BH1Hid+10, Double_t(nh) );
@@ -999,6 +1001,7 @@ EventHodoscope::ProcessingNormal( void )
 
     // BTOF0 segment
     HodoCluster *cl_btof0 = dst.Time0Seg > 0? hodoAna->GetBtof0BH1Cluster(dst.CTime0) : NULL;
+    
     if(cl_btof0){
       event.Btof0Seg = cl_btof0->MeanSeg()+1;
       event.deBtof0  = cl_btof0->DeltaE();

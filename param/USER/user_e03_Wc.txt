@@ -8,13 +8,14 @@ DeBH1 0.3 4
 DeBH2 0.3 4
 
 ### BH2 Mt gate (for Time0)
-MtBH2 -2 2
+MtBH2 -10 10
 
 ### BTOF gate
-BTOF -2 2
+BTOF -25 10
+#BTOF -10 10
 
 ### BH1 gate
-TimeBH1 -2 2
+TimeBH1 -30 30
 
 ### TOF dE gate
 DeTOF 0.3 4
