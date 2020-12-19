@@ -310,7 +310,7 @@ EventHBX::ProcessingNormal( void )
 	  HF1( BGOHid+100*(seg+1)+0, double(tdc) );
 	  HF2( BGOHid+0, seg+0.5, double(tdc) );
 	}
-	event.gebgot[seg][nhit] = tdc;
+	event.gebgot[seg][i] = tdc;
       }
     }
   }
