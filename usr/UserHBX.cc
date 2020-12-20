@@ -118,6 +118,7 @@ struct Event
 
   //Ge Scaler
   int scaler[NumOfSegScaler];
+
 };
 //______________________________________________________________________________
 struct Dst
@@ -314,7 +315,15 @@ EventHBX::ProcessingNormal( void )
       }
     }
   }
-  
+
+  for( int seg=0; seg<NumOfSegScaler; ++seg ){
+    int nhit = gUnpacker.get_entries( DetIdScaler, 2, 0, seg, 0 );
+    if( nhit>0 ){
+      int data = gUnpacker.get( DetIdScaler, 2, 0, seg, 0 );
+      event.scaler[seg] = data;
+    }
+  }
+
   return true;
 }
 

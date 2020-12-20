@@ -40,7 +40,7 @@ namespace
   const std::string& class_name("EventK18Tracking");
   RMAnalyzer&         gRM   = RMAnalyzer::GetInstance();
   const UserParamMan& gUser = UserParamMan::GetInstance();
-  BH2Filter&          gFilter = BH2Filter::GetInstance();
+  //BH2Filter&          gFilter = BH2Filter::GetInstance();
   BH1Match&           gBH1Mth = BH1Match::GetInstance();
 }
 
@@ -333,8 +333,8 @@ EventK18Tracking::ProcessingNormal( void )
   HF1( 1, 11. );
 
   //////////////BCOut tracking
-  BH2Filter::FilterList cands;
-  gFilter.Apply((Int_t)event.Time0Seg-1, *DCAna, cands);
+  //BH2Filter::FilterList cands;
+  //gFilter.Apply((Int_t)event.Time0Seg-1, *DCAna, cands);
   //DCAna->TrackSearchBcOut( cands, event.Time0Seg-1 );
   DCAna->TrackSearchBcOut(-1);
   DCAna->ChiSqrCutBcOut(10);
@@ -674,7 +674,7 @@ ConfMan::InitializeParameterFiles( void )
       InitializeParameter<DCTdcCalibMan>("DCTDC")    &&
       InitializeParameter<HodoParamMan>("HDPRM")     &&
       InitializeParameter<HodoPHCMan>("HDPHC")       &&
-      InitializeParameter<BH2Filter>("BH2FLT")       &&
+      //InitializeParameter<BH2Filter>("BH2FLT")       &&
       InitializeParameter<BH1Match>("BH1MTH")        &&
       InitializeParameter<K18TransMatrix>("K18TM")   &&
       InitializeParameter<UserParamMan>("USER")      );

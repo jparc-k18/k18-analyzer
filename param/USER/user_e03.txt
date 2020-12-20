@@ -80,8 +80,8 @@ MinLayerSdcIn 10
 MaxMultiHitSdcOut 16
 
 ### SDCOUT plane multiplicity gate (+2 in SdcOutTracking)
-MinLayerSdcOut 6
-#MinLayerSdcOut 8
+#MinLayerSdcOut 6
+MinLayerSdcOut 8
 
 ### L1 timing of TOF stop
 TimeL1 230 260
