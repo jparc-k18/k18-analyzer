@@ -184,7 +184,8 @@ DCHit::CalcDCObservables( void )
       double trailing_ctime;
       gTdc.GetTime( m_layer, m_wire, trailing_cont.at(m_pair_cont.at(i).index_t), trailing_ctime );
       m_pair_cont.at(i).trailing_time = trailing_ctime;
-      m_pair_cont.at(i).tot           = ctime - trailing_ctime;
+      //m_pair_cont.at(i).tot           = ctime - trailing_ctime;//tot is time
+      m_pair_cont.at(i).tot           = leading_cont.at(i) - trailing_cont.at(m_pair_cont.at(i).index_t);
     }else{
       m_pair_cont.at(i).trailing_time = std::numeric_limits<double>::quiet_NaN();
       m_pair_cont.at(i).tot           = std::numeric_limits<double>::quiet_NaN();

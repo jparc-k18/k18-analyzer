@@ -114,7 +114,10 @@ struct Event
   int nlayer;
   int nhSdcIn[NumOfLayersSdcIn];
   int tdc1st[NumOfLayersSdcIn][MaxHits];
+  int tot1st[NumOfLayersSdcIn][MaxHits];
   double pos[NumOfLayersSdcIn][MaxHits];
+  
+
 
   int ntrack;
   int    much;
@@ -332,15 +335,19 @@ EventSdcInTracking::ProcessingNormal( void )
 	HF1( 100*layer+1, wire-0.5 );
 	int nhtdc = hit->GetTdcSize();
 	int tdc1st = -1;
+	int tot1st = -1;
 	for( int k=0; k<nhtdc; k++ ){
 	  int tdc = hit->GetTdcVal(k);
+	  int tot = hit->GetTot(k);
 	  if( tdc > tdc1st ){
 	    tdc1st = tdc;
+	    tot1st = tot;
 	    tdchits++;
 	    fl_valid_sig = true;
 	  }
 	}
 	event.tdc1st[layer-1][i] = tdc1st;
+	event.tot1st[layer-1][i] = tot1st;
 	if( i<MaxHits && nhtdc==1 ) {
 	  event.pos[layer-1][i] = hit->GetWirePosition();
 	  // if ( layer == 3 || layer == 6 || layer == 7 ) {
@@ -763,6 +770,8 @@ ConfMan:: InitializeHistograms( void )
   tree->Branch("nhSdcIn",  &event.nhSdcIn,  Form( "nhSdcIn[%d]/I",
 						  NumOfLayersSdcIn ) );
   tree->Branch("tdc1st",    event.tdc1st,   Form( "tdc1st[%d][%d]/I",
+						  NumOfLayersSdcIn, MaxHits ) );
+  tree->Branch("tot1st",    event.tot1st,   Form( "tot1st[%d][%d]/I",
 						  NumOfLayersSdcIn, MaxHits ) );
 
   tree->Branch("nlayer",   &event.nlayer,   "nlayer/I");
