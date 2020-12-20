@@ -117,7 +117,6 @@ struct Event
   int nhit[NumOfLayersSdcOut+2];
   int nlayer;
   double wpos[NumOfLayersSdcOut+2][MaxHits];
-  double pos[NumOfLayersSdcOut+2][MaxHits];
 
   int tdc[MaxHits];
 
@@ -552,7 +551,6 @@ EventSdcOutTracking::InitializeEvent( void )
     event.nhit[it] = 0;
     for( int that=0; that<MaxHits; ++that ){
       event.wpos[it][that] = -9999.;
-      event.pos[it][that] = -9999.;
     }
   }
   for( int it=0; it<MaxHits; ++it ){
@@ -818,8 +816,6 @@ ConfMan::InitializeHistograms( void )
 						 NumOfLayersSdcOut));
   tree->Branch("nlayer",   &event.nlayer,   "nlayer/I");
   tree->Branch("wpos",     &event.wpos,     Form("wpos[%d][%d]/D",
-						 NumOfLayersSdcOut, MaxHits));
-  tree->Branch(" pos",     &event.pos,     Form("wpos[%d][%d]/D",
 						 NumOfLayersSdcOut, MaxHits));
   tree->Branch("ntrack",   &event.ntrack,   "ntrack/I");
   tree->Branch("chisqr",    event.chisqr,   "chisqr[ntrack]/D");

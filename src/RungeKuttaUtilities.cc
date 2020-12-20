@@ -803,7 +803,7 @@ RK::MakeHPContainer( void )
   /*** From Upstream ***/
   container.push_back( std::make_pair( IdTarget, RKcalcHitPoint() ) );
 
-  for( std::size_t i=0; i<NumOfLayersSDC1; ++i ){
+  for( std::size_t i=0; i<NumOfLayersSdcIn; ++i ){
     std::size_t plid = i +PlOffsSdcIn +1;
     container.push_back( std::make_pair( plid, RKcalcHitPoint() ) );
   }
