@@ -2509,7 +2509,7 @@ ConfMan::InitializeHistograms( void )
   //LAC
   tree->Branch("lacnhits",   &event.lacnhits,    "lacnhits/I");
   tree->Branch("lachitpat",  event.lachitpat,   Form("lachitpat[%d]/I", NumOfSegLAC));
-  tree->Branch("lact",       event.lact,       Form("lact[%d]/D", NumOfSegLAC));
+  tree->Branch("lact",       event.lact,       Form("lact[%d][%d]/D", NumOfSegLAC,MaxDepth));
   //WC
   tree->Branch("wcnhits",   &event.wcnhits,    "wcnhits/I");
   tree->Branch("wchitpat",   event.wchitpat,   Form("wchitpat[%d]/I", NumOfSegWC));
