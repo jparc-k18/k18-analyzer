@@ -38,8 +38,8 @@ namespace
   const int& IdTarget = gGeom.DetectorId("Target");
 
   const double CHLB     = 2.99792458E-4;
-  // const double Polarity = 1.;
-  const double Polarity = -1.;
+  const double Polarity = 1.;
+  //const double Polarity = -1.;
 }
 
 #define WARNOUT 0

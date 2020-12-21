@@ -423,7 +423,7 @@ EventSdcInTracking::ProcessingNormal( void )
     HF2( 18, x0, u0 ); HF2( 19, y0, v0 );
     HF2( 20, x0, y0 );
 
-    double xtgt=tp->GetX(0), ytgt=tp->GetY(0);
+    double xtgt=tp->GetX(-1289.1), ytgt=tp->GetY(-1289.1);
     double utgt=u0, vtgt=v0;
     HF1( 21, xtgt ); HF1( 22, ytgt );
     HF1( 23, utgt ); HF1( 24, vtgt );
