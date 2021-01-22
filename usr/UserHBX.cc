@@ -125,6 +125,31 @@ struct Dst
 {
   int evnum;
   int spill;
+
+  //Trig flag
+  int trignhits;
+  int trigpat[NumOfSegTrig];
+  int trigflag[NumOfSegTrig];
+
+  //Ge Reset
+  int geReset[NumOfSegGe];
+
+  //Ge ADC
+  double geAdc[NumOfSegGe];
+
+  //Ge TFA
+  int nhGeTfa;
+  double geTfa[NumOfSegGe][MaxDepth];
+
+  //Ge CRM
+  int nhGeCrm;
+  double geCrm[NumOfSegGe][MaxDepth];
+
+  //Ge BGO
+  int nhBgo;
+  double bgoTdc[NumOfSegBGO][MaxDepth];
+
+
 };
 
 //______________________________________________________________________________
@@ -183,8 +208,10 @@ EventHBX::ProcessingNormal( void )
       for(int hit=0; hit<nhits_trig; hit++){
 	int trig = gUnpacker.get( DetIdTrig, 0, seg, 0, 1, hit );
 	if(trig>0){
-	  event.trigpat[seg] = seg; 
-	  event.trigflag[seg] = trig; 
+	  event.trigpat[seg] = seg;
+	  event.trigflag[seg] = trig;
+	  dst.trigpat[seg] = seg; 
+	  dst.trigflag[seg] = trig; 
 	  HF1( 10, seg);
 	  HF1( 10+seg+1, trig);
 	  trignhits++;
@@ -206,6 +233,7 @@ EventHBX::ProcessingNormal( void )
       }
     } 
     event.trignhits = trignhits;
+    dst.trignhits = trignhits;
     event.hbxtrignhits = hbxtrignhits;
   }
    
@@ -221,6 +249,7 @@ EventHBX::ProcessingNormal( void )
     if( nhit_a>0 ){
       int adc = gUnpacker.get( DetIdGe, 0, seg, 0, 0 );
       event.geadc[seg] = adc;
+      dst.geAdc[seg] = adc;
       HF1( GeHid+100*(seg+1)+10, double(adc) );
       HF2( GeHid+100 +0, seg+0.5, double(adc) );
       if( event.hbxtrigflag[LSOGeFlag]>0  ) event.lsogeadc[seg]      = adc;	 
@@ -273,6 +302,7 @@ EventHBX::ProcessingNormal( void )
 	  HF2( GeHid+100+2, seg+0.5, double(tfa) );
 	}
 	event.getfa[seg][i] = tfa;
+	dst.geTfa[seg][i] = tfa;
       }
     }
 
@@ -284,6 +314,7 @@ EventHBX::ProcessingNormal( void )
 	  HF1( GeHid+100*(seg+1)+30, double(crm) ); //0 origin
 	  HF2( GeHid+100+3, seg+0.5, double(crm) );
 	  event.gecrm[seg][i] = crm;
+	  dst.geCrm[seg][i] = crm;
 	}
       }
     }
@@ -294,6 +325,7 @@ EventHBX::ProcessingNormal( void )
       HF1( GeHid+100*(seg+1)+40, double(reset_time) );
       HF2( GeHid+100+4, seg+0.5, double(reset_time) );
       event.gereset[seg] = reset_time;
+      dst.geReset[seg] = reset_time;
     }
   }
       
@@ -301,17 +333,18 @@ EventHBX::ProcessingNormal( void )
   for(int seg = 0; seg<NumOfSegBGO; ++seg){
     int nhit = gUnpacker.get_entries( DetIdBGO, 0, seg, 0, 0 );
     if( nhit>0 ){
-       
+
       HF1( BGOHid+1, seg+0.5); //0 origin
-       
+
       for(int i = 0; i<nhit; ++i){
-	 
+
 	int tdc = gUnpacker.get( DetIdBGO, 0, seg, 0, 0, i )  ;
 	if(tdc > 0){
 	  HF1( BGOHid+100*(seg+1)+0, double(tdc) );
 	  HF2( BGOHid+0, seg+0.5, double(tdc) );
 	}
 	event.gebgot[seg][i] = tdc;
+	dst.bgoTdc[seg][i] = tdc;
       }
     }
   }
@@ -332,6 +365,7 @@ bool
 EventHBX::ProcessingEnd( void )
 {
   tree->Fill();
+  hbx->Fill();
   return true;
 
 }
@@ -345,6 +379,7 @@ EventHBX::InitializeEvent( void )
   event.gebgonhits  = 0;
   event.trignhits = 0;
   event.hbxtrignhits = 0;
+
 
   for( int it=0; it<NumOfSegTrig; it++){
     event.trigpat[it] = -1;
@@ -394,6 +429,31 @@ EventHBX::InitializeEvent( void )
   //Scaler
   for( int it=0; it<NumOfSegScaler; it++){
     event.scaler[it] = 0;
+  }
+
+
+  ////Dst////////////////////////
+  dst.evnum = 0;
+  dst.spill = 0;
+  dst.trignhits = 0;
+
+  dst.nhGeTfa = 0;
+  dst.nhGeCrm = 0;
+  dst.nhBgo = 0;
+
+  for( int it=0; it<NumOfSegGe; ++it ){
+    dst.geReset[it] = -9999;
+    dst.geAdc[it] = -9999.;
+    for( int m=0; m<MaxDepth; ++m ){
+      dst.geTfa[it][m] = -9999.;
+      dst.geCrm[it][m] = -9999.;
+      }
+  }
+
+  for( int it=0; it<NumOfSegBGO; ++it ){
+    for( int m=0; m<MaxDepth; ++m ){
+      dst.bgoTdc[it][m] = -9999.;
+    }
   }
 }
 
@@ -551,7 +611,23 @@ ConfMan::InitializeHistograms( void )
 
   /////Dst/////////////////////////////////
   hbx = new TTree( "hbx", "Data Summary Table of hbx" );
+  hbx->Branch("evnum", &dst.evnum, "evnum/I");
+  hbx->Branch("spill", &dst.spill, "spill/I");
 
+  hbx->Branch("trignhits", &dst.trignhits, "trignhits/I");
+  hbx->Branch("trigpat",    dst.trigpat,   "trigpat[trignhits]/I");
+  hbx->Branch("trigflag",   dst.trigflag,  Form("trigflag[%d]/I", NumOfSegTrig));
+
+  hbx->Branch("geReset", dst.geReset,  Form("geReset[%d]/I", NumOfSegGe));
+  hbx->Branch("geAdc",   dst.geAdc,  Form("geAdc[%d]/D", NumOfSegGe));
+
+  hbx->Branch("nhGeTfa", &dst.nhGeTfa, "nhGeTfa/I");
+  hbx->Branch("nhGeCrm", &dst.nhGeCrm, "nhGeCrm/I");
+  hbx->Branch("nhBgo", &dst.nhBgo, "nhBgo/I");
+
+  hbx->Branch("geTfa",  dst.geTfa,   Form("geTfa[%d][%d]/D", NumOfSegGe, MaxDepth));
+  hbx->Branch("geCrm",  dst.geCrm,   Form("geCrm[%d][%d]/D", NumOfSegGe, MaxDepth));
+  hbx->Branch("bgoTdc", dst.bgoTdc,  Form("bgoTdc[%d][%d]/D", NumOfSegBGO, MaxDepth));
 
   HPrint();
   return true;

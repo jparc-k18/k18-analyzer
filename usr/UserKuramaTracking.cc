@@ -20,7 +20,7 @@
 #include "VEvent.hh"
 
 #define HodoCut 0
-#define UseTOF  0
+#define UseTOF  1
 
 namespace
 {
@@ -265,7 +265,9 @@ EventKuramaTracking::ProcessingNormal( void )
 
   //////////////BH2 Analysis
   hodoAna->DecodeBH2Hits(rawData);
-  int nhBh2 = hodoAna->GetNHitsBH2();
+  hodoAna->TimeCutBH2(-1., 1.);
+  //int nhBh2 = hodoAna->GetNHitsBH2();
+  int nhBh2 = hodoAna->GetNClustersBH2();
   event.nhBh2 = nhBh2;
 #if HodoCut
   if( nhBh2==0 ) return true;
@@ -274,9 +276,11 @@ EventKuramaTracking::ProcessingNormal( void )
   //////////////BH2 Analysis
   double min_time = -999.;
   for( int i=0; i<nhBh2; ++i ){
-    BH2Hit *hit = hodoAna->GetHitBH2(i);
+    //BH2Hit *hit = hodoAna->GetHitBH2(i);
+    BH2Cluster *hit = hodoAna->GetClusterBH2(i);
     if(!hit) continue;
-    double seg = hit->SegmentId()+1;
+    //double seg = hit->SegmentId()+1;
+    int    seg  = hit->MeanSeg()+1;
     double mt  = hit->MeanTime();
     double cmt = hit->CMeanTime();
     double ct0 = hit->CTime0();
@@ -288,6 +292,7 @@ EventKuramaTracking::ProcessingNormal( void )
     event.t0Bh2[i]  = ct0;
     event.deBh2[i]  = de;
     event.Bh2Seg[i] = seg;
+
     if( std::abs(mt)<std::abs(min_time) ){
       min_time = mt;
       time0    = ct0;
@@ -297,7 +302,9 @@ EventKuramaTracking::ProcessingNormal( void )
 
   //////////////BH1 Analysis
   hodoAna->DecodeBH1Hits(rawData);
-  int nhBh1 = hodoAna->GetNHitsBH1();
+  hodoAna->TimeCutBH1(-5., 5.);
+  //int nhBh1 = hodoAna->GetNHitsBH1();
+  int nhBh1 = hodoAna->GetNClustersBH1();
   event.nhBh1 = nhBh1;
 #if HodoCut
   if( nhBh1==0 ) return true;
@@ -307,9 +314,11 @@ EventKuramaTracking::ProcessingNormal( void )
 
   double btof0 = -999.;
   for(int i=0; i<nhBh1; ++i){
-    Hodo2Hit *hit = hodoAna->GetHitBH1(i);
+    //Hodo2Hit *hit = hodoAna->GetHitBH1(i);
+    HodoCluster *hit = hodoAna->GetClusterBH1(i);
     if(!hit) continue;
-    int    seg  = hit->SegmentId()+1;
+    //int    seg  = hit->SegmentId()+1;
+    int    seg  = hit->MeanSeg()+1;
     double cmt  = hit->CMeanTime();
     double dE   = hit->DeltaE();
     double btof = cmt - time0;
@@ -362,7 +371,7 @@ EventKuramaTracking::ProcessingNormal( void )
   HodoClusterContainer TOFCont;
   //////////////Tof Analysis
   hodoAna->DecodeTOFHits( rawData );
-  //hodoAna->TimeCutTOF(7, 25);
+  hodoAna->TimeCutTOF(7, 25);
   int nhTof = hodoAna->GetNClustersTOF();
   event.nhTof = nhTof;
   {
@@ -421,8 +430,8 @@ EventKuramaTracking::ProcessingNormal( void )
 
   double offset = flag_tof_stop ? 0 : dTOfs;
   DCAna->DecodeSdcOutHits( rawData, offset );
-  DCAna->TotCutSDC3( MinTotSDC3 );
-  DCAna->TotCutSDC4( MinTotSDC4 );
+  //DCAna->TotCutSDC3( MinTotSDC3 );
+  //DCAna->TotCutSDC4( MinTotSDC4 );
 
   double multi_SdcIn  = 0.;
   ////////////// SdcIn number of hit layer
@@ -616,8 +625,9 @@ EventKuramaTracking::ProcessingNormal( void )
       int layerId = hit->GetLayer();
 
       if( hit->GetLayer()>79 ) layerId -= 62;
-      else if( hit->GetLayer()>40 ) layerId -= 15;
-      else if( hit->GetLayer()>30 ) layerId -= 21;
+      else if( hit->GetLayer()>40 ) layerId -= 22;
+      else if( hit->GetLayer()>30 ) layerId -= 20;
+
       //std::cout << "layerId :" << layerId << std::endl;
 
       HF1( 33, hit->GetLayer() );
@@ -682,9 +692,9 @@ EventKuramaTracking::ProcessingNormal( void )
     double chisqr=tp->chisqr();
     ThreeVector Pos = tp->PrimaryPosition();
     ThreeVector Mom = tp->PrimaryMomentum();
-    // hddaq::cout << std::fixed
-    // 		<< "Pos = " << Pos << std::endl
-    // 		<< "Mom = " << Mom << std::endl;
+    //hddaq::cout << std::fixed
+    //		<< "Pos = " << Pos << std::endl
+    //		<< "Mom = " << Mom << std::endl;
     double path = tp->PathLengthToTOF();
     double xt = Pos.x(), yt = Pos.y();
     double p = Mom.Mag();
@@ -751,22 +761,25 @@ EventKuramaTracking::ProcessingNormal( void )
     // int    TofSeg = -9999;
     double time   = -9999.;
     for( int j=0; j<nhTof; ++j ){
-      Hodo2Hit *hit = hodoAna->GetHitTOF(j);
+      //Hodo2Hit *hit = hodoAna->GetHitTOF(j);
+      HodoCluster *hit = hodoAna->GetClusterTOF(j);
       if( !hit ) continue;
-      int seg  = hit->SegmentId()+1;
+      //int seg  = hit->SegmentId()+1;
+      int seg  = hit->MeanSeg()+1;
       // w/  TOF
       if( (int)tof_seg == seg ){
-	time = hit->CMeanTime()-time0+OffsetToF;
+      	time = hit->CMeanTime()-time0+OffsetToF;
       }
-      // w/o TOF
-      // double res  = std::abs( tof_seg - seg );
-      // if( res<minres ){
-      // 	minres = res;
-      // 	TofSeg = seg;
-      // 	time   = hit->CMeanTime()-time0+OffsetToF;
+      //w/o TOF
+      //double res  = std::abs( tof_seg - seg );
+      //if( res<minres ){
+      //	minres = res;
+      //	TofSeg = seg;
+      //	time   = hit->CMeanTime()-time0+OffsetToF;
       // }
     }
     event.stof[i] = time;
+
     if( time>0. ){
       double m2 = Kinematics::MassSquare( p, path, time );
       HF1( 63, m2 );
@@ -791,8 +804,8 @@ EventKuramaTracking::ProcessingNormal( void )
       if(!hit) continue;
       int layerId = hit->GetLayer();
       if( hit->GetLayer()>79 ) layerId -= 62;
-      else if( hit->GetLayer()>40 ) layerId -= 15;
-      else if( hit->GetLayer()>30 ) layerId -= 21;
+      else if( hit->GetLayer()>40 ) layerId -= 22;
+      else if( hit->GetLayer()>30 ) layerId -= 20;
 
       HF1( 53, hit->GetLayer() );
       double wire = hit->GetHit()->GetWire();
@@ -970,6 +983,7 @@ EventKuramaTracking::InitializeEvent( void )
   for( int it=0; it<MaxHits; it++){
     event.Bh2Seg[it] = -1;
     event.tBh2[it] = -9999.;
+    event.t0Bh2[it] = -9999.;
     event.deBh2[it] = -9999.;
 
     event.Bh1Seg[it] = -1;
@@ -1175,7 +1189,7 @@ ConfMan:: InitializeHistograms( void )
   HB2( 59, "V%Ytgt KuramaTrack", 100, -100., 100., 100, -0.10, 0.10 );
   HB2( 60, "Y%Xtgt KuramaTrack", 100, -100., 100., 100, -100., 100. );
   HB1( 61, "P KuramaTrack", 500, 0.00, 2.50 );
-  HB1( 62, "PathLength KuramaTrack", 600, 3000., 4000. );
+  HB1( 62, "PathLength KuramaTrack", 750, 2500., 4000. );
   HB1( 63, "MassSqr", 600, -0.4, 1.4 );
 
   // SDC1
@@ -1363,6 +1377,7 @@ ConfMan:: InitializeHistograms( void )
   tree->Branch("nhBh2",   &event.nhBh2,   "nhBh2/I");
   tree->Branch("Bh2Seg",   event.Bh2Seg,  "Bh2Seg[nhBh2]/D");
   tree->Branch("tBh2",     event.tBh2,    "tBh2[nhBh2]/D");
+  tree->Branch("t0Bh2",    event.tBh2,    "t0Bh2[nhBh2]/D");
   tree->Branch("deBh2",    event.deBh2,   "deBh2[nhBh2]/D");
   tree->Branch("time0",   &event.time0,   "time0/D");
 

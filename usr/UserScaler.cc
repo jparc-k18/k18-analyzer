@@ -97,9 +97,12 @@ EventScaler::ProcessingNormal( void )
   event.evnum++;
   gScaler.Decode();
 
-  if( event.evnum%400==0 )
+  //if( event.evnum%400==0 )
+  //  gScaler.Print();
+  
+  if( event.evnum%100000==0 )
     gScaler.Print();
-
+  
 #if SPILL_RESET
   if( gScaler.SpillIncrement() )
     gScaler.Clear();
@@ -138,110 +141,107 @@ ConfMan::InitializeHistograms( void )
   {
     Int_t c = ScalerAnalyzer::kLeft;
     Int_t r = 0;
-    gScaler.Set( c, r++, ScalerInfo( "10M-Clock",  0, 50 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Beam",       0,  0 ) );
-    gScaler.Set( c, r++, ScalerInfo( "pi-Beam",    0,  1 ) );
-    gScaler.Set( c, r++, ScalerInfo( "p-Beam",     0,  2 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1",        0,  3 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1",        0, 16 ) );
     gScaler.Set( c, r++, ScalerInfo( "BH1-SUM",   -1, -1 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-01",     0,  4 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-02",     0,  5 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-03",     0,  6 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-04",     0,  7 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-05",     0,  8 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-06",     0,  9 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-07",     0, 10 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-08",     0, 11 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-09",     0, 12 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-10",     0, 13 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-11",     0, 14 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH2",        0, 15 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-01",     1,  0 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-02",     1,  1 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-03",     1,  2 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-04",     1,  3 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-05",     1,  4 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-06",     1,  5 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-07",     1,  6 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-08",     1,  7 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-09",     1,  8 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-10",     1,  9 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-11",     1, 10 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH2",        0, 17 ) );
     gScaler.Set( c, r++, ScalerInfo( "BH2-SUM",   -1, -1 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH2-01",     0, 16 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH2-02",     0, 17 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH2-03",     0, 18 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH2-04",     0, 19 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH2-05",     0, 20 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH2-06",     0, 21 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH2-07",     0, 22 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH2-08",     0, 23 ) );
-    gScaler.Set( c, r++, ScalerInfo( "SAC",        0, 24 ) );
-    gScaler.Set( c, r++, ScalerInfo( "SCH",        0, 25 ) );
-    gScaler.Set( c, r++, ScalerInfo( "TOF",        0, 26 ) );
-    gScaler.Set( c, r++, ScalerInfo( "TOF-HT",     0, 27 ) );
-    gScaler.Set( c, r++, ScalerInfo( "TOF-24",     0, 63 ) );
-    gScaler.Set( c, r++, ScalerInfo( "LC",         0, 28 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH2-01",     0, 64 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH2-02",     0, 65 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH2-03",     0, 66 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH2-04",     0, 67 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH2-05",     0, 68 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BAC",        0, 18 ) );
+    gScaler.Set( c, r++, ScalerInfo( "PVAC",       0, 20 ) );
+    gScaler.Set( c, r++, ScalerInfo( "FAC",        0, 21 ) );
+    gScaler.Set( c, r++, ScalerInfo( "SCH",        0, 11 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TOF",        0, 22 ) );
+    gScaler.Set( c, r++, ScalerInfo( "LAC",        0, 23 ) );
+    gScaler.Set( c, r++, ScalerInfo( "WC",         0, 24 ) );
+    for( Int_t i=0; i<16; ++i ){
+      gScaler.Set( c, r++, ScalerInfo( Form( "TFA-%02d", i+1 ), 2, i ) );
+    }
   }
 
   {
     Int_t c = ScalerAnalyzer::kCenter;
     Int_t r = 0;
-    gScaler.Set( c, r++, ScalerInfo( "BGO",            1, 54 ) );
-    // gScaler.Set( c, r++, ScalerInfo( "BGO-01",         1,  0 ) );
-    // gScaler.Set( c, r++, ScalerInfo( "BGO-02",         1,  1 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-03",         1,  2 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-04",         1, 13 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-05",         1,  4 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-06",         1,  5 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-07",         1,  6 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-08",         1,  7 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-09",         1,  8 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-10",         1, 15 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-11",         1, 10 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-12",         1, 11 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-13",         1, 16 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-14",         1, 17 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-15",         1, 18 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-16",         1, 19 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-17",         1, 20 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-18",         1, 21 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-19",         1, 22 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-20",         1, 23 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-21",         1, 24 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-22",         1, 25 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-23",         1, 26 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BGO-24",         1, 27 ) );
-    gScaler.Set( c, r++, ScalerInfo( "PiID",           1, 59 ) );
-    gScaler.Set( c, r++, ScalerInfo( "pi-Scat",        1, 60 ) );
-    gScaler.Set( c, r++, ScalerInfo( "p-Scat",         1, 61 ) );
+    gScaler.Set( c, r++, ScalerInfo( "10M-Clock",    0,  0 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-1/100-PS", 1, 11 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BH1-1/1e5-PS", 1, 12 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TOF-24",       0, 29 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Mtx2D-1",      0, 32 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Mtx2D-2",      0, 33 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Mtx3D",        0, 34 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Other1",       0, 25 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Other2",       0, 26 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Other3",       0, 27 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Other4",       0, 28 ) );
+    gScaler.Set( c, r++, ScalerInfo( "LSO1",         2, 48 ) );
+    gScaler.Set( c, r++, ScalerInfo( "LSO2",         2, 49 ) );
+    gScaler.Set( c, r++, ScalerInfo( "LSO1xGe13",    2, 50 ) );
+    gScaler.Set( c, r++, ScalerInfo( "LSO2xGe24",    2, 51 ) );
+    gScaler.Set( c, r++, ScalerInfo( "GeCoin1",      2, 52 ) );
+    gScaler.Set( c, r++, ScalerInfo( "GeCoin2",      2, 53 ) );
+    gScaler.Set( c, r++, ScalerInfo( "LSO1High",     2, 54 ) );
+    gScaler.Set( c, r++, ScalerInfo( "LSO2High",     2, 55 ) );
+    gScaler.Set( c, r++, ScalerInfo( "GeHigh1",      2, 56 ) );
+    gScaler.Set( c, r++, ScalerInfo( "GeHigh2",      2, 57 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BEAM-A",       0, 35 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BEAM-B",       0, 36 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BEAM-C",       0, 37 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BEAM-D",       0, 38 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BEAM-E",       0, 39 ) );
+    gScaler.Set( c, r++, ScalerInfo( "BEAM-F",       0, 40 ) );
+    for( Int_t i=0; i<16; ++i ){
+      gScaler.Set( c, r++, ScalerInfo( Form( "CRM-%02d", i+1 ), 2, i+16 ) );
+    }
   }
 
   {
     Int_t c = ScalerAnalyzer::kRight;
     Int_t r = 0;
-    gScaler.Set( c, r++, ScalerInfo( "Spill",         0, 49 ) );
-    gScaler.Set( c, r++, ScalerInfo( "BH1-1/100-PS",  0, 51 ) );
-    gScaler.Set( c, r++, ScalerInfo( "TM",            0, 52 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Real-Time",     0, 53 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Live-Time",     0, 54 ) );
-    gScaler.Set( c, r++, ScalerInfo( "L1-Req",        0, 55 ) );
-    gScaler.Set( c, r++, ScalerInfo( "L1-Acc",        0, 56 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Matrix",        0, 57 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Mst-Acc",       0, 58 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Mst-Clr",       0, 59 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Clear",         0, 60 ) );
-    gScaler.Set( c, r++, ScalerInfo( "L2-Req",        0, 61 ) );
-    gScaler.Set( c, r++, ScalerInfo( "L2-Acc",        0, 62 ) );
-    gScaler.Set( c, r++, ScalerInfo( "(BH2,K)",       0, 40 ) );
-    gScaler.Set( c, r++, ScalerInfo( "(BH2,TOF)",     0, 34 ) );
-    gScaler.Set( c, r++, ScalerInfo( "(BH2,pi)",      0, 35 ) );
-    gScaler.Set( c, r++, ScalerInfo( "(BH2,p)",       0, 36 ) );
-    gScaler.Set( c, r++, ScalerInfo( "(p,BGO)",       0, 37 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Extra",         0, 38 ) );
-    gScaler.Set( c, r++, ScalerInfo( "CoinE03",       0, 39 ) );
-    gScaler.Set( c, r++, ScalerInfo( "(BH2,K)-PS",    0, 47 ) );
-    gScaler.Set( c, r++, ScalerInfo( "(BH2,TOF)-PS",  0, 42 ) );
-    gScaler.Set( c, r++, ScalerInfo( "(BH2,pi)-PS",   0, 43 ) );
-    gScaler.Set( c, r++, ScalerInfo( "(BH2,p)-PS",    0, 44 ) );
-    gScaler.Set( c, r++, ScalerInfo( "(p,BGO)-PS",    0, 45 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Extra-PS",      0, 46 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Beam-PS",       0, 41 ) );
-    gScaler.Set( c, r++, ScalerInfo( "K-Scat",        0, 48 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Other1",        0, 29 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Other2",        0, 30 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Other3",        0, 31 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Other4",        0, 32 ) );
-    gScaler.Set( c, r++, ScalerInfo( "Other5",        0, 33 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Spill",        -1, -1 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TM",            0,  9 ) );
+    gScaler.Set( c, r++, ScalerInfo( "SY",            0, 10 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Real-Time",     0,  1 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Live-Time",     0,  2 ) );
+    gScaler.Set( c, r++, ScalerInfo( "L1-Req",        0,  3 ) );
+    gScaler.Set( c, r++, ScalerInfo( "L1-Acc",        0,  4 ) );
+    // gScaler.Set( c, r++, ScalerInfo( "MstClr",        0,  5 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Clear",         0,  6 ) );
+    gScaler.Set( c, r++, ScalerInfo( "L2-Req",        0,  7 ) );
+    gScaler.Set( c, r++, ScalerInfo( "L2-Acc",        0,  8 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-A",        0, 41 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-B",        0, 42 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-C",        0, 43 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-D",        0, 44 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-E",        0, 45 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-F",        0, 46 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-A-PS",     0, 48 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-B-PS",     0, 49 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-C-PS",     0, 50 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-D-PS",     0, 51 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-E-PS",     0, 52 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-F-PS",     0, 53 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-PSOR-A",   0, 54 ) );
+    gScaler.Set( c, r++, ScalerInfo( "TRIG-PSOR-B",   0, 55 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Clock-PS",      0, 56 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Reserve2-PS",   0, 57 ) );
+    gScaler.Set( c, r++, ScalerInfo( "Level1-PS",     0, 58 ) );
+    for( Int_t i=0; i<16; ++i ){
+      gScaler.Set( c, r++, ScalerInfo( Form( "Reset-%02d", i+1 ), 2, i+32 ) );
+    }
   }
 
 #if USE_COMMA

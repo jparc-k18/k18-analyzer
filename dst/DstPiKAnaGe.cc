@@ -47,15 +47,15 @@ namespace dst
   enum kArgc
     {
       kProcess, kConfFile,
-      kKuramaTracking, kK18Tracking, kHodoscope, kEasiroc,
+      kKuramaTracking, kK18Tracking, kHodoscope, kEasiroc, kHBX,
       kOutFile, nArgc
     };
   std::vector<TString> ArgName =
     { "[Process]", "[ConfFile]", "[KuramaTracking]",
-      "[K18Tracking]", "[Hodoscope]", "[Easiroc]",
+      "[K18Tracking]", "[Hodoscope]", "[Easiroc]", "[HBX]",
       "[OutFile]" };
   std::vector<TString> TreeName =
-    { "", "", "kurama", "k18track", "hodo", "ea0c", "" };
+    { "", "", "kurama", "k18track", "hodo", "ea0c", "hbx", "" };
   std::vector<TFile*> TFileCont;
   std::vector<TTree*> TTreeCont;
 
@@ -213,6 +213,17 @@ struct Event
   double pCalc[MaxHits];
   double pCorr[MaxHits];
   double pCorrDE[MaxHits];
+
+  //HBX
+  int geReset[NumOfSegGe];
+  double geAdc[NumOfSegGe];
+  int nhGeTfa;
+  int nhGeCrm;
+  int nhBgo;
+  double geTfa[NumOfSegGe][MaxDepth];
+  double geCrm[NumOfSegGe][MaxDepth];
+  double bgoTdc[NumOfSegBGO][MaxDepth];
+
 };
 
 //_____________________________________________________________________
@@ -332,6 +343,17 @@ struct Src
   double utofKurama[MaxHits];
   double vtofKurama[MaxHits];
   double tofsegKurama[MaxHits];
+
+  //HBX
+  int geReset[NumOfSegGe];
+  double geAdc[NumOfSegGe];
+  int nhGeTfa;
+  int nhGeCrm;
+  int nhBgo;
+  double geTfa[NumOfSegGe][MaxDepth];
+  double geCrm[NumOfSegGe][MaxDepth];
+  double bgoTdc[NumOfSegBGO][MaxDepth];
+
 };
 
 //_____________________________________________________________________
@@ -524,7 +546,7 @@ dst::InitializeEvent( void )
     event.MissMassCorr[it]  = -9999.;
     event.MissMassCorrDE[it]  = -9999.;
     event.Kflag[it]     = 0;
-    
+
     event.xpi[it] = -9999.0;
     event.ypi[it] = -9999.0;
     event.upi[it] = -9999.0;
@@ -537,6 +559,28 @@ dst::InitializeEvent( void )
     event.pCalc[it] = -9999.0;
     event.pCorr[it] = -9999.0;
     event.pCorrDE[it] = -9999.0;
+
+    //HBX
+    event.nhGeTfa = 0;
+    event.nhGeCrm = 0;
+    event.nhBgo = 0;
+
+    for( int it=0; it<NumOfSegGe; ++it ){
+      event.geReset[it] = -9999;
+      event.geAdc[it] = -9999.;
+      for( int m=0; m<MaxDepth; ++m ){
+	event.geTfa[it][m] = -9999.;
+	event.geCrm[it][m] = -9999.;
+      }
+    }
+
+    for( int it=0; it<NumOfSegBGO; ++it ){
+      for( int m=0; m<MaxDepth; ++m ){
+	event.bgoTdc[it][m] = -9999.;
+      }
+    }
+
+
   }
 
   return true;
@@ -705,6 +749,26 @@ dst::DstRead( int ievent )
     event.deTof[i]  = src.deTof[i];
   }
 
+  // HBX
+  event.nhGeTfa = src.nhGeTfa;
+  event.nhGeCrm = src.nhGeCrm;
+  event.nhBgo   = src.nhBgo;
+
+  for( int it=0; it<NumOfSegGe; ++it ){
+    event.geReset[it] = src.geReset[it];
+    event.geAdc[it]   = src.geAdc[it];
+    for( int m=0; m<MaxDepth; ++m ){
+      event.geTfa[it][m] = src.geTfa[it][m];
+      event.geCrm[it][m] = src.geCrm[it][m];
+    }
+  }
+
+  for( int it=0; it<NumOfSegBGO; ++it ){
+    for( int m=0; m<MaxDepth; ++m ){
+      event.bgoTdc[it][m] = src.bgoTdc[it][m];
+    }
+  }
+
   ////////// BcOut
   event.nlBcOut = src.nlBcOut;
   for( int it=0; it<ntBcOut; ++it ){
@@ -796,26 +860,24 @@ dst::DstRead( int ievent )
 	Dif=dif;
       }
     }
-    
+
     //stof = event.tTof[correct_num] - time0 + OffsetToF;
     //m2 = Kinematics::MassSquare( pCorr, path, cstof );
-    m2 = Kinematics::MassSquare( pCorr, path, cstof );
-
-    //if(btof==-9999.9){ 
+    m2 = Kinematics::MassSquare( pCorr, path, stof );
+    //if(btof==-9999.9){
     //  cstof=stof;
     //}else{
     //  gPHC.DoStofCorrection( 8, 0, src.TofSeg[correct_num]-1, 2, stof, btof, cstof );
     //  m2 = Kinematics::MassSquare( pCorr, path, cstof );
-    //
-    //}	
+    //}
     event.best_deTof[itKurama] = best_de;
     event.best_TofSeg[itKurama] = src.TofSeg[correct_num];
-    
+	
     ///for Kflag///
     int Kflag=0;
     double dEdx = Mip2MeV*best_de/sqrt(1+utof*utof+vtof*vtof);
     if( calcCutLineByTOF( PionCutMass, 1000*p ) <dEdx&&dEdx< calcCutLineByTOF( ProtonCutMass, 1000*p ) ) Kflag=1;
-    
+
     // w/o TOF
     // double minres = 1.0e10;
     // for( int j=0; j<nhTof; ++j ){
@@ -836,7 +898,7 @@ dst::DstRead( int ievent )
     event.vtgtKurama[itKurama] = v;
     event.thetaKurama[itKurama] = theta;
     event.stof[itKurama] = stof;
-    event.cstof[itKurama] = cstof; 
+    event.cstof[itKurama] = cstof;
     event.path[itKurama] = path;
     event.m2[itKurama] = m2;
     event.Kflag[itKurama] = Kflag;
@@ -880,7 +942,7 @@ dst::DstRead( int ievent )
   if( KPCont.size()==0 ) return true;
 
   HF1( 1, 8. );
-  
+
   ////////// pi
   for( int itK18=0; itK18<ntK18; ++itK18 ){
     int nh = src.nhK18[itK18];
@@ -907,12 +969,12 @@ dst::DstRead( int ievent )
     HF1( 4104, p );
     HF1( 4105, x ); HF1( 4106, y );
     //HF1( 4107, xo ); HF1( 4108, yo ); HF1( 4109, u ); HF1( 4110, v );
-    
+
     PiPCont.push_back(Mom); PiXCont.push_back(Pos);
   }
-  
+
   if( PiPCont.size()==0 ) return true;
-  
+
   HF1( 1, 9. );
 
   //MissingMass
@@ -931,31 +993,33 @@ dst::DstRead( int ievent )
       ThreeVector vert = Kinematics::VertexPoint( xpi, xkp, ppi, pkp );
       // std::cout << "vertex : " << vert << " " << vert.Mag() << std::endl;
       double closedist = Kinematics::closeDist( xpi, xkp, ppi, pkp );
-      
+
       double us = pkp.x()/pkp.z(), vs = pkp.y()/pkp.z();
       double ub = ppi.x()/ppi.z(), vb = ppi.y()/ppi.z();
       double cost = ppi*pkp/(ppi.Mag()*pkp.Mag());
-      
+
       double pk0   = pkp.Mag();
       double pCorr = pk0;
-      
+
       ThreeVector pkpCorr( pCorr*pkp.x()/pkp.Mag(),
 			   pCorr*pkp.y()/pkp.Mag(),
 			   pCorr*pkp.z()/pkp.Mag() );
-      
-      //      ThreeVector ppiCorrDE = Kinematics::CorrElossIn( ppi, xpi, vert, KaonMass );
+
+      //      ThreeVector ppiCorrDE = Kinematics::CorrElossIn( ppi, xpi, vert, PionMass );
       //      ThreeVector pkpCorrDE = Kinematics::CorrElossOut( pkpCorr, xkp, vert, KaonMass );
 
+      ////LorentzVector LvPi( ppi, std::sqrt( PionMass*PionMass+ppi.Mag2() ) );
       LorentzVector LvPi( ppi, std::sqrt( KaonMass*KaonMass+ppi.Mag2() ) );
-      //      LorentzVector LvPiCorrDE( ppiCorrDE, sqrt( KaonMass*KaonMass+ppiCorrDE.Mag2() ) );
+      //      LorentzVector LvPiCorrDE( ppiCorrDE, sqrt( PionMass*PionMass+ppiCorrDE.Mag2() ) );
 
-      LorentzVector LvKp( pkp, std::sqrt( KaonMass*KaonMass+pkp.Mag2() ) );
+      //LorentzVector LvKp( pkp, std::sqrt( KaonMass*KaonMass+pkp.Mag2() ) );
+      LorentzVector LvKp( pkp, std::sqrt( PionMass*PionMass+pkp.Mag2() ) );
       LorentzVector LvKpCorr( pkpCorr, std::sqrt( KaonMass*KaonMass+pkpCorr.Mag2() ) );
       //      LorentzVector LvKpCorrDE( pkpCorrDE, std::sqrt( KaonMass*KaonMass+pkpCorrDE.Mag2() ) );
-      
+
       LorentzVector LvC( 0., 0., 0., ProtonMass );
       LorentzVector LvCore( 0., 0., 0., 0. );
-      
+
       LorentzVector LvRc       = LvPi+LvC-LvKp;
       LorentzVector LvRcCorr   = LvPi+LvC-LvKpCorr;
       //      LorentzVector LvRcCorrDE = LvPiCorrDE+LvC-LvKpCorrDE;
@@ -967,14 +1031,14 @@ dst::DstRead( int ievent )
       LorentzVector PrimaryLv = LvPi+LvC;
       double TotalEnergyCM = PrimaryLv.Mag();
       ThreeVector beta( 1/PrimaryLv.E()*PrimaryLv.Vect() );
-      
+
       //CM
       double TotalMomCM
 	= 0.5*std::sqrt(( TotalEnergyCM*TotalEnergyCM
 			  -( KaonMass+SigmaNMass )*( KaonMass+SigmaNMass ))
 			*( TotalEnergyCM*TotalEnergyCM
 			   -( KaonMass-SigmaNMass )*( KaonMass-SigmaNMass )))/TotalEnergyCM;
-      
+
       double costLab = cost;
       double cottLab = costLab/std::sqrt(1.-costLab*costLab);
       double bt=beta.Mag(), gamma=1./std::sqrt(1.-bt*bt);
@@ -983,12 +1047,12 @@ dst::DstRead( int ievent )
       double bp = gamma*gbep;
       double c  = gbep*gbep-cottLab*cottLab;
       double dd = bp*bp-a*c;
-      
+
       if( dd<0. ){
 	std::cerr << "dd<0." << std::endl;
 	dd = 0.;
       }
-      
+
       double costCM = (std::sqrt(dd)-bp)/a;
       if( costCM>1. || costCM<-1. ){
 	std::cerr << "costCM>1. || costCM<-1." << std::endl;
@@ -1005,12 +1069,12 @@ dst::DstRead( int ievent )
 	event.theta[npik]     = std::acos(cost)*math::Rad2Deg();
 	event.thetaCM[npik]   = std::acos(costCM)*math::Rad2Deg();
 	event.costCM[npik]    = costCM;
-	
+
 	event.MissMass[npik]       = MisMass;
 	event.MissMassCorr[npik]   = MisMassCorr;
 	//	event.MissMassCorrDE[npik] = MisMassCorrDE;
 	event.MissMassCorrDE[npik] = 0;
-	
+
 	event.xk[npik] = xkp.x();
 	event.yk[npik] = xkp.y();
 	event.uk[npik] = us;
@@ -1029,7 +1093,7 @@ dst::DstRead( int ievent )
       } else {
 	std::cout << "#W npik: "<< npik << " exceeding MaxHits: " << MaxHits << std::endl;
       }
-      
+
       HF1( 5001, vert.z() );
 
       HF1( 5002, MisMass );
@@ -1039,7 +1103,7 @@ dst::DstRead( int ievent )
       HF2( 5014, MisMass, vb );
     }
   }
-  
+
   HF1( 1, 10. );
 
   //Final Hodoscope histograms
@@ -1443,6 +1507,19 @@ ConfMan::InitializeHistograms( void )
   tree->Branch("pCorr",      event.pCorr,     "pCorr[nPiK]/D");
   tree->Branch("pCorrDE",    event.pCorrDE,   "pCorrDE[nPiK]/D");
 
+  //HBX
+  tree->Branch("geReset",  event.geReset, Form("geReset[%d]/I", NumOfSegGe));
+  tree->Branch("geAdc",    event.geAdc,   Form("geAdc[%d]/D", NumOfSegGe));
+
+  tree->Branch("nhGeTfa", &event.nhGeTfa, "nhGeTfa/I");
+  tree->Branch("nhGeCrm", &event.nhGeCrm, "nhGeCrm/I");
+  tree->Branch("nhBgo",   &event.nhBgo,   "nhBgo/I");
+
+  tree->Branch("geTfa",    event.geTfa,   Form("geTfa[%d][%d]/D", NumOfSegGe, MaxDepth));
+  tree->Branch("geCrm",    event.geCrm,   Form("geCrm[%d][%d]/D", NumOfSegGe, MaxDepth));
+  tree->Branch("bgoTdc",   event.bgoTdc,  Form("bgoTdc[%d][%d]/D", NumOfSegBGO, MaxDepth));
+
+
   ////////// Bring Address From Dst
   TTreeCont[kHodoscope]->SetBranchStatus("*", 0);
   TTreeCont[kHodoscope]->SetBranchStatus("evnum",    1);
@@ -1634,6 +1711,26 @@ ConfMan::InitializeHistograms( void )
   TTreeCont[kEasiroc]->SetBranchAddress("sch_ctot",   &src.wSch);
   TTreeCont[kEasiroc]->SetBranchAddress("sch_clpos",  &src.SchPos);
 
+  TTreeCont[kHBX]->SetBranchStatus("*",       0);
+  TTreeCont[kHBX]->SetBranchStatus("geReset", 1);
+  TTreeCont[kHBX]->SetBranchStatus("geAdc",   1);
+  TTreeCont[kHBX]->SetBranchStatus("nhGeTfa", 1);
+  TTreeCont[kHBX]->SetBranchStatus("nhGeCrm", 1);
+  TTreeCont[kHBX]->SetBranchStatus("nhBgo",   1);
+  TTreeCont[kHBX]->SetBranchStatus("geTfa",   1);
+  TTreeCont[kHBX]->SetBranchStatus("geCrm",   1);
+  TTreeCont[kHBX]->SetBranchStatus("bgoTdc",  1);
+
+  TTreeCont[kHBX]->SetBranchAddress("geReset", src.geReset);
+  TTreeCont[kHBX]->SetBranchAddress("geAdc",   src.geAdc);
+  TTreeCont[kHBX]->SetBranchAddress("nhGeTfa", &src.nhGeTfa);
+  TTreeCont[kHBX]->SetBranchAddress("nhGeCrm", &src.nhGeCrm);
+  TTreeCont[kHBX]->SetBranchAddress("nhBgo",   &src.nhBgo);
+  TTreeCont[kHBX]->SetBranchAddress("geTfa",   src.geTfa);
+  TTreeCont[kHBX]->SetBranchAddress("geCrm",   src.geCrm);
+  TTreeCont[kHBX]->SetBranchAddress("bgoTdc",  src.bgoTdc);
+
+
   return true;
 }
 
@@ -1644,7 +1741,7 @@ ConfMan::InitializeParameterFiles( void )
   return
     ( InitializeParameter<DCGeomMan>("DCGEO")   &&
       InitializeParameter<UserParamMan>("USER") &&
-      InitializeParameter<HodoPHCMan>("HDPHC") ); 
+	  InitializeParameter<HodoPHCMan>("HDPHC") ); 
 }
 
 //_____________________________________________________________________
