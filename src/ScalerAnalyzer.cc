@@ -95,9 +95,8 @@ ScalerAnalyzer::Decode( void )
       for( Int_t i=0, n=gUnpacker.get_entries( k_device, 0, seg, 0, k_tdc );
 	   i<n; ++i ){
 	auto tdc = gUnpacker.get( k_device, 0, seg, 0, k_tdc, i );
-	if( tdc>0 ){
-	  trigger_flag.set(seg);
-	}
+	if( tdc>0 ) trigger_flag.set(seg);
+	if( trigger_flag[seg] ) break;
       }
     }
   }
