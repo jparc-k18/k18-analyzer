@@ -614,7 +614,7 @@ dst::DstRead( int ievent )
 {
   static const std::string func_name("["+class_name+"::"+__func__+"]");
 
-  static const double OffsetToF  = gUser.GetParameter("OffsetToF");
+  //  static const double OffsetToF  = gUser.GetParameter("OffsetToF");
   static const double Mip2MeV           = gUser.GetParameter("TOFKID",0);
   static const double PionCutMass       = gUser.GetParameter("TOFKID",1);
   static const double ProtonCutMass     = gUser.GetParameter("TOFKID",2);
@@ -710,7 +710,6 @@ dst::DstRead( int ievent )
   }
 
   // BH1
-  double btof = -9999.; 
   for( int i=0; i<nhBh1; ++i ){
     event.csBh1[i]  = src.csBh1[i];
     event.Bh1Seg[i] = src.Bh1Seg[i];
@@ -718,11 +717,9 @@ dst::DstRead( int ievent )
     event.dtBh1[i]  = src.dtBh1[i];
     event.deBh1[i]  = src.deBh1[i];
     event.btof[i]   = src.btof[i];
-	if(i==0) btof = src.btof[i]; 
   }
 
   // BH2
-  double time0 = src.Time0;
   for( int i=0; i<nhBh2; ++i ){
     event.csBh2[i]  = src.csBh2[i];
     event.Bh2Seg[i] = src.Bh2Seg[i];

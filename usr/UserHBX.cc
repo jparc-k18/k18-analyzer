@@ -17,6 +17,7 @@
 #include "KuramaLib.hh"
 #include "MathTools.hh"
 #include "RawData.hh"
+#include "HodoRawHit.hh"
 #include "RootHelper.hh"
 #include "UnpackerManager.hh"
 #include "VEvent.hh"
@@ -86,20 +87,12 @@ struct Event
   int trignhits;  
   int trigpat[NumOfSegTrig];
   int trigflag[NumOfSegTrig];
-  int hbxtrignhits;  
-  int hbxtrigpat[NumOfSegHbxTrig];
-  int hbxtrigflag[NumOfSegHbxTrig];
 
   //Ge Reset
   int gereset[NumOfSegGe];
 
   //Ge ADC
   double geadc[NumOfSegGe];
-
-  double lsogeadc[NumOfSegGe];
-  double coingeadc[NumOfSegGe];
-  double spillongeadc[NumOfSegGe];
-  double spilloffgeadc[NumOfSegGe];
 
   //Ge TFA
   int genhits;
@@ -192,6 +185,9 @@ EventHBX::ProcessingNormal( void )
   //  static const int MinBGOCUT = gUser.GetParameter("BCut", 0);
   //  static const int MaxBGOCUT = gUser.GetParameter("BCut", 1);
 
+  rawData = new RawData;
+  rawData->DecodeHits();
+
   gRM.Decode();   
 
   event.runnum = gRM.RunNumber();
@@ -199,44 +195,31 @@ EventHBX::ProcessingNormal( void )
   event.spill  = gRM.SpillNumber();
   dst.evnum    = gRM.EventNumber();
   dst.spill    = gRM.SpillNumber();
-  
-  // Trigger Flag
+
+  // Trig
   {
-    int trignhits = 0;
-    for(int seg=0; seg<NumOfSegTrig; seg++){
-      int nhits_trig = gUnpacker.get_entries( DetIdTrig, 0, seg, 0, 1 );
-      for(int hit=0; hit<nhits_trig; hit++){
-	int trig = gUnpacker.get( DetIdTrig, 0, seg, 0, 1, hit );
-	if(trig>0){
-	  event.trigpat[seg] = seg;
-	  event.trigflag[seg] = trig;
-	  dst.trigpat[seg] = seg; 
-	  dst.trigflag[seg] = trig; 
-	  HF1( 10, seg);
-	  HF1( 10+seg+1, trig);
-	  trignhits++;
-	}
+    Int_t trignhits = 0;
+    const HodoRHitContainer &cont = rawData->GetTrigRawHC();
+    Int_t nh = cont.size();
+    for(Int_t i=0; i<nh; ++i){
+      HodoRawHit *hit = cont[i];
+      Int_t seg = hit->SegmentId()+1;
+      Int_t tdc = hit->GetTdc1();
+      if( tdc>0 ){
+	event.trigpat[trignhits] = seg;
+	event.trigflag[seg-1]    = tdc;
+	dst.trigpat[trignhits]   = seg;
+	dst.trigflag[seg-1]      = tdc;
+	HF1( 10, seg-1 );
+	HF1( 10+seg, tdc );
+	trignhits++;
       }
-    } 
-    int hbxtrignhits = 0;
-    for(int seg=0; seg<NumOfSegHbxTrig; seg++){
-      int nhits_hbxtrig = gUnpacker.get_entries( DetIdHbxTrig, 0, seg, 0, 1 );
-      for(int hit=0; hit<nhits_hbxtrig; hit++){
-	int hbxtrig = gUnpacker.get( DetIdHbxTrig, 0, seg, 0, 1, hit );
-	if(hbxtrig>0){
-	  event.hbxtrigpat[seg] = seg; 
-	  event.hbxtrigflag[seg] = hbxtrig; 
-	  HF1( 100, seg);
-	  HF1( 100+seg+1, hbxtrig);
-	  hbxtrignhits++;
-	}
-      }
-    } 
+    }
     event.trignhits = trignhits;
-    dst.trignhits = trignhits;
-    event.hbxtrignhits = hbxtrignhits;
+    dst.trignhits   = trignhits;
+
   }
-   
+
   //  if( trigflag[SpillEndFlag] ) return true;   
    
   //---Ge ADC & TDC-----------------------------------------------------
@@ -252,10 +235,6 @@ EventHBX::ProcessingNormal( void )
       dst.geAdc[seg] = adc;
       HF1( GeHid+100*(seg+1)+10, double(adc) );
       HF2( GeHid+100 +0, seg+0.5, double(adc) );
-      if( event.hbxtrigflag[LSOGeFlag]>0  ) event.lsogeadc[seg]      = adc;	 
-      if( event.hbxtrigflag[GeCoinFlag]>0 ) event.coingeadc[seg]     = adc;	 
-      if( event.hbxtrigflag[SpillOnFlag]>0) event.spillongeadc[seg]  = adc;
-      if( event.hbxtrigflag[SpillOffFlag]>0  ) event.spilloffgeadc[seg] = adc;
 
       //adc w/ tfa
       if( nhit_t>0){
@@ -378,16 +357,13 @@ EventHBX::InitializeEvent( void )
   event.spill = 0;
   event.gebgonhits  = 0;
   event.trignhits = 0;
-  event.hbxtrignhits = 0;
-
 
   for( int it=0; it<NumOfSegTrig; it++){
     event.trigpat[it] = -1;
     event.trigflag[it] = -1;
-  }
-  for( int it=0; it<NumOfSegHbxTrig; it++){
-    event.hbxtrigpat[it] = -1;
-    event.hbxtrigflag[it] = -1;
+
+    dst.trigpat[it]  = -1;
+    dst.trigflag[it] = -1;
   }
  
   //Ge Reset
@@ -398,11 +374,6 @@ EventHBX::InitializeEvent( void )
   //Ge ADC
   for( int it=0; it<NumOfSegGe; it++){
     event.geadc[it] = -9999.;
-
-    event.lsogeadc[it] = -9999.;	 
-    event.coingeadc[it] = -9999.;	
-    event.spillongeadc[it] = -9999.;
-    event.spilloffgeadc[it] = -9999.;
   }
 
   //Ge TDC
@@ -494,18 +465,12 @@ ConfMan::InitializeHistograms( void )
   tree->Branch("spill",  &event.spill,  "spill/I");
   //Trig
   tree->Branch("trignhits", &event.trignhits, "trignhits/I");
-  tree->Branch("hbxtrignhits", &event.hbxtrignhits, "hbxtrignhits/I");
 
   HB1(  1, "Status", 20, 0., 20. );
   HB1( 10, "Trigger HitPat", NumOfSegTrig, 0., Double_t(NumOfSegTrig) );
   for(Int_t i=0; i<NumOfSegTrig; ++i){
     HB1( 10+i+1, Form("Trigger Trig %d", i+1), 0x1000, 0, 0x1000 );
   }
-  HB1( 100, "HBX Trigger HitPat", NumOfSegHbxTrig, 0., Double_t(NumOfSegHbxTrig) );
-  for(Int_t i=0; i<NumOfSegHbxTrig; ++i){
-    HB1( 100+i+1, Form("HBX Trigger Trig %d", i+1), 0x1000, 0, 0x1000 );
-  }
-
   
   //---Ge ADC & TDC-----------------------------------------------------
   for( int i=1; i<=NumOfSegGe; ++i ){
@@ -525,11 +490,6 @@ ConfMan::InitializeHistograms( void )
 
     TString title40  = Form("Ge-%d Reset", i);	     
     TString title44  = Form("Adc%%Reset-%d", i); 
-
-    //TString title41 = Form("Ge-%d Adc [LSO*Ge]", i);
-    //TString title42 = Form("Ge-%d Adc [GeCoin]", i);
-    //TString title43 = Form("Ge-%d Adc [Spill ON]", i);
-    //TString title44 = Form("Ge-%d Adc [Spill OFF]", i);
 
     HB1( GeHid +100*i +10, title10, NbinAdc, MinAdc, MaxAdc );
 
@@ -581,10 +541,6 @@ ConfMan::InitializeHistograms( void )
   tree->Branch("trigpat", event.trigpat, Form("trigpat[%d]/I", NumOfSegTrig)); 
   tree->Branch("trigflag", event.trigflag, Form("trigflag[%d]/I", NumOfSegTrig)); 
 
-  //HBXFlag
-  tree->Branch("hbxtrigpat", event.hbxtrigpat, Form("hbxtrigpat[%d]/I", NumOfSegHbxTrig)); 
-  tree->Branch("hbxtrigflag", event.hbxtrigflag, Form("hbxtrigflag[%d]/I", NumOfSegHbxTrig)); 
-
   //Ge ADC
   tree->Branch("geadc",   event.geadc,  Form("geadc[%d]/D", NumOfSegGe));
 
@@ -602,12 +558,6 @@ ConfMan::InitializeHistograms( void )
 
   //Ge Scaler
   tree->Branch("scaler", event.scaler, Form("scaler[%d]/I", NumOfSegScaler)); 
-
-  //Ge adc  w/ Flag
-  tree->Branch("lsogeadc"     , event.lsogeadc,      Form("lsogeadc[%d]/I",      NumOfSegGe)); 
-  tree->Branch("coingeadc"    , event.coingeadc,     Form("coingeadc[%d]/I",     NumOfSegGe)); 
-  tree->Branch("spillongeadc" , event.spillongeadc,  Form("spillongeadc[%d]/I",  NumOfSegGe)); 
-  tree->Branch("spilloffgeadc", event.spilloffgeadc, Form("spilloffgeadc[%d]/I", NumOfSegGe)); 
 
   /////Dst/////////////////////////////////
   hbx = new TTree( "hbx", "Data Summary Table of hbx" );

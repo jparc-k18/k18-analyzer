@@ -20,6 +20,7 @@
 #include "VEvent.hh"
 
 #define HodoCut 0
+#define TotCut 0
 #define UseTOF  1
 
 namespace
@@ -225,8 +226,10 @@ EventKuramaTracking::ProcessingNormal( void )
   static const double MinTimeL1  = gUser.GetParameter("TimeL1",     0);
   static const double MaxTimeL1  = gUser.GetParameter("TimeL1",     1);
   static const double dTOfs      = gUser.GetParameter("dTOfs",      0);
+#if TotCut
   static const double MinTotSDC3 = gUser.GetParameter("MinTotSDC3", 0);
   static const double MinTotSDC4 = gUser.GetParameter("MinTotSDC4", 0);
+#endif
 
   static const double MaxMultiHitSdcIn  = gUser.GetParameter("MaxMultiHitSdcIn");
   static const double MaxMultiHitSdcOut = gUser.GetParameter("MaxMultiHitSdcOut");
@@ -430,8 +433,10 @@ EventKuramaTracking::ProcessingNormal( void )
 
   double offset = flag_tof_stop ? 0 : dTOfs;
   DCAna->DecodeSdcOutHits( rawData, offset );
-  //DCAna->TotCutSDC3( MinTotSDC3 );
-  //DCAna->TotCutSDC4( MinTotSDC4 );
+#if TotCut
+  DCAna->TotCutSDC3( MinTotSDC3 );
+  DCAna->TotCutSDC4( MinTotSDC4 );
+#endif
 
   double multi_SdcIn  = 0.;
   ////////////// SdcIn number of hit layer
