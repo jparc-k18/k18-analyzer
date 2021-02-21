@@ -1397,7 +1397,7 @@ void
 DCAnalyzer::TotCutSDC2(double min_tot)
 {
   for(int i = 0; i<NumOfLayersSDC2; ++i){
-    TotCut(m_SdcInHC[i + NumOfLayersSDC2 +1], min_tot, false);
+    TotCut(m_SdcInHC[i + NumOfLayersSDC1 +1], min_tot, false);
   }// for(i)
 }
 

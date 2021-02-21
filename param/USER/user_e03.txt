@@ -50,7 +50,7 @@ TdcBC4 300 460
 TdcSDC1 250 460
 
 ### SDC2 TDC gate range
-TdcSDC2 250 500
+TdcSDC2 50 500
 
 ### SDC3 TDC gate range
 TdcSDC3 680 920
