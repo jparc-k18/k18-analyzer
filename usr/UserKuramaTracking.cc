@@ -19,9 +19,11 @@
 #include "UnpackerManager.hh"
 #include "VEvent.hh"
 
-#define HodoCut 0
-#define TotCut 0
-#define UseTOF  1
+#define HodoCut  0
+#define TotCut   0
+#define UseTOF   1
+#define Chi2CutSdcIn   1
+#define Chi2CutSdcOut  1
 
 namespace
 {
@@ -487,7 +489,9 @@ EventKuramaTracking::ProcessingNormal( void )
 
   // std::cout << "==========TrackSearch SdcIn============" << std::endl;
   DCAna->TrackSearchSdcIn();
+#if Chi2CutSdcIn
   DCAna->ChiSqrCutSdcIn(50.);
+#endif
   int ntSdcIn = DCAna->GetNtracksSdcIn();
   if( MaxHits<ntSdcIn ){
     std::cout << "#W " << func_name << " "
@@ -532,9 +536,7 @@ EventKuramaTracking::ProcessingNormal( void )
       HF1( 100*layerId+5, res );
       HF2( 100*layerId+6, pos, res );
       HF2( 100*layerId+7, xcal, ycal);
-      for( int i=0; i<NumOfLayersSdcIn; ++i ){
-	if( i==layerId-1 ) event.resL[i].push_back( res );
-      }
+      event.resL[layerId-1].push_back( res );
     }
   }
   if( ntSdcIn<1 ) return true;
@@ -596,7 +598,9 @@ EventKuramaTracking::ProcessingNormal( void )
     DCAna->TrackSearchSdcOut();
   }
 
+#if Chi2CutSdcOut
   DCAna->ChiSqrCutSdcOut(50.);
+#endif
   int ntSdcOut = DCAna->GetNtracksSdcOut();
 
   if( MaxHits<ntSdcOut ){
@@ -628,12 +632,8 @@ EventKuramaTracking::ProcessingNormal( void )
     for( int ih=0; ih<nh; ++ih ){
       DCLTrackHit *hit=tp->GetHit(ih);
       int layerId = hit->GetLayer();
-
-      if( hit->GetLayer()>79 ) layerId -= 62;
-      else if( hit->GetLayer()>40 ) layerId -= 22;
-      else if( hit->GetLayer()>30 ) layerId -= 20;
-
-      //std::cout << "layerId :" << layerId << std::endl;
+      if( layerId <= PlMaxSdcOut ) layerId -= PlOffsSdcOut - NumOfLayersSdcIn;
+      else                         layerId -= PlOffsTOF - (NumOfLayersSdcIn + NumOfLayersSdcOut);
 
       HF1( 33, hit->GetLayer() );
       double wire=hit->GetWire();
@@ -647,11 +647,7 @@ EventKuramaTracking::ProcessingNormal( void )
       HF1( 100*layerId+5, res );
       HF2( 100*layerId+6, pos, res );
       HF2( 100*layerId+7, xcal, ycal);
-      for( int i=0; i<NumOfLayersSdcOut+2; ++i ){
-	if( i==layerId-NumOfLayersSdcIn-1 ){
-	  event.resL[i+NumOfLayersSdcIn].push_back( res );
-	}
-      }
+      event.resL[layerId-1-NumOfLayersSdcIn].push_back( res );
     }
   }
 
@@ -808,9 +804,9 @@ EventKuramaTracking::ProcessingNormal( void )
       TrackHit *hit=tp->GetHit(j);
       if(!hit) continue;
       int layerId = hit->GetLayer();
-      if( hit->GetLayer()>79 ) layerId -= 62;
-      else if( hit->GetLayer()>40 ) layerId -= 22;
-      else if( hit->GetLayer()>30 ) layerId -= 20;
+      if( layerId <= PlMaxSdcIn )       ;
+      else if( layerId <= PlMaxSdcOut ) layerId -= PlOffsSdcOut;
+      else                              layerId -= PlOffsTOF - NumOfLayersSdcOut;
 
       HF1( 53, hit->GetLayer() );
       double wire = hit->GetHit()->GetWire();
@@ -835,14 +831,7 @@ EventKuramaTracking::ProcessingNormal( void )
       if ( std::abs(dl-std::abs(xcal-wp))<2.0 ){
 	HF2( 100*layerId+22, dt, std::abs(xcal-wp));
       }
-      for( int l=0; l<NumOfLayersSdcIn; ++l ){
-	if( l==layerId-1 )
-	  event.resG[l].push_back(res);
-      }
-      for( int l=0; l<NumOfLayersSdcOut+2; ++l ){
-	if( l==layerId-1-NumOfLayersSdcIn )
-	  event.resG[l+NumOfLayersSdcIn].push_back(res);
-      }
+      event.resG[layerId-1].push_back(res);
     }
 
     DCLocalTrack *trSdcIn  = tp->GetLocalTrackIn();
@@ -1060,7 +1049,7 @@ EventKuramaTracking::InitializeEvent( void )
     event.tofsegKurama[it] = -9999.;
   }
 
-  for( int i=0; i<NumOfLayersSdcIn+NumOfLayersSdcOut+2; ++i ){
+  for( int i=0; i<NumOfLayersSdcIn+NumOfLayersSdcOut+NumOfLayersTOF; ++i ){
     event.resL[i].clear();
     event.resG[i].clear();
   }
@@ -1279,28 +1268,28 @@ ConfMan:: InitializeHistograms( void )
   /////////////////////
 
   // TOF in SdcOut/KuramaTracking
-  for( int i=NumOfLayersSdcIn+NumOfLayersSdcOut+1;
-       i<=NumOfLayersSdcIn+NumOfLayersSdcOut+2; ++i ){
-    TString title1 = Form("HitPat Tof%d", i-(NumOfLayersSdcIn+NumOfLayersSdcOut));
-    TString title4 = Form("Position Tof%d", i-(NumOfLayersSdcIn+NumOfLayersSdcOut));
-    TString title5 = Form("Residual Tof%d", i-(NumOfLayersSdcIn+NumOfLayersSdcOut));
-    TString title6 = Form("Resid%%Pos Tof%d", i-(NumOfLayersSdcIn+NumOfLayersSdcOut));
-    TString title7 = Form("Y%%Xcal Tof%d", i-(NumOfLayersSdcIn+NumOfLayersSdcOut));
-    HB1( 100*i+1, title1, 200, 0., 200. );
-    HB1( 100*i+4, title4, 1000, -1000., 1000. );
-    HB1( 100*i+5, title5, 200, -20., 20. );
-    HB2( 100*i+6, title6, 100, -1000., 1000., 100, -200., 200. );
-    HB2( 100*i+7, title6, 100, -1000., 1000., 100, -1000., 1000. );
+  for( int i=1; i<=NumOfLayersTOF; ++i ){
+    TString title1 = Form("HitPat Tof%d",     i);
+    TString title4 = Form("Position Tof%d",   i);
+    TString title5 = Form("Residual Tof%d",   i);
+    TString title6 = Form("Resid%%Pos Tof%d", i);
+    TString title7 = Form("Y%%Xcal Tof%d",    i);
+    int layerid = i + NumOfLayersSdcIn + NumOfLayersSdcOut;
+    HB1( 100*layerid+1, title1, 200, 0., 200. );
+    HB1( 100*layerid+4, title4, 1000, -1000., 1000. );
+    HB1( 100*layerid+5, title5, 200, -20., 20. );
+    HB2( 100*layerid+6, title6, 100, -1000., 1000., 100, -200., 200. );
+    HB2( 100*layerid+7, title6, 100, -1000., 1000., 100, -1000., 1000. );
     title1 += " [KuramaTrack]";
     title4 += " [KuramaTrack]";
     title5 += " [KuramaTrack]";
     title6 += " [KuramaTrack]";
     title7 += " [KuramaTrack]";
-    HB1( 100*i+11, title1, 200, 0., 200. );
-    HB1( 100*i+14, title4, 1000, -1000., 1000. );
-    HB1( 100*i+15, title5, 200, -20., 20. );
-    HB2( 100*i+16, title6, 100, -1000., 1000., 100, -200., 200. );
-    HB2( 100*i+17, title7, 100, -1000., 1000., 100, -1000., 1000. );
+    HB1( 100*layerid+11, title1, 200, 0., 200. );
+    HB1( 100*layerid+14, title4, 1000, -1000., 1000. );
+    HB1( 100*layerid+15, title5, 200, -20., 20. );
+    HB2( 100*layerid+16, title6, 100, -1000., 1000., 100, -200., 200. );
+    HB2( 100*layerid+17, title7, 100, -1000., 1000., 100, -1000., 1000. );
   }
 
   HB2( 20001, "Xout%Xin", 100, -200., 200., 100, -200., 200. );
@@ -1408,31 +1397,21 @@ ConfMan:: InitializeHistograms( void )
   tree->Branch("vpx",          event.vpx,          Form("vpx[%d]/D", NumOfLayersVP));
   tree->Branch("vpy",          event.vpy,          Form("vpy[%d]/D", NumOfLayersVP));
 
-  event.resL.resize(NumOfLayersSdcIn+NumOfLayersSdcOut+2);
-  event.resG.resize(NumOfLayersSdcIn+NumOfLayersSdcOut+2);
+  event.resL.resize(NumOfLayersSdcIn+NumOfLayersSdcOut+NumOfLayersTOF);
+  event.resG.resize(NumOfLayersSdcIn+NumOfLayersSdcOut+NumOfLayersTOF);
   // tree->Branch( "resL", &event.resL );
   // tree->Branch( "resG", &event.resG );
-  for( int i=0; i<NumOfLayersSdcIn; ++i ){
-    tree->Branch( Form("ResL%d",i+ 1), &event.resL[i] );
+  for( int i=1; i<=NumOfLayersSdcIn; ++i ){
+    int layerid = 0;
+    if( i<=NumOfLayersSdcIn )
+      layerid = i + PlOffsSdcIn;
+    else if( i<=NumOfLayersSdcIn+NumOfLayersSdcOut )
+      layerid = i + PlOffsSdcOut;  
+    else if( i<=NumOfLayersSdcIn+NumOfLayersSdcOut+NumOfLayersTOF )
+      layerid = i + PlOffsTOF;  
+    tree->Branch( Form("ResL%d",layerid), &event.resL[layerid] );
+    tree->Branch( Form("ResG%d",layerid), &event.resG[layerid] );
   }
-
-  for( int i=0; i<NumOfLayersSdcOut; ++i ){
-    tree->Branch( Form("ResL%d",i+31), &event.resL[i+NumOfLayersSdcIn] );
-  }
-
-  tree->Branch( "ResL41", &event.resL[NumOfLayersSdcIn+NumOfLayersSdcOut] );
-  tree->Branch( "ResL42", &event.resL[NumOfLayersSdcIn+NumOfLayersSdcOut+1] );
-
-  for( int i=0; i<NumOfLayersSdcIn; ++i ){
-    tree->Branch( Form("ResG%d",i+ 1), &event.resG[i] );
-  }
-
-  for( int i=0; i<NumOfLayersSdcOut; ++i ){
-    tree->Branch( Form("ResG%d",i+31), &event.resG[i+NumOfLayersSdcIn] );
-  }
-
-  tree->Branch( "ResG41", &event.resG[NumOfLayersSdcIn+NumOfLayersSdcOut] );
-  tree->Branch( "ResG42", &event.resG[NumOfLayersSdcIn+NumOfLayersSdcOut+1] );
 
   tree->Branch("tTofCalc",  event.tTofCalc,  "tTofCalc[3]/D");
   tree->Branch("utTofSeg",  event.utTofSeg,  Form( "utTofSeg[%d]/D", NumOfSegTOF ) );
