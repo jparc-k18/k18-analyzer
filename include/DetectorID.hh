@@ -146,9 +146,12 @@ const int PlMinSdcIn       =   1;
 const int PlMaxSdcIn       =  10;
 const int PlMinSdcOut      =  31;
 const int PlMaxSdcOut      =  38;
+const int PlMinTOF         =  41;
+const int PlMaxTOF         =  44;
 const int PlOffsBc         = 100;
 const int PlOffsSdcIn      =   0;
 const int PlOffsSdcOut     =  30;
+const int PlOffsTOF        =  40;
 const int PlOffsVP         =  20;
 const int PlOffsFht        =  80;
 
@@ -161,6 +164,7 @@ const int NumOfLayersBcIn   = PlMaxBcIn   - PlMinBcIn   + 1;
 const int NumOfLayersBcOut  = PlMaxBcOut  - PlMinBcOut  + 1;
 const int NumOfLayersSdcIn  = PlMaxSdcIn  - PlMinSdcIn  + 1;
 const int NumOfLayersSdcOut = PlMaxSdcOut - PlMinSdcOut + 1;
+const int NumOfLayersTOF    = PlMaxTOF    - PlMinTOF    + 1;
 const int NumOfLayersVP     = 5;
 
 const int MaxWireBC3      =  64;
