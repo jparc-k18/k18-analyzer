@@ -1388,7 +1388,8 @@ void
 DCAnalyzer::TotCutSDC1(double min_tot)
 {
   for(int i = 0; i<NumOfLayersSDC1; ++i){
-    TotCut(m_SdcInHC[i+1], min_tot, false);
+    //TotCut(m_SdcInHC[i+1], min_tot, false);
+    TotCut(m_SdcInHC[i+1], min_tot, true);
   }// for(i)
 }
 
@@ -1397,7 +1398,8 @@ void
 DCAnalyzer::TotCutSDC2(double min_tot)
 {
   for(int i = 0; i<NumOfLayersSDC2; ++i){
-    TotCut(m_SdcInHC[i + NumOfLayersSDC1 +1], min_tot, false);
+    //TotCut(m_SdcInHC[i + NumOfLayersSDC1 +1], min_tot, false);
+    TotCut(m_SdcInHC[i + NumOfLayersSDC1 +1], min_tot, true);
   }// for(i)
 }
 
@@ -1406,7 +1408,8 @@ void
 DCAnalyzer::TotCutSDC3(double min_tot)
 {
   for(int i = 0; i<NumOfLayersSDC3; ++i){
-    TotCut(m_SdcOutHC[i + 1], min_tot, false);
+    //TotCut(m_SdcOutHC[i + 1], min_tot, false);
+    TotCut(m_SdcOutHC[i + 1], min_tot, true);
   }// for(i)
 }
 
@@ -1415,7 +1418,8 @@ void
 DCAnalyzer::TotCutSDC4(double min_tot)
 {
   for(int i = 0; i<NumOfLayersSDC4; ++i){
-    TotCut(m_SdcOutHC[i + NumOfLayersSDC3 +1], min_tot, false);
+    //TotCut(m_SdcOutHC[i + NumOfLayersSDC3 +1], min_tot, false);
+    TotCut(m_SdcOutHC[i + NumOfLayersSDC3 +1], min_tot, true);
   }// for(i)
 }
 

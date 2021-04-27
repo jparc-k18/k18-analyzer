@@ -109,6 +109,15 @@ RawData::DecodeHits( void )
   static const Double_t MinTdcSDC4 = gUser.GetParameter("TdcSDC4", 0);
   static const Double_t MaxTdcSDC4 = gUser.GetParameter("TdcSDC4", 1);
 
+  static const Double_t MinTrailingSDC1 = gUser.GetParameter("TrailingSDC1", 0);
+  static const Double_t MaxTrailingSDC1 = gUser.GetParameter("TrailingSDC1", 1);
+  static const Double_t MinTrailingSDC2 = gUser.GetParameter("TrailingSDC2", 0);
+  static const Double_t MaxTrailingSDC2 = gUser.GetParameter("TrailingSDC2", 1);
+  static const Double_t MinTrailingSDC3 = gUser.GetParameter("TrailingSDC3", 0);
+  static const Double_t MaxTrailingSDC3 = gUser.GetParameter("TrailingSDC3", 1);
+  static const Double_t MinTrailingSDC4 = gUser.GetParameter("TrailingSDC4", 0);
+  static const Double_t MaxTrailingSDC4 = gUser.GetParameter("TrailingSDC4", 1);
+
   if( m_is_decoded ){
     hddaq::cout << "#D " << FUNC_NAME << " "
 		<< "already decoded!" << std::endl;
@@ -227,7 +236,7 @@ RawData::DecodeHits( void )
 	  for(Int_t i=0; i<nhit; i++ ){
 	    Int_t data = gUnpacker.get( DetIdSDC1, plane, 0, wire, lt, i );
 	    if( lt == 0 && ( data<MinTdcSDC1 || MaxTdcSDC1<data ) ) continue;
-	    if( lt == 1 && data<MinTdcSDC1 ) continue;
+	    if( lt == 1 && ( data<MinTrailingSDC1 || MaxTrailingSDC1<data ) ) continue;
 	    AddDCRawHit( m_SdcInRawHC[plane+1], plane+PlMinSdcIn, wire+1,
 			 data , lt);
 	  }
@@ -249,7 +258,7 @@ RawData::DecodeHits( void )
 	    UInt_t data = gUnpacker.get( DetIdSDC2, plane-NumOfLayersSDC1,
 					 0, wire, lt ,i );
 	    if( lt == 0 && ( data<MinTdcSDC2 || MaxTdcSDC2<data ) ) continue;
-	    if( lt == 1 && data<MinTdcSDC2 ) continue;
+	    if( lt == 1 && ( data<MinTrailingSDC2 || MaxTrailingSDC2<data ) ) continue;
 	    AddDCRawHit( m_SdcInRawHC[plane+1],  plane+PlMinSdcIn, wire+1,
 			 data , lt);
 	  }
@@ -272,7 +281,7 @@ RawData::DecodeHits( void )
 	  for(Int_t i=0; i<nhit; i++ ){
 	    Int_t data = gUnpacker.get( DetIdSDC3, plane, 0, wire, lt, i );
 	    if( lt == 0 && ( data<MinTdcSDC3 || MaxTdcSDC3<data ) ) continue;
-	    if( lt == 1 && data<MinTdcSDC3 ) continue;
+	    if( lt == 1 && ( data<MinTrailingSDC3 || MaxTrailingSDC3<data ) ) continue;
 	    AddDCRawHit( m_SdcOutRawHC[plane+1], plane+PlMinSdcOut, wire+1,
 			 data , lt);
 	  }
@@ -294,7 +303,7 @@ RawData::DecodeHits( void )
 	    UInt_t data = gUnpacker.get( DetIdSDC4, plane-NumOfLayersSDC3,
 					 0, wire, lt ,i );
 	    if( lt == 0 && ( data<MinTdcSDC4 || MaxTdcSDC4<data ) ) continue;
-	    if( lt == 1 && data<MinTdcSDC4 ) continue;
+	    if( lt == 1 && ( data<MinTrailingSDC4 || MaxTrailingSDC4<data ) ) continue;
 	    AddDCRawHit( m_SdcOutRawHC[plane+1],  plane+PlMinSdcOut, wire+1,
 			 data , lt);
 	  }

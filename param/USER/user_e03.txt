@@ -22,7 +22,8 @@ DeTOF 0.3 4
 ### TOF time range
 TimeTOF 7 25
 
-### TOF offset
+### TOF offset (time of flight between BH2 and TOF [ns])
+#OffsetToF -1.1
 OffsetToF 0
 
 ### BH1 TDC gate range
@@ -48,15 +49,33 @@ TdcBC4 300 460
 
 ### SDC1 TDC gate range
 TdcSDC1 250 460
+#TdcSDC1 200 460
 
 ### SDC2 TDC gate range
-TdcSDC2 50 500
+TdcSDC2 250 500
+#TdcSDC2 50 500
+#TdcSDC2 0 500
 
 ### SDC3 TDC gate range
 TdcSDC3 680 920
+#TdcSDC3 550 920
 
 ### SDC4 TDC gate range
 TdcSDC4 450 920
+#TdcSDC4 250 920
+
+### SDC1 Trailing gate range
+TrailingSDC1 200 400
+
+### SDC2 Trailing gate range
+TrailingSDC2 0 350
+
+### SDC3 Trailing gate range
+TrailingSDC3 550 770
+
+### SDC4 Trailing gate range
+TrailingSDC4 200 770
+
 
 ### BCOUT multiplicity gate
 MaxMultiHitBcOut 16
@@ -66,22 +85,24 @@ MinLayerBcOut 10
 
 ###BC3,4 Sdc1 TOT cut
 MinTotBcOut 15
-MinTotSDC1 25
-MinTotSDC2 25
+MinTotSDC1 20
+MinTotSDC2 50
+#MinTotSDC1 25
+#MinTotSDC2 25
 
 ### SDCIN multiplicity gate
 MaxMultiHitSdcIn 16
 
 ### SDCIN plane multiplicity gate
-MinLayerSdcIn 10
-#MinLayerSdcIn 9
+MinLayerSdcIn 8
+#MinLayerSdcIn 10
 
 ### SDCOUT multiplicity gate
 MaxMultiHitSdcOut 16
 
 ### SDCOUT plane multiplicity gate (+2 in SdcOutTracking)
-#MinLayerSdcOut 6
-MinLayerSdcOut 8
+MinLayerSdcOut 6
+#MinLayerSdcOut 8
 
 ### L1 timing of TOF stop
 TimeL1 230 260
