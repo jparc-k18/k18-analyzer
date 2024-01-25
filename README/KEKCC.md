@@ -145,7 +145,7 @@ Install the K1.8 analyzer as follows.
 $ git clone \
 ssh://sks@www-online.kek.jp:8022/~/public_html/git/k18-analyzer.git
 $ cd k18-analyzer
-$ git checkout e40 # choose branch as you like
+$ git checkout e72 # choose branch as you like
 $ cp Makefile.org Makefile
 $ make
 ```

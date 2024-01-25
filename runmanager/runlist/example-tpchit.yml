@@ -1,0 +1,49 @@
+#
+# RUN LIST (YAML format)
+#
+# The allowed keys are
+#   queue  <- bsub queue (eg. s, l, etc...)
+#   qmerge <- bsub queue for merging job to command "hadd"
+#   unit   <- dividing event unit
+#   nproc  <- number of process for merging (up to 18)
+#   buff   <- intermediate root files will be placed here if nproc is more than 2
+#             if not set, use the same "root" directory
+#   bin    <- path to executable binary
+#   conf   <- path to conf directory/file from the work directory
+#   data   <- path to data directory/file
+#   root   <- path to the output ROOT output directory/file
+#
+# Be careful of the indent rule because YAML format is sensitive to it.
+# Some problems will happen if there is no default setting declaration.
+#
+
+#____________________________________________________
+# work directory path
+# The following paths must be relative to this path
+
+WORKDIR: ~/workdir/of/your/analyzer
+
+#____________________________________________________
+# default setting
+# default setting MUST have all items.
+# This setting will be inherited unless you explicitly set values for the individual cases.
+
+DEFAULT:
+  queue: l
+  qmerge: l
+  unit:  50
+  nproc: 18
+  buff:  root/buf
+  bin:   bin/TPCHit
+  conf:  param/conf/analyzer_e72_2024jan.conf
+  data:  /hsm/had/sks/E72/TOHOKU2024Jan/hddaq/bench_e72_2024jan
+  root:  root
+
+#____________________________________________________
+# Individual settings
+# If you want to adapt the default setting to some runs,
+# you only have to list keys.
+
+RUN:
+  33:
+  34:
