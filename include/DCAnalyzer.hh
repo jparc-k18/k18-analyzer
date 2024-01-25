@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <TString.h>
+#include <TVector3.h>
 
 #include "DetectorID.hh"
 
@@ -18,6 +19,11 @@ class MWPCCluster;
 class FiberCluster;
 class HodoCluster;
 
+class TPCHit;
+class TPCCluster;
+class TPCLocalTrack;
+class TPCLocalTrackHelix;
+
 class Hodo1Hit;
 class Hodo2Hit;
 class HodoAnalyzer;
@@ -28,6 +34,11 @@ typedef std::vector<DCLocalTrack*> DCLocalTrackContainer;
 typedef std::vector<K18TrackU2D*>  K18TrackU2DContainer;
 typedef std::vector<K18TrackD2U*>  K18TrackD2UContainer;
 typedef std::vector<KuramaTrack*>  KuramaTrackContainer;
+
+typedef std::vector<TPCHit*>        TPCHitContainer;
+typedef std::vector<TPCCluster*>    TPCClusterContainer;
+typedef std::vector<TPCLocalTrack*> TPCLocalTrackContainer;
+typedef std::vector<TPCLocalTrackHelix*> TPCLocalTrackHelixContainer;
 
 typedef std::vector<Hodo1Hit*> Hodo1HitContainer;
 typedef std::vector<Hodo2Hit*> Hodo2HitContainer;
@@ -47,7 +58,7 @@ private:
 
 private:
   enum e_type
-  { kBcIn, kBcOut, kSdcIn, kSdcOut, kTOF, n_type };
+  { kBcIn, kBcOut, kSdcIn, kSdcOut, kTPC, kTOF, n_type };
   Double_t                           m_max_v0diff;
   std::vector<Bool_t>                m_is_decoded;
   std::vector<Int_t>                 m_much_combi;
@@ -57,12 +68,19 @@ private:
   std::vector<DCHitContainer>        m_BcOutHC;
   std::vector<DCHitContainer>        m_SdcInHC;
   std::vector<DCHitContainer>        m_SdcOutHC;
+  std::vector<TPCHitContainer>       m_TPCHitCont;
+  std::vector<TPCHitContainer>       m_TempTPCHitCont;
+  std::vector<TPCClusterContainer>   m_TPCClCont;
   DCHitContainer                     m_TOFHC;
   DCHitContainer                     m_VtxPoint;
   DCLocalTrackContainer              m_BcInTC;
   DCLocalTrackContainer              m_BcOutTC;
   DCLocalTrackContainer              m_SdcInTC;
   DCLocalTrackContainer              m_SdcOutTC;
+  TPCLocalTrackContainer             m_TPCTC;
+  TPCLocalTrackContainer             m_TPCTCFailed;
+  TPCLocalTrackHelixContainer        m_TPCTCHelix;
+  TPCLocalTrackHelixContainer        m_TPCTCHelixFailed;
   K18TrackU2DContainer               m_K18U2DTC;
   K18TrackD2UContainer               m_K18D2UTC;
   KuramaTrackContainer               m_KuramaTC;
@@ -78,6 +96,10 @@ public:
   Bool_t DecodeFiberHits(RawData* rawData);
   Bool_t DecodeBcInHits(RawData* rawData);
   Bool_t DecodeBcOutHits(RawData* rawData);
+  Bool_t DecodeTPCHitsGeant4(const Int_t nhits,
+                             const Double_t *x, const Double_t *y,
+                             const Double_t *z, const Double_t *de);
+  Bool_t DecodeTPCHits(RawData* rawData, Double_t clock=0.);
   Bool_t DecodeSdcInHits(RawData* rawData);
   Bool_t DecodeSdcOutHits(RawData* rawData, Double_t ofs_dt=0.);
   Bool_t DecodeTOFHits(const Hodo2HitContainer& HitCont);
@@ -93,21 +115,36 @@ public:
   const DCHitContainer& GetSdcInHC(Int_t l) const { return m_SdcInHC.at(l); }
   const DCHitContainer& GetSdcOutHC(Int_t l) const { return m_SdcOutHC.at(l); }
   const DCHitContainer& GetTOFHC() const { return m_TOFHC; }
+  const TPCHitContainer& GetTPCHC(Int_t l) const { return m_TPCHitCont.at(l); }
+  const TPCClusterContainer& GetTPCClCont(Int_t l) const
+    { return m_TPCClCont.at(l); }
 
   Bool_t TrackSearchBcIn();
   Bool_t TrackSearchBcIn(const std::vector< std::vector<DCHitContainer> >& hc);
   Bool_t TrackSearchBcOut(Int_t T0Seg=-1);
   Bool_t TrackSearchBcOut(const std::vector< std::vector<DCHitContainer> >& hc, Int_t T0Seg);
+
   Bool_t TrackSearchSdcIn();
   Bool_t TrackSearchSdcInFiber();
   Bool_t TrackSearchSdcOut();
   Bool_t TrackSearchSdcOut(const Hodo2HitContainer& HitCont);
   Bool_t TrackSearchSdcOut(const HodoClusterContainer& ClCont);
+  Bool_t TrackSearchTPC(Bool_t exclusive=false);
+  Bool_t TrackSearchTPCHelix(Bool_t exclusive=false);
+  Bool_t TrackSearchTPCHelix(std::vector<std::vector<TVector3>> K18VPs,
+			     std::vector<std::vector<TVector3>> KuramaVPs,
+			     Bool_t exclusive=false);
+  Bool_t TestHoughTransform();
+  Bool_t TestHoughTransformHelix();
 
   Int_t GetNtracksBcIn() const { return m_BcInTC.size(); }
   Int_t GetNtracksBcOut() const { return m_BcOutTC.size(); }
   Int_t GetNtracksSdcIn() const { return m_SdcInTC.size(); }
   Int_t GetNtracksSdcOut() const { return m_SdcOutTC.size(); }
+  Int_t GetNTracksTPC() const { return m_TPCTC.size(); }
+  Int_t GetNTracksTPCFailed() const { return m_TPCTCFailed.size(); }
+  Int_t GetNTracksTPCHelix() const { return m_TPCTCHelix.size(); }
+  Int_t GetNTracksTPCHelixFailed() const { return m_TPCTCHelixFailed.size(); }
   // Exclusive Tracks
   Int_t GetNtracksSdcInEx(Int_t l) const { return m_SdcInExTC.at(l).size(); }
   Int_t GetNtracksSdcOutEx(Int_t l) const { return m_SdcOutExTC.at(l).size(); }
@@ -116,6 +153,10 @@ public:
   DCLocalTrack* GetTrackBcOut(Int_t l) const { return m_BcOutTC.at(l); }
   DCLocalTrack* GetTrackSdcIn(Int_t l) const { return m_SdcInTC.at(l); }
   DCLocalTrack* GetTrackSdcOut(Int_t l) const { return m_SdcOutTC.at(l); }
+  TPCLocalTrack* GetTrackTPC(Int_t l) const { return m_TPCTC.at(l); }
+  TPCLocalTrack* GetTrackTPCFailed(Int_t l) const { return m_TPCTCFailed.at(l); }
+  TPCLocalTrackHelix* GetTrackTPCHelix(Int_t l) const { return m_TPCTCHelix.at(l); }
+  TPCLocalTrackHelix* GetTrackTPCHelixFailed(Int_t l) const { return m_TPCTCHelixFailed.at(l); }
   // Exclusive Tracks
   DCLocalTrack* GetTrackSdcInEx(Int_t l, Int_t i) const
     { return m_SdcInExTC.at(l).at(i); }
@@ -164,7 +205,11 @@ public:
   Bool_t ReCalcDCHits(std::vector<DCHitContainer>& cont,
                       Bool_t applyRecursively=false);
   Bool_t ReCalcDCHits(Bool_t applyRecursively=false);
-  void HoughYCut(Double_t min_y, Double_t max_y);
+  Bool_t ReCalcTPCHits(const Int_t nhits,
+                       const std::vector<Int_t>& pad,
+                       const std::vector<Double_t>& time,
+                       const std::vector<Double_t>& de,
+                       Double_t clock=0.);
   Bool_t ReCalcTrack(DCLocalTrackContainer& cont, Bool_t applyRecursively=false);
   Bool_t ReCalcTrack(K18TrackD2UContainer& cont, Bool_t applyRecursively=false);
   Bool_t ReCalcTrack(KuramaTrackContainer& cont, Bool_t applyRecursively=false);
@@ -202,10 +247,14 @@ protected:
   void ClearTOFHits();
   void ClearVtxHits();
 
+  void ClearTPCHits();
+  void ClearTPCClusters();
+
   void ClearTracksBcIn();
   void ClearTracksBcOut();
   void ClearTracksSdcIn();
   void ClearTracksSdcOut();
+  void ClearTracksTPC();
   void ClearTracksBcOutSdcIn();
   void ClearTracksSdcInSdcOut();
   void ClearK18TracksU2D();
@@ -214,6 +263,9 @@ protected:
   void ChiSqrCut(DCLocalTrackContainer& cont, Double_t chisqr);
   void TotCut(DCHitContainer& cont, Double_t min_tot, Bool_t adopt_nan);
   void DriftTimeCut(DCHitContainer& cont, Double_t min_dt, Double_t max_dt, Bool_t select_1st);
+  static Bool_t MakeUpTPCClusters(const TPCHitContainer& HitCont,
+                                  TPCClusterContainer& ClCont,
+                                  Double_t maxdy);
   static Int_t MakeUpMWPCClusters(const DCHitContainer& HitCont,
                                   MWPCClusterContainer& ClusterCont,
                                   Double_t maxTimeDif);

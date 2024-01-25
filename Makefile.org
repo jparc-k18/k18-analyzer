@@ -19,10 +19,11 @@ dst_build_dir	= $(dst_dir)/build
 # ROOT
 root_config	= root-config
 root_include	= $(shell $(root_config) --cflags)
-root_libs	= $(shell $(root_config) --libs) -lMinuit -lEG
+root_libs	= $(shell $(root_config) --libs) -lMinuit -lEG -lSpectrum -lGeom -lEve
 #
 # HDDAQ Unpacker
-unpacker_config		= unpacker-config
+#unpacker_config		= unpacker-config
+unpacker_config         = /group/had/sks/software/unpacker/dev/bin/unpacker-config
 unpacker_include	= $(shell $(unpacker_config) --include)
 unpacker_libs		= $(shell $(unpacker_config) --libs)
 #
@@ -39,7 +40,7 @@ FLAGS	= $(CFLAGS) $(DFLAGS) -I. $(root_include) \
 #
 lib_objs	= $(lib_dir)/libK18Analyzer.a
 k18lib		= -L$(lib_dir)/ -lK18Analyzer
-libs		= $(root_libs) $(unpacker_libs) -lrt
+libs		= $(root_libs) $(unpacker_libs) -lrt -ltbb
 #
 core_srcs	= $(wildcard $(src_dir)/*.cc)
 headers		= $(wildcard $(include_dir)/*.hh)

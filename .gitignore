@@ -9,6 +9,7 @@
 *.swp
 \#*
 Makefile
+backup/
 bin
 data*
 lib

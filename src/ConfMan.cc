@@ -121,6 +121,10 @@ ConfMan::Initialize()
 
   AddObject();
 
+  // For E42
+  gUnpacker.enable_istream_bookmark();
+  //
+
   if(!InitializeParameterFiles() || !InitializeHistograms()){
     return false;
   }

@@ -158,7 +158,7 @@ KuramaFieldMap::GetFieldValue(const Double_t pointCM[3],
   else if(iy1>=Ny-1) { iy1=iy2=Ny-1; wy1=1.; wy2=0.; }
   else { iy2=iy1+1; wy1=(Y0+dY*iy2-yt)/dY; wy2=1.-wy1; }
 
-  if(iz1<0) { iz1=iz2=0; wz1=1.; wz2=0.; }
+  if(iz1<0) { iz1=iz2=0; wz1=0.; wz2=0.; }
   else if(iz1>=Nz-1) { iz1=iz2=Nz-1; wz1=1.; wz2=0.; }
   else { iz2=iz1+1; wz1=(Z0+dZ*iz2-zt)/dZ; wz2=1.-wz1; }
 

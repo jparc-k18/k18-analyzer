@@ -12,6 +12,7 @@
 
 #include "FuncName.hh"
 #include "MathTools.hh"
+#include "TPCPadHelper.hh"
 
 namespace
 {
@@ -205,6 +206,69 @@ VertexPointTF2(const TVector3& Xin, const TVector3& Xout,
   Double_t verty = ((y0in+v0in*close_zin)+(y0out+v0out*close_zout))/2.;
   Double_t vertz = (close_zin+close_zout)/2.;
 
+  return TVector3(vertx, verty, vertz);
+}
+
+
+//_____________________________________________________________________________
+TVector3
+VertexPointHelix(const Double_t par1[5], const Double_t par2[5],
+                 Double_t& dist, Double_t& t1, Double_t& t2)
+{
+  //helix function 1
+  //x = [0] + [3]*cos(t);
+  //y = [1] + [3]*sin(t);
+  //z = [2] + [3]*[4]*t;
+
+  //helix function 2
+  //x = [5] + [8]*cos(t);
+  //y = [6] + [8]*sin(t);
+  //z = [7] + [8]*[9]*t;
+
+  static TF2 fvert_helix("fvert_helix",
+                         "pow(([0]+[3]*cos(x))-([5]+[8]*cos(y)),2)+pow(([1]+[3]*sin(x))-([6]+[8]*sin(y)),2)+pow(([2]+[3]*[4]*x)-([7]+[8]*[9]*y),2)",
+                         -5.,5.,-5.,5.);
+
+  fvert_helix.SetParameter(0, par1[0]);
+  fvert_helix.SetParameter(1, par1[1]);
+  fvert_helix.SetParameter(2, par1[2]);
+  fvert_helix.SetParameter(3, par1[3]);
+  fvert_helix.SetParameter(4, par1[4]);
+  fvert_helix.SetParameter(5, par2[0]);
+  fvert_helix.SetParameter(6, par2[1]);
+  fvert_helix.SetParameter(7, par2[2]);
+  fvert_helix.SetParameter(8, par2[3]);
+  fvert_helix.SetParameter(9, par2[4]);
+
+  Double_t close_zin, close_zout;
+  fvert_helix.GetMinimumXY(close_zin, close_zout);
+  t1 = close_zin;
+  t2 = close_zout;
+  dist = TMath::Sqrt(fvert_helix.GetMinimum());
+
+  Double_t xin = par1[0]+par1[3]*cos(close_zin);
+  Double_t xout = par2[0]+par2[3]*cos(close_zout);
+  Double_t yin =  par1[1]+par1[3]*sin(close_zin);
+  Double_t yout = par2[1]+par2[3]*sin(close_zout);
+  Double_t zin = par1[2]+par1[3]*par1[4]*close_zin;
+  Double_t zout =  par2[2]+par2[3]*par2[4]*close_zout;
+
+  // Double_t vx = (par1[0]+par1[3]*cos(close_zin) + par2[0]+par2[3]*cos(close_zout))/2.;
+  // Double_t vy = (par1[1]+par1[3]*sin(close_zin) + par2[1]+par2[3]*sin(close_zout))/2.;
+  // Double_t vz = (par1[2]+par1[3]*par1[4]*close_zin + par2[2]+par2[3]*par2[4]*close_zout)/2.;
+  Double_t vx = (xin+xout)/2.;
+  Double_t vy = (yin+yout)/2.;
+  Double_t vz = (zin+zout)/2.;
+
+  Double_t dist2 = sqrt(pow(xin-xout,2)
+			+pow(yin-yout,2)
+			+pow(zin-zout,2));
+  // std::cout<<"dist ="<<dist<<", dist2="<<dist2<<std::endl;
+  // std::cout<<"close_zin="<<close_zin<<", close_zout="<<close_zout<<std::endl;
+  dist = dist2;
+  Double_t vertx = -1.*vx;
+  Double_t verty = vz;
+  Double_t vertz = vy + tpc::ZTarget;
   return TVector3(vertx, verty, vertz);
 }
 
@@ -650,4 +714,177 @@ Beta(Double_t energy,Double_t mormentum)
   return mormentum/energy;
 }
 
+//_____________________________________________________________________________
+Int_t
+PID_HypTPC_dEdx(const Double_t dEdx, const Double_t mom, const Int_t charge)
+{
+// function for proton
+// [0]+[1]/x+[2]/(x*x) : x= mom (not p/q)
+// Low
+// [0] =0.172461, [1] =-0.12322, [2] =0.442865
+// High
+// [0] =0.51042, [1] =-0.432761, [2] =1.06032
+// Central
+// [0] =0.236399, [1] =-0.181781, [2] =0.559682
+
+// function for pi+
+//   [0]+[1]/x : x= mom (not p/q)
+// Low
+// [0] =0.343343, [1] =0.0584624
+// High
+// [0] =0.580406, [1] =0.169202
+// Central
+// [0] =0.485581, [1] =0.124906
+// function for pi-
+//   [0]+[1]/x : x= mom (not p/q)
+// Low
+// [0] =0.343343, [1] =0.0584624
+// High
+// [0] =0.770056, [1] =0.257794
+// Central
+// [0] =0.485581, [1] =0.124906
+
+  // return value
+  // pi+:1, proton:2, both (inside both pi+ and proton): 3
+  // pi-:-1
+  // no identification: 0
+
+  int pid = 0;
+
+  TF1 * fpid_l = new TF1("fpid_l","[0]+[1]/x+[2]/(x*x)",0.,2.);
+  TF1 * fpid_h = new TF1("fpid_h","[0]+[1]/x+[2]/(x*x)",0.,2.);
+  Double_t para_p_l[3]={0.172461, -0.12322, 0.442865};
+  Double_t para_p_h[3]={0.51042, -0.432761, 1.06032};
+  Double_t para_pip_l[3]={0.343343, 0.0584624, 0.};
+  Double_t para_pip_h[3]={0.580406, 0.169202, 0.};
+  Double_t para_pim_l[3]={0.343343, 0.0584624, 0.};
+  Double_t para_pim_h[3]={0.770056, 0.257794, 0.};
+
+  bool is_proton = false;
+  bool is_pip = false;
+  bool is_pim = false;
+  // pip id
+  fpid_l->SetParameters(para_pip_l);
+  fpid_h->SetParameters(para_pip_h);
+  if(fpid_l->Eval(mom)<dEdx
+     &&dEdx<fpid_h->Eval(mom)
+     &&charge==1)
+    is_pip = true;
+
+  // proton id
+  fpid_l->SetParameters(para_p_l);
+  fpid_h->SetParameters(para_p_h);
+  if(fpid_l->Eval(mom)<dEdx
+     &&dEdx<fpid_h->Eval(mom)
+     &&charge==1)
+    is_proton = true;
+
+  // pim id
+  fpid_l->SetParameters(para_pim_l);
+  fpid_h->SetParameters(para_pim_h);
+  if(fpid_l->Eval(mom)<dEdx
+     &&dEdx<fpid_h->Eval(mom)
+     &&charge==-1)
+    is_pim = true;
+
+  if(is_proton&&is_pip)
+    pid = 3;
+  else if(is_pip)
+    pid = 1;
+  else if(is_proton)
+    pid = 2;
+  if(is_pim)
+    pid = -1;
+
+  delete fpid_l;
+  delete fpid_h;
+
+  return pid;
+}
+
+Double_t HypTPCdEdx(Double_t Z, Double_t *x, Double_t *p){
+  //x : poq
+  //p[0] : converting constant p[1] : density effect correction p[2] : mass
+  Double_t me  = 0.5109989461;
+  Double_t rho = TMath::Power(10.,-3)*(0.9*1.662 + 0.1*0.6672); //[g cm-3]
+  Double_t K = 0.307075; //[MeV cm2 mol-1]
+  Double_t ZoverA = 17.2/37.6; //[mol g-1]
+  Double_t constant = rho*K*ZoverA; //[MeV cm-1]
+  Double_t I2 = 0.9*188.0 + 0.1*41.7; I2 = I2*I2; //Mean excitaion energy [eV]
+  Double_t MeVToeV = TMath::Power(10.,6);
+  Double_t mom = 1000.*x[0]*Z; //MeV
+  Double_t beta2 = mom*mom/(mom*mom+p[2]*p[2]);
+  Double_t gamma2 = 1./(1.-beta2);
+  Double_t Wmax = 2*me*beta2*gamma2/((me+p[2])*(me+p[2])+2*me*p[2]*(TMath::Sqrt(gamma2)-1));
+  Double_t dedx = p[0]*constant*Z*Z/beta2*(0.5*TMath::Log(2*me*beta2*gamma2*Wmax*MeVToeV*MeVToeV/I2)-beta2-p[1]);
+  return dedx;
+}
+
+Double_t HypTPCBethe(Double_t *x, Double_t *p){ return HypTPCdEdx(1, x, p); }
+
+Int_t HypTPCdEdxPID_temp(Double_t dedx, Double_t poq){
+
+  Double_t bethe_par[2] = {7195.92, -10.5616};
+  Double_t limit = 0.6; //GeV/c
+  Double_t mpi = 139.57039;
+  Double_t mk  = 493.677;
+  Double_t mp  = 938.2720813;
+  Double_t md  = 1875.612762;
+
+  TF1 *f_pim = new TF1("f_pim", HypTPCBethe, -3., 0., 3);
+  TF1 *f_km = new TF1("f_km", HypTPCBethe, -3., 0., 3);
+  TF1 *f_pip = new TF1("f_pip", HypTPCBethe, 0., 3., 3);
+  TF1 *f_kp = new TF1("f_kp", HypTPCBethe, 0., 3., 3);
+  TF1 *f_p = new TF1("f_p", HypTPCBethe, 0., 3., 3);
+  TF1 *f_d = new TF1("f_d", HypTPCBethe, 0., 3., 3);
+
+  f_pim -> SetParameters(bethe_par[0], bethe_par[1], mpi);
+  f_km -> SetParameters(bethe_par[0], bethe_par[1], mk);
+  f_pip -> SetParameters(bethe_par[0], bethe_par[1], mpi);
+  f_kp -> SetParameters(bethe_par[0], bethe_par[1], mk);
+  f_p -> SetParameters(bethe_par[0], bethe_par[1], mp);
+  f_d -> SetParameters(bethe_par[0], bethe_par[1], md);
+
+  Int_t pid[3] = {0};
+  if(poq >= limit){
+    pid[0]=1; pid[1]=1; pid[2]=1;
+  }
+  else if(limit > poq && poq >= 0.){
+    Double_t dedx_d = f_d -> Eval(poq); Double_t dedx_p = f_p -> Eval(poq);
+    Double_t dedx_kp = f_kp -> Eval(poq); Double_t dedx_pip = f_pip -> Eval(poq);
+    if(dedx_d > dedx && dedx >= dedx_kp) pid[2]=1;
+    if(dedx_p > dedx){
+      pid[0]=1; pid[1]=1;
+    }
+  }
+  else if(0.> poq && poq >= -limit){
+    pid[0]=1; pid[1]=1;
+  }
+  else{
+    pid[0]=1; pid[1]=1;
+  }
+
+  delete f_pim;
+  delete f_km;
+  delete f_pip;
+  delete f_kp;
+  delete f_p;
+  delete f_d;
+
+  Int_t output = pid[0] + pid[1]*2 + pid[2]*4;
+  return output;
+}
+
+void HypTPCPID_PDGCode(Int_t charge, Int_t pid, std::vector<Int_t>& pdg){
+
+  const Int_t particles = 3;
+  Int_t pdgcode[particles] = {211, 321, 2212};
+  Int_t flag = 1;
+  for(Int_t i=0;i<particles;i++){
+    Int_t temp = flag&pid;
+    if(temp==flag) pdg.push_back(charge*pdgcode[i]);
+    if(pid==0) pdg.push_back(charge*pdgcode[i]);
+    flag*=2;
+  }
+}
 }

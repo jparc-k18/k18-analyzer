@@ -56,6 +56,7 @@ HodoAnalyzer::HodoAnalyzer()
     m_WCSUMCont(),
     m_BFTCont(),
     m_SCHCont(),
+    m_TPCClock(),
     m_BH1ClCont(),
     m_BH2ClCont(),
     m_BACClCont(),
@@ -85,6 +86,7 @@ HodoAnalyzer::~HodoAnalyzer()
   ClearWCSUMHits();
   ClearBFTHits();
   ClearSCHHits();
+  ClearTPCClock();
   debug::ObjectCounter::decrease(ClassName());
 }
 
@@ -179,6 +181,13 @@ HodoAnalyzer::ClearSCHHits()
 }
 
 //_____________________________________________________________________________
+void
+HodoAnalyzer::ClearTPCClock()
+{
+  del::DeleteObject(m_TPCClock);
+}
+
+//_____________________________________________________________________________
 Bool_t
 HodoAnalyzer::DecodeRawHits(RawData *rawData)
 {
@@ -193,6 +202,7 @@ HodoAnalyzer::DecodeRawHits(RawData *rawData)
   DecodeWCSUMHits(rawData);
   DecodeBFTHits(rawData);
   DecodeSCHHits(rawData);
+  DecodeTPCClock(rawData);
   return true;
 }
 
@@ -453,6 +463,25 @@ HodoAnalyzer::DecodeSCHHits(RawData* rawData)
 #endif
 
   return true;
+}
+
+//_____________________________________________________________________________
+Bool_t
+HodoAnalyzer::DecodeTPCClock(RawData* rawData)
+{
+  ClearTPCClock();
+
+  for(auto& rhit: rawData->GetTPCClockRawHC()){
+    if(!rhit) continue;
+    auto hit = new Hodo1Hit(rhit);
+    if(hit && hit->Calculate()){
+      m_TPCClock = hit;
+    }else{
+      delete hit;
+    }
+  }
+
+  return (m_TPCClock != nullptr);
 }
 
 //_____________________________________________________________________________

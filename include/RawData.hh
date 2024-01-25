@@ -12,9 +12,11 @@
 
 class HodoRawHit;
 class DCRawHit;
+class TPCRawHit;
 
 typedef std::vector<HodoRawHit*> HodoRHitContainer;
 typedef std::vector<DCRawHit*>   DCRHitContainer;
+typedef std::vector<TPCRawHit*>  TPCRHitContainer;
 typedef std::vector<Int_t>       FADCRHitContainer;
 
 //_____________________________________________________________________________
@@ -30,7 +32,7 @@ private:
   RawData& operator=(const RawData&);
 
 private:
-  enum EType { kOthers, kNType };
+  enum EType { kTPC, kOthers, kNType };
   std::deque<Bool_t>             m_is_decoded;
   HodoRHitContainer              m_BH1RawHC;
   HodoRHitContainer              m_BH2RawHC;
@@ -45,36 +47,26 @@ private:
   std::vector<HodoRHitContainer> m_BFTRawHC;
   std::vector<DCRHitContainer>   m_BcInRawHC;
   std::vector<DCRHitContainer>   m_BcOutRawHC;
+  std::vector<TPCRHitContainer>  m_TPCRawHC;
+  std::vector<TPCRHitContainer>  m_TPCCorHC;
   std::vector<DCRHitContainer>   m_SdcInRawHC;
   std::vector<DCRHitContainer>   m_SdcOutRawHC;
+  HodoRHitContainer              m_TPCClockRawHC;
   HodoRHitContainer              m_ScalerRawHC;
   HodoRHitContainer              m_TrigRawHC;
   HodoRHitContainer              m_VmeCalibRawHC;
-  // Parasite _______________________________________
-  HodoRHitContainer              m_T1RawHC;
-  HodoRHitContainer              m_T2RawHC;
-  HodoRHitContainer              m_E72BACRawHC;
-  HodoRHitContainer              m_E90SACRawHC;
-  HodoRHitContainer              m_E72KVCRawHC;
-  HodoRHitContainer              m_E72KVCSUMRawHC;
-  HodoRHitContainer              m_E42BH2RawHC;
-  HodoRHitContainer              m_E42BH2MTRawHC;
-  // KEKAR2023Dec _______________________________________
-  HodoRHitContainer              m_KEKART1RawHC;
-  HodoRHitContainer              m_KEKART2RawHC;
-  HodoRHitContainer              m_KEKART3RawHC;
-  HodoRHitContainer              m_KEKART4RawHC;
-  HodoRHitContainer              m_KEKARE90SACRawHC;
-  HodoRHitContainer              m_KEKARE90SACSUMRawHC;
-  HodoRHitContainer              m_KEKARE72BACRawHC;
-  HodoRHitContainer              m_KEKARE72BACSUMRawHC;
-  HodoRHitContainer              m_KEKARE72KVCRawHC;
-  HodoRHitContainer              m_KEKARE72KVCSUMRawHC;
+  TPCRawHit*                     m_baseline;
 
 public:
   void                     ClearAll();
+  void                     ClearTPC();
+  Bool_t                   CorrectBaselineTPC();
   Bool_t                   DecodeHits();
   Bool_t                   DecodeCalibHits();
+  Bool_t                   DecodeTPCHits();
+  Bool_t                   SelectTPCHits(Bool_t maxadccut,
+                                         Bool_t maxadctbcut);
+  const TPCRawHit* const   GetBaselineTPC() const { return m_baseline; }
   const HodoRHitContainer& GetBH1RawHC() const;
   const HodoRHitContainer& GetBH2RawHC() const;
   const HodoRHitContainer& GetBACRawHC() const;
@@ -90,29 +82,12 @@ public:
   const DCRHitContainer&   GetBcOutRawHC(Int_t layer) const;
   const DCRHitContainer&   GetSdcInRawHC(Int_t layer) const;
   const DCRHitContainer&   GetSdcOutRawHC(Int_t layer) const;
+  const TPCRHitContainer&  GetTPCRawHC(Int_t layer) const;
+  const TPCRHitContainer&  GetTPCCorHC(Int_t layer) const;
+  const HodoRHitContainer& GetTPCClockRawHC() const;
   const HodoRHitContainer& GetScalerRawHC() const;
   const HodoRHitContainer& GetTrigRawHC() const;
   const HodoRHitContainer& GetVmeCalibRawHC() const;
-  // Parasite _______________________________________
-  const HodoRHitContainer& GetT1RawHC() const;
-  const HodoRHitContainer& GetT2RawHC() const;
-  const HodoRHitContainer& GetE72BACRawHC() const;
-  const HodoRHitContainer& GetE90SACRawHC() const;
-  const HodoRHitContainer& GetE72KVCRawHC() const;
-  const HodoRHitContainer& GetE72KVCSUMRawHC() const;
-  const HodoRHitContainer& GetE42BH2RawHC() const;
-  const HodoRHitContainer& GetE42BH2MTRawHC() const;
-  // KEKAR2023Dec _______________________________________
-  const HodoRHitContainer& GetKEKART1RawHC() const;
-  const HodoRHitContainer& GetKEKART2RawHC() const;
-  const HodoRHitContainer& GetKEKART3RawHC() const;
-  const HodoRHitContainer& GetKEKART4RawHC() const;
-  const HodoRHitContainer& GetKEKARE90SACRawHC() const;
-  const HodoRHitContainer& GetKEKARE90SACSUMRawHC() const;
-  const HodoRHitContainer& GetKEKARE72BACRawHC() const;
-  const HodoRHitContainer& GetKEKARE72BACSUMRawHC() const;
-  const HodoRHitContainer& GetKEKARE72KVCRawHC() const;
-  const HodoRHitContainer& GetKEKARE72KVCSUMRawHC() const;
 
 private:
   enum EDCDataType { kDcLeading, kDcTrailing, kDcOverflow, kDcNDataType };
@@ -122,6 +97,9 @@ private:
   Bool_t AddDCRawHit(DCRHitContainer& cont,
                      Int_t plane, Int_t wire, Int_t data,
                      Int_t type=kDcLeading);
+  Bool_t AddTPCRawHit(TPCRHitContainer& cont,
+                      Int_t layer, Int_t row, Double_t adc,
+                      Double_t* pars=nullptr, Double_t raw_rms=0);
   void   DecodeHodo(Int_t id, Int_t plane, Int_t nseg, Int_t nch,
                     HodoRHitContainer& cont);
   void   DecodeHodo(Int_t id, Int_t nseg, Int_t nch,
@@ -231,6 +209,22 @@ RawData::GetBcOutRawHC(Int_t layer) const
 }
 
 //_____________________________________________________________________________
+inline const TPCRHitContainer&
+RawData::GetTPCRawHC(Int_t layer) const
+{
+  if(layer<0 || layer>NumOfLayersTPC) layer = 0;
+  return m_TPCRawHC[layer];
+}
+
+//_____________________________________________________________________________
+inline const TPCRHitContainer&
+RawData::GetTPCCorHC(Int_t layer) const
+{
+  if(layer<0 || layer>NumOfLayersTPC) layer = 0;
+  return m_TPCCorHC[layer];
+}
+
+//_____________________________________________________________________________
 inline const DCRHitContainer&
 RawData::GetSdcInRawHC(Int_t layer) const
 {
@@ -244,6 +238,13 @@ RawData::GetSdcOutRawHC(Int_t layer) const
 {
   if(layer<0 || layer>NumOfLayersSdcOut) layer = 0;
   return m_SdcOutRawHC[layer];
+}
+
+//_____________________________________________________________________________
+inline const HodoRHitContainer&
+RawData::GetTPCClockRawHC() const
+{
+  return m_TPCClockRawHC;
 }
 
 //_____________________________________________________________________________
@@ -265,138 +266,6 @@ inline const HodoRHitContainer&
 RawData::GetVmeCalibRawHC() const
 {
   return m_VmeCalibRawHC;
-}
-
-// +------------+
-// |  Parasite  |
-// +------------+
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetT1RawHC() const
-{
-  return m_T1RawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetT2RawHC() const
-{
-  return m_T2RawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetE72BACRawHC() const
-{
-  return m_E72BACRawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetE90SACRawHC() const
-{
-  return m_E90SACRawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetE72KVCRawHC() const
-{
-  return m_E72KVCRawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetE72KVCSUMRawHC() const
-{
-  return m_E72KVCSUMRawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetE42BH2RawHC() const
-{
-  return m_E42BH2RawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetE42BH2MTRawHC() const
-{
-  return m_E42BH2MTRawHC;
-}
-
-// +----------------+
-// |  KEKAR2023Dec  |
-// +----------------+
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetKEKART1RawHC() const
-{
-  return m_KEKART1RawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetKEKART2RawHC() const
-{
-  return m_KEKART2RawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetKEKART3RawHC() const
-{
-  return m_KEKART3RawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetKEKART4RawHC() const
-{
-  return m_KEKART4RawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetKEKARE90SACRawHC() const
-{
-  return m_KEKARE90SACRawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetKEKARE90SACSUMRawHC() const
-{
-  return m_KEKARE90SACSUMRawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetKEKARE72BACRawHC() const
-{
-  return m_KEKARE72BACRawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetKEKARE72BACSUMRawHC() const
-{
-  return m_KEKARE72BACSUMRawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetKEKARE72KVCRawHC() const
-{
-  return m_KEKARE72KVCRawHC;
-}
-
-//_____________________________________________________________________________
-inline const HodoRHitContainer&
-RawData::GetKEKARE72KVCSUMRawHC() const
-{
-  return m_KEKARE72KVCSUMRawHC;
 }
 
 #endif
