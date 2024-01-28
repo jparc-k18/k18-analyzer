@@ -9,6 +9,9 @@
 #include <array>
 #include <TString.h>
 
+const int NumOfSegRayraw = 32;
+
+
 const std::map<TString, std::vector<TString>> DCNameList =
 {
   {"BcOut", { "BC3", "BC4" }},

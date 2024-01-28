@@ -197,6 +197,10 @@ RawData::AddFiberRawHit(const TString& name, Int_t plane, Int_t seg,
     p->SetTdcLeading(ch, val);
   }else if(data == gUnpacker.get_data_id(name, "trailing")){
     p->SetTdcTrailing(ch, val);
+  }else if(data == gUnpacker.get_data_id(name, "fadc")){
+    p->SetAdcHigh(ch, val);
+  }else if(data == gUnpacker.get_data_id(name, "overflow")){
+    p->SetTdcOverflow(ch, val);
   }else if(data == gUnpacker.get_data_id(name, "highgain")){
     p->SetAdcHigh(ch, val);
   }else if(data == gUnpacker.get_data_id(name, "lowgain")){
