@@ -322,6 +322,23 @@ dst::DstRead(int ievent)
       HF1(1000*(layer)+203, cs);
       HF2(204, cs, clde);
       HF2(1000*(layer)+204, cs, clde);
+      Double_t x = cl->GetX();
+      Double_t y = cl->GetY();
+      Double_t z = cl->GetZ();
+      Double_t mrow = cl->MeanRow();
+      Double_t de_center = cl->GetCenterHit()->GetDe();
+      TVector3 pos_center = cl->GetCenterHit()->GetPosition();
+      event.cluster_hitpos_x.push_back(x);
+      event.cluster_hitpos_y.push_back(y);
+      event.cluster_hitpos_z.push_back(z);
+      event.cluster_de.push_back(clde);
+      event.cluster_size.push_back(cs);
+      event.cluster_layer.push_back(layer);
+      event.cluster_mrow.push_back(mrow);
+      event.cluster_de_center.push_back(de_center);
+      event.cluster_hitpos_center_x.push_back(pos_center.X());
+      event.cluster_hitpos_center_y.push_back(pos_center.Y());
+      event.cluster_hitpos_center_z.push_back(pos_center.Z());
       if(cs > 2){
         Double_t mtheta = tpc::getTheta(layer, cl->MeanRow());
         for(const auto& hit: cl->GetHitContainer()){
@@ -347,6 +364,7 @@ dst::DstRead(int ievent)
     HF1(1000*(layer+1)+200, ncl);
   }
   HF1(200, nclTpc);
+  event.nclTpc = nclTpc;
 
 #if DebugEvDisp
   root::h[101]->Draw("colz");
