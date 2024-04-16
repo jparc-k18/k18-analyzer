@@ -79,13 +79,14 @@ Event::clear()
 //_____________________________________________________________________________
 namespace root
 {
-Event  event;
-TH1   *h[MaxHist];
-TTree *tree;
-enum eDetHid
-{
-  RayrawHid  = 10000,
-};
+  Event  event;
+  TH1   *h[MaxHist];
+  TTree *tree;
+  //  TGraph *g[100];
+  enum eDetHid
+    {
+      RayrawHid  = 100000,
+    };
 }
 
 //_____________________________________________________________________________
@@ -131,39 +132,171 @@ ProcessingNormal()
 
   HF1(1, 1);
 
-  {
+#if 0  
+  { 
     // from Rawdata
     const auto& cont = rawData.GetHodoRawHC("RAYRAW");
     Int_t nh = cont.size();
+    // Double_t true_hit = 0;
+    // Double_t pedestal[NumOfSegRayraw] = {qnan};
+    //    std::vector<std::vector<Int_t>> fadc_single;
 
     for( int i=0; i<nh; ++i ){
 
       HodoRawHit *hit = cont[i];
+
       Int_t seg     = hit->SegmentId();
       Int_t max_adc = 0;
-      Int_t min_l   = 2400;
+      // Int_t min_l   = 2450;
+      // Int_t max_l   = 2600;
+      // Int_t min_t   = 2400;
+      // Int_t max_t   = 2550;
+      // Int_t leading_hit_in = 0;
+      // Int_t trailing_hit_in = 0;
+      // Int_t leading_hit_out = 0;
+      // Int_t trailing_hit_out = 0;
+      // pedestal[seg] = gUser.GetParameter("PedRAYRAW", seg);
+      // Double_t integral = 0.;
+
+      Int_t hid_wf_raw   = RayrawHid + (seg)*1000 + 0;  // Raw Waveform
+      // Int_t hid_wf       = RayrawHid + (seg)*1000 + 1;  // Waveform
+      // Int_t hid_wf_wl    = RayrawHid + (seg)*1000 + 2;  // Raw Waveform w/ Leading
+      // Int_t hid_wf_wol   = RayrawHid + (seg)*1000 + 3;  // Raw Waveform w/o Leading
+      // Int_t hid_wf_wt    = RayrawHid + (seg)*1000 + 4;  // Raw Waveform w/ Trailing
+      // Int_t hid_wf_wot   = RayrawHid + (seg)*1000 + 5;  // Raw Waveform w/o Trailing
+      // Int_t hid_integral = RayrawHid + (seg)*1000 + 6;  // Charge
+      // Int_t hid_adc      = RayrawHid + (seg)*1000 + 7;  // ADC
+      // Int_t hid_adc_wl   = RayrawHid + (seg)*1000 + 8;  // ADC w/ Leading
+      // Int_t hid_adc_wol  = RayrawHid + (seg)*1000 + 9;  // ADC w/o Leading
+      // Int_t hid_tdc_l    = RayrawHid + (seg)*1000 + 10; // TDC Leading
+      // Int_t hid_tdc_t    = RayrawHid + (seg)*1000 + 11; // TDC Trailing
+      // Int_t hid_tot      = RayrawHid + (seg)*1000 + 12; // TOT
+      //      Int_t hid_single   = RayrawHid + (seg)*1000 + 100 + event.evnum; // waveform of single event
+      Int_t hid_height   = RayrawHid + (seg)*1000 + 1;  // Raw Waveform
+
+      // ADC block
+      for (Int_t j=0, k=hit->GetSizeAdcHigh(); j<k; j++ ) {
+	// for(const auto& fadc : hit->GetArrayAdc())
+	auto fadc = hit->GetAdcUp(j);
+
+	// Raw Waveform
+	HF2(hid_wf_raw, j, fadc);
+
+	if(j>30 && j<40){
+	  if(fadc > max_adc){
+	    max_adc = fadc;
+	  }
+	}
+	HF1(hid_height, max_adc);
+
+      } // for ADC block
+    } // for nh
+#endif
+
+#if 0  
+    { // for single waveform
+      // from Rawdata
+      const auto& cont = rawData.GetHodoRawHC("RAYRAW");
+      Int_t nh = cont.size();
+      // Double_t true_hit = 0;
+      // Double_t pedestal[NumOfSegRayraw] = {qnan};
+      //    std::vector<std::vector<Int_t>> fadc_single;
+
+      for( int i=0; i<nh; ++i ){
+
+	HodoRawHit *hit = cont[i];
+
+	Int_t seg     = hit->SegmentId();
+	// Int_t max_adc = 0;
+	// Int_t min_l   = 2450;
+	// Int_t max_l   = 2600;
+	// Int_t min_t   = 2400;
+	// Int_t max_t   = 2550;
+	// Int_t leading_hit_in = 0;
+	// Int_t trailing_hit_in = 0;
+	// Int_t leading_hit_out = 0;
+	// Int_t trailing_hit_out = 0;
+	// pedestal[seg] = gUser.GetParameter("PedRAYRAW", seg);
+	// Double_t integral = 0.;
+
+	Int_t hid_wf_raw   = RayrawHid + seg;  // Raw Waveform
+	// Int_t hid_wf       = RayrawHid + (seg)*1000 + 1;  // Waveform
+	// Int_t hid_wf_wl    = RayrawHid + (seg)*1000 + 2;  // Raw Waveform w/ Leading
+	// Int_t hid_wf_wol   = RayrawHid + (seg)*1000 + 3;  // Raw Waveform w/o Leading
+	// Int_t hid_wf_wt    = RayrawHid + (seg)*1000 + 4;  // Raw Waveform w/ Trailing
+	// Int_t hid_wf_wot   = RayrawHid + (seg)*1000 + 5;  // Raw Waveform w/o Trailing
+	// Int_t hid_integral = RayrawHid + (seg)*1000 + 6;  // Charge
+	// Int_t hid_adc      = RayrawHid + (seg)*1000 + 7;  // ADC
+	// Int_t hid_adc_wl   = RayrawHid + (seg)*1000 + 8;  // ADC w/ Leading
+	// Int_t hid_adc_wol  = RayrawHid + (seg)*1000 + 9;  // ADC w/o Leading
+	// Int_t hid_tdc_l    = RayrawHid + (seg)*1000 + 10; // TDC Leading
+	// Int_t hid_tdc_t    = RayrawHid + (seg)*1000 + 11; // TDC Trailing
+	// Int_t hid_tot      = RayrawHid + (seg)*1000 + 12; // TOT
+	Int_t hid_single   = RayrawHid + (seg)*100000 + event.evnum; // waveform of single event
+
+	if(seg == 0){
+	  // ADC block
+	  for (Int_t j=0, k=hit->GetSizeAdcHigh(); j<k; j++ ) {
+	    // for(const auto& fadc : hit->GetArrayAdc())
+	    auto fadc = hit->GetAdcUp(j);
+
+	    // Raw Waveform
+	    HF2(hid_wf_raw, j, fadc);
+
+	    if(event.evnum < 10000)
+	      HF2(hid_single, j, fadc);
+
+	    // if(event.evnum < 100){
+	    //   HF2(hid_single, j, fadc);
+	    // }
+	  } // for ADC block
+	}else{
+	  ;
+	}
+      } // for nh
+#endif
+
+#if 1
+    {
+    // from Rawdata
+    const auto& cont = rawData.GetHodoRawHC("RAYRAW");
+    Int_t nh = cont.size();
+    Double_t true_hit = 0;
+    Double_t pedestal[NumOfSegRayraw] = {qnan};
+    //    std::vector<std::vector<Int_t>> fadc_single;
+
+    for( int i=0; i<nh; ++i ){
+
+      HodoRawHit *hit = cont[i];
+
+      Int_t seg     = hit->SegmentId();
+      Int_t max_adc = 0;
+      Int_t min_l   = 2450;
       Int_t max_l   = 2600;
-      Int_t min_t   = 2500;
-      Int_t max_t   = 2600;
+      Int_t min_t   = 2400;
+      Int_t max_t   = 2550;
       Int_t leading_hit_in = 0;
       Int_t trailing_hit_in = 0;
       Int_t leading_hit_out = 0;
       Int_t trailing_hit_out = 0;
-      Int_t charge = 0;
+      pedestal[seg] = gUser.GetParameter("PedRAYRAW", seg);
+      Double_t integral = 0.;
 
-      Int_t hid_wf_raw  = RayrawHid + (seg)*100 + 0;  // Raw Waveform
-      Int_t hid_wf      = RayrawHid + (seg)*100 + 1;  // Waveform
-      Int_t hid_wf_wl   = RayrawHid + (seg)*100 + 2;  // Waveform w/ Leading
-      Int_t hid_wf_wol  = RayrawHid + (seg)*100 + 3;  // Waveform w/o Leading
-      Int_t hid_wf_wt   = RayrawHid + (seg)*100 + 4;  // Waveform w/ Trailing
-      Int_t hid_wf_wot  = RayrawHid + (seg)*100 + 5;  // Waveform w/o Trailing
-      Int_t hid_charge  = RayrawHid + (seg)*100 + 6;  // Charge
-      Int_t hid_adc     = RayrawHid + (seg)*100 + 7;  // ADC
-      Int_t hid_adc_wl  = RayrawHid + (seg)*100 + 8;  // ADC w/ Leading
-      Int_t hid_adc_wol = RayrawHid + (seg)*100 + 9;  // ADC w/o Leading
-      Int_t hid_tdc_l   = RayrawHid + (seg)*100 + 10; // TDC Leading
-      Int_t hid_tdc_t   = RayrawHid + (seg)*100 + 11; // TDC Trailing
-      Int_t hid_tot     = RayrawHid + (seg)*100 + 12; // TOT
+      Int_t hid_wf_raw   = RayrawHid + (seg)*1000 + 0;  // Raw Waveform
+      Int_t hid_wf       = RayrawHid + (seg)*1000 + 1;  // Waveform
+      Int_t hid_wf_wl    = RayrawHid + (seg)*1000 + 2;  // Raw Waveform w/ Leading
+      Int_t hid_wf_wol   = RayrawHid + (seg)*1000 + 3;  // Raw Waveform w/o Leading
+      Int_t hid_wf_wt    = RayrawHid + (seg)*1000 + 4;  // Raw Waveform w/ Trailing
+      Int_t hid_wf_wot   = RayrawHid + (seg)*1000 + 5;  // Raw Waveform w/o Trailing
+      Int_t hid_integral = RayrawHid + (seg)*1000 + 6;  // Charge
+      Int_t hid_adc      = RayrawHid + (seg)*1000 + 7;  // ADC
+      Int_t hid_adc_wl   = RayrawHid + (seg)*1000 + 8;  // ADC w/ Leading
+      Int_t hid_adc_wol  = RayrawHid + (seg)*1000 + 9;  // ADC w/o Leading
+      Int_t hid_tdc_l    = RayrawHid + (seg)*1000 + 10; // TDC Leading
+      Int_t hid_tdc_t    = RayrawHid + (seg)*1000 + 11; // TDC Trailing
+      Int_t hid_tot      = RayrawHid + (seg)*1000 + 12; // TOT
+      Int_t hid_single   = RayrawHid + (seg)*1000 + 100 + event.evnum; // waveform of single event
+      //      Int_t gid_single   = RayrawHid + (seg)*1000 + 100 + i; // graph, waveform of single event
 
       // TDC block
       // Leading
@@ -172,28 +305,28 @@ ProcessingNormal()
 	HF1(hid_tdc_l, tdc_l);
 	//	std::cout << "i= " << i << ", seg= " << seg << ", nhtdc_l= " << nhtdc_l << ", j= " << j << ", tdc_l= " << tdc_l << std::endl;
 
-	if(tdc_l != 0 ){
-	  if(min_l < tdc_l && tdc_l < max_l){
-	    leading_hit_in += 1;
-	  }else{ 
-	    leading_hit_out += 1;
-	  }
-	}
+	// if(tdc_l != 0 ){
+	//   if(min_l < tdc_l && tdc_l < max_l){
+	//     leading_hit_in += 1;
+	//   }else{ 
+	//     leading_hit_out += 1;
+	//   }
+	// }
       }
 
-      // Trailing
+      // trailing
       for (Int_t j=0, k=hit->GetSizeTdcTrailing(); j<k; j++ ) {
 	auto tdc_t = hit->GetTdcTrailing(0, j);
 	HF1(hid_tdc_t, tdc_t);
 	//	std::cout << "i= " << i << ", seg= " << seg << ", nhtdc_t= " << nhtdc_t << ", j= " << j << ", tdc_t= " << tdc_t << std::endl;
 
-	if(tdc_t != 0 ){
-	  if(min_t < tdc_t && tdc_t < max_t){
-	    trailing_hit_in += 1;
-	  }else{
-	    trailing_hit_out += 1;
-	  }
-	}
+	// if(tdc_t != 0 ){
+	//   if(min_t < tdc_t && tdc_t < max_t){
+	//     trailing_hit_in += 1;
+	//   }else{
+	//     trailing_hit_out += 1;
+	//   }
+	// }
       }
 
       // ADC block
@@ -201,57 +334,100 @@ ProcessingNormal()
 	// for(const auto& fadc : hit->GetArrayAdc())
 	auto fadc = hit->GetAdcUp(j);
 
-	// Waveform
+	// Raw Waveform
 	HF2(hid_wf_raw, j, fadc);
 	//	std::cout << "i= " << i << ", seg= " << seg << ", nhfadc= " << nhfadc << ", j= " << j << ", fadc= " << fadc << std::endl;
 
-	// Charge
-	HF1(hid_charge, charge);
+	// if(event.evnum < 100){
+	//   //	  HF1(hid_single, fadc);
+	//   HF2(hid_single, j, fadc);
+	// }
 
 	// Max ADC
+	// // window = 0-200
+	// if(45 < j && j < 70){
+	//   charge += fadc - pedestal;
+	//   if (fadc > max_adc)
+	//     max_adc = fadc;
+	// }
+
+	// for run561-621
 	if(45 < j && j < 70){
-	  charge += fadc;
+	  integral += fadc - pedestal[seg];
 	  if (fadc > max_adc)
 	    max_adc = fadc;
 	}
 
-	// Waveform w/ leading
-	if( leading_hit_in > 0){
-	  HF2(hid_wf_wl, j, fadc);
-	}	
+	// // for 1p.e. check(run359-367)
+	// if(5 < j && j < 25){
+	//   integral += fadc - pedestal[seg];
+	//   if (fadc > max_adc)
+	//     max_adc = fadc;
+	// }
 
-	// Waveform w/o leading
-	if( leading_hit_out > 0){
-	  HF2(hid_wf_wol, j, fadc);
-	}	
+	// // for run371-401
+	// if(5 < j && j < 30){
+	//   charge += fadc - pedestal;
+	//   if (fadc > max_adc)
+	//     max_adc = fadc;
+	// }
 
-	// Waveform w/ trailing
-	if( trailing_hit_in > 0){
-	  HF2(hid_wf_wt, j, fadc);
-	}	
+	// // for run410-437, 443-484
+	// if(25 < j && j < 50){
+	//   charge += fadc - pedestal;
+	//   if (fadc > max_adc)
+	//     max_adc = fadc;
+	// }
 
-	// Waveform w/o trailing
-	if( trailing_hit_in > 0){
-	  HF2(hid_wf_wot, j, fadc);
-	}	
+	// // efficiency?
+	// if(28 < j && j < 32){
+	//   if(fadc > 522 && fadc > max_adc)
+	//     true_hit += 1;
+	// }
 
-      } // for nhfadc
+	// // Raw Waveform w/ leading
+	// if( leading_hit_in > 0){
+	//   HF2(hid_wf_wl, j, fadc);
+	// }	
+
+	// // Raw Waveform w/o leading
+	// if( leading_hit_out > 0){
+	//   HF2(hid_wf_wol, j, fadc);
+	// }	
+
+	// // Raw Waveform w/ trailing
+	// if( trailing_hit_in > 0){
+	//   HF2(hid_wf_wt, j, fadc);
+	// }	
+
+	// // Raw Waveform w/o trailing
+	// if( trailing_hit_in > 0){
+	//   HF2(hid_wf_wot, j, fadc);
+	// }	
+
+      } // for ADC block
+
+      // Charge
+      HF1(hid_integral, integral);
 
       // Max ADC
       HF1(hid_adc, max_adc);
 
-      // Max ADC w/ leading
-      if( leading_hit_in > 0){
-	HF1(hid_adc_wl, max_adc);
-      }	
+      // // Max ADC w/ leading
+      // if( leading_hit_in > 0){
+      // 	HF1(hid_adc_wl, max_adc);
+      // }	
 
-      // Max ADC w/o leading
-      if( leading_hit_out > 0){
-	HF1(hid_adc_wol, max_adc);
-      }	
+      // // Max ADC w/o leading
+      // if( leading_hit_out > 0){
+      // 	HF1(hid_adc_wol, max_adc);
+      // }	
 
     } // for nh
 
+    //    std::cout << "Efficiency = " << true_hit/nh << std::endl;
+#endif
+    
 // #if 0
 //     // T2
 //     hodoAna->DecodeRayrawHits(rawData);
@@ -421,75 +597,99 @@ ConfMan::InitializeHistograms()
 
   for (Int_t seg=0; seg<NumOfSegRayraw; seg++) {
 
+    // sprintf(buf, "RAYRAW - Raw Waveform (ch%d)", seg);
+    // Int_t hid = 100 + seg;
+    // HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
+
     sprintf(buf, "RAYRAW - Raw Waveform (ch%d)", seg);
-    Int_t hid = RayrawHid + (seg)*100 + 0;
+    Int_t hid = RayrawHid + (seg)*1000 + 0;
     HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
 
-    sprintf(buf, "RAYRAW - Waveform (ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 1;
-    HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
+    // sprintf(buf, "RAYRAW - Wave Height (ch%d)", seg);
+    // hid = RayrawHid + (seg)*1000 + 1;
+    // HB1( hid, buf, NbinFADC_Y, MinFADC, MaxFADC);
+    
+    // for(Int_t i=0; i<10000; i++){
 
-    sprintf(buf, "RAYRAW - Waveform w/ Leading (ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 2;
-    HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
+    //   sprintf(buf, "RAYRAW - Raw Waveform Single(ch%d)", seg);
+    //   Int_t hid = RayrawHid + (seg)*100000 + i;
+    //   HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
 
-    sprintf(buf, "RAYRAW - Waveform w/o Leading (ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 3;
-    HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
+    // }
+    
+    // for(Int_t i=0; i<100; i++){
 
-    sprintf(buf, "RAYRAW - Waveform w/ Trailing (ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 4;
-    HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
+    //   sprintf(buf, "RAYRAW - Raw Waveform Single(ch%d)", seg);
+    //   Int_t hid = RayrawHid + (seg)*1000 + 100 + i;
+    //   HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
 
-    sprintf(buf, "RAYRAW - Waveform w/o Trailing (ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 5;
-    HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
+    // }
 
-    sprintf(buf, "RAYRAW - Charge (ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 6;
-    HB1( hid, buf, NbinFADC_Y, MinFADC, MaxFADC);
+    // sprintf(buf, "RAYRAW - Waveform(V-T) (ch%d)", seg);
+    // hid = RayrawHid + (seg)*1000 + 1;
+    // HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
+
+    // sprintf(buf, "RAYRAW - Raw Waveform w/ Leading (ch%d)", seg);
+    // hid = RayrawHid + (seg)*1000 + 2;
+    // HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
+
+    // sprintf(buf, "RAYRAW - Raw Waveform w/o Leading (ch%d)", seg);
+    // hid = RayrawHid + (seg)*1000 + 3;
+    // HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
+
+    // sprintf(buf, "RAYRAW - Raw Waveform w/ Trailing (ch%d)", seg);
+    // hid = RayrawHid + (seg)*1000 + 4;
+    // HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
+
+    // sprintf(buf, "RAYRAW - Raw Waveform w/o Trailing (ch%d)", seg);
+    // hid = RayrawHid + (seg)*1000 + 5;
+    // HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
+
+    sprintf(buf, "RAYRAW - Integral (ch%d)", seg);
+    hid = RayrawHid + (seg)*1000 + 6;
+    HB1( hid, buf, 10100, -100, 10000);
 
     sprintf(buf, "RAYRAW - ADC (ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 7;
+    hid = RayrawHid + (seg)*1000 + 7;
     HB1( hid, buf, NbinFADC_Y, MinFADC, MaxFADC);
 
-    sprintf(buf, "RAYRAW - ADC w/ Leading(ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 8;
-    HB1( hid, buf, NbinFADC_Y, MinFADC, MaxFADC);
+    // sprintf(buf, "RAYRAW - ADC w/ Leading(ch%d)", seg);
+    // hid = RayrawHid + (seg)*1000 + 8;
+    // HB1( hid, buf, NbinFADC_Y, MinFADC, MaxFADC);
 
-    sprintf(buf, "RAYRAW - ADC w/o Leading(ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 9;
-    HB1( hid, buf, NbinFADC_Y, MinFADC, MaxFADC);
+    // sprintf(buf, "RAYRAW - ADC w/o Leading(ch%d)", seg);
+    // hid = RayrawHid + (seg)*1000 + 9;
+    // HB1( hid, buf, NbinFADC_Y, MinFADC, MaxFADC);
 
     sprintf(buf, "RAYRAW - TDC Leading (ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 10;
+    hid = RayrawHid + (seg)*1000 + 10;
     HB1( hid, buf, NbinTDC, MinTDC,  MaxTDC);
 
     sprintf(buf, "RAYRAW - TDC Trailing (ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 11;
+    hid = RayrawHid + (seg)*1000 + 11;
     HB1( hid, buf, NbinTDC, MinTDC,  MaxTDC);
 
-    sprintf(buf, "RAYRAW - TOT (ch%d)", seg);
-    hid = RayrawHid + (seg)*100 + 12;
-    HB1( hid, buf, NbinTDC, MinTDC,  MaxTDC);
+    // sprintf(buf, "RAYRAW - TOT (ch%d)", seg);
+    // hid = RayrawHid + (seg)*1000 + 12;
+    // HB1( hid, buf, NbinTDC, MinTDC,  MaxTDC);
 
-    // hid = RayrawHid + (seg)*100+2;
+    // hid = RayrawHid + (seg)*1000+2;
     // sprintf(buf, "RAYRAW - V-T (ch%d)", seg);
     // HB2( hid, buf, 2048, MinTime, MaxTime, 2000, MinPulseHeight, MaxPulseHeight );
 
-    // hid = RayrawHid + (seg)*100+4;
+    // hid = RayrawHid + (seg)*1000+4;
     // sprintf(buf, "RAYRAW - Charge (ch%d)", seg);
     // HB1( hid, buf, 4000, -500, 9500 );
 
-    // hid = RayrawHid + (seg)*100+5;
+    // hid = RayrawHid + (seg)*1000+5;
     // sprintf(buf, "RAYRAW - Charge w/ TDC (ch%d)", seg);
     // HB1( hid, buf, 4000, -500, 9500 );
 
-    // hid = RayrawHid + (seg)*100+6;
+    // hid = RayrawHid + (seg)*1000+6;
     // sprintf(buf, "RAYRAW - BaseLine Charge (ch%d)", seg);
     // HB1( hid, buf, 4000, -500, 9500 );
 
-    // hid = RayrawHid + (seg)*100+7;
+    // hid = RayrawHid + (seg)*1000+7;
     // sprintf(buf, "RAYRAW - dE (ch%d)", seg);
     // HB1( hid, buf, 200, 0, 5 );
 
