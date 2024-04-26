@@ -4,30 +4,49 @@
 #define DETECTOR_ID_HH
 
 #include <iostream>
-#include <map>
 #include <vector>
+#include <map>
 #include <array>
 #include <TString.h>
 
 const std::map<TString, std::vector<TString>> DCNameList =
-{
-  {"BcOut", { "BC3", "BC4" }},
-  {"SdcIn", { "SDC1", "SDC2" }},
-  {"SdcOut", { "SDC3", "SDC4", "SDC5" }},
-};
+  {
+    {"BcOut", { "BC3", "BC4" }},
+    {"SdcIn", { "SDC1", "SDC2" }},
+    {"SdcOut", { "SDC3", "SDC4", "SDC5" }},
+  };
+
 
 // Counters ___________________________________________________________
+const Int_t DetIdBH1      =  1;
+const Int_t DetIdBH2      =  2;
+const Int_t DetIdBAC      =  3;
+const Int_t DetIdSCH      =  6;
+const Int_t DetIdTOF      =  7;
+const Int_t DetIdHTOF     =  8;
+const Int_t DetIdBVH      =  9;
+const Int_t DetIdLAC      = 12;
+
+const Int_t DetIdWC       = 13;
+const Int_t DetIdWCSUM    = 14; // Dummy
+//const Int_t DetIdGe       = 20;
+const Int_t DetIdGe       = 27;
+//const Int_t DetIdBGO      = 21;
+const Int_t DetIdBGO      = 114;
+const Int_t DetIdHRTDC    = 115;
 const Int_t NumOfSegBH1   = 11;
 const Int_t NumOfSegBH2   =  8;
 const Int_t NumOfSegBAC   =  2;
 const Int_t NumOfSegSCH   = 64;
-const Int_t NumOfSegTOF   = 19;
+const Int_t NumOfSegTOF   = 24;
 const Int_t NumOfSegHTOF  = 34;
 const Int_t NumOfSegBVH   =  4;
 const Int_t NumOfSegAC1   = 30;
 const Int_t NumOfSegWC    = 12;
 const Int_t NumOfSegSAC3  = 2;
 const Int_t NumOfSegSFV   = 6;
+const Int_t NumOfSegGe    = 16;
+const Int_t NumOfSegBGO   = 48;
 
 // AFT
 const Int_t DetIdAFT      = 112;
@@ -36,18 +55,14 @@ const Int_t NumOfSegAFTX  = 32;
 const Int_t NumOfSegAFTY  = 16;
 const Int_t NumOfSegAFT   = 32;
 const std::vector<int> NumOfSegAFTarr = { 32, 32, 16, 16,
-					  32, 32, 16, 16,
-					  32, 32, 16, 16,
-					  32, 32, 16, 16,
-					  32, 32, 16, 16,
-					  32, 32, 16, 16,
-					  32, 32, 16, 16,
-					  32, 32, 16, 16,
-					  32, 32, 16, 16 };
-//const Int_t NumOfSegAFT[4]    = {NumOfSegAFTX, NumOfSegAFTX, NumOfSegAFTY, NumOfSegAFTY};
-
-//const Int_t NumOfSegAFT[4]    = {NumOfSegAFTX, NumOfSegAFTX, NumOfSegAFTY, NumOfSegAFTY};
-
+                                          32, 32, 16, 16,
+                                          32, 32, 16, 16,
+                                          32, 32, 16, 16,
+                                          32, 32, 16, 16,
+                                          32, 32, 16, 16,
+                                          32, 32, 16, 16,
+                                          32, 32, 16, 16,
+                                          32, 32, 16, 16 };
 // VMEEASIROC
 const Int_t DetIdVMEASIROC = 116;
 const Int_t NumOfPlaneVMEEASIROC = 96;
@@ -63,6 +78,11 @@ const Int_t DetIdMsTRM      = 82;
 const Int_t DetIdHulRM      = 83;
 const Int_t NumOfSegScaler  = 96;
 const Int_t NumOfPlaneVmeRm = 2;
+const Int_t NumOfPlaneScaler= 3;
+
+// E70 and E96 event sync
+const Int_t NumOfChHRTDC    = 16;
+
 
 // Trigger Flag
 namespace trigger
@@ -147,19 +167,19 @@ const Int_t NumOfPlaneVmeCalib =   5;
 const Int_t NumOfSegVmeCalib   =  32;
 
 // Trackers ___________________________________________________________
-// const Int_t DetIdBC3  = 103;
-// const Int_t DetIdBC4  = 104;
-// const Int_t DetIdSDC1 = 105;
-// const Int_t DetIdSDC2 = 106;
-// const Int_t DetIdSDC3 = 107;
-// const Int_t DetIdSDC4 = 108;
-// const Int_t DetIdSDC5 = 109;
-// const Int_t DetIdBFT  = 110;
+const Int_t DetIdBC3  = 103;
+const Int_t DetIdBC4  = 104;
+const Int_t DetIdSDC1 = 105;
+const Int_t DetIdSDC2 = 106;
+const Int_t DetIdSDC3 = 107;
+const Int_t DetIdSDC4 = 108;
+const Int_t DetIdSDC5 = 109;
+const Int_t DetIdBFT  = 110;
 
 const Int_t PlMinBcIn        =   1;
 const Int_t PlMaxBcIn        =  12;
-const Int_t PlMinBcOut       = 113;
-const Int_t PlMaxBcOut       = 124;
+const Int_t PlMinBcOut       =  13;
+const Int_t PlMaxBcOut       =  24;
 const Int_t PlMinSdcIn       =   1;
 const Int_t PlMaxSdcIn       =  10;
 const Int_t PlMinSdcOut      =  31;
@@ -172,9 +192,9 @@ const Int_t PlOffsBc         = 100;
 const Int_t PlOffsSdcIn      =   0;
 const Int_t PlOffsSdcOut     =  30;
 const Int_t PlOffsTOF        =  50;
-const Int_t PlOffsVP         =  15;
-// const Int_t PlOffsTPCX       = 600;
-// const Int_t PlOffsTPCY       = 650;
+const Int_t PlOffsVP         =  20;
+const Int_t PlOffsTPCX       = 600;
+const Int_t PlOffsTPCY       = 650;
 
 const Int_t NumOfLayersBc     = 6;
 const Int_t NumOfLayersSDC1   = 6;
@@ -187,10 +207,10 @@ const Int_t NumOfLayersBcOut  = PlMaxBcOut  - PlMinBcOut  + 1;
 const Int_t NumOfLayersSdcIn  = PlMaxSdcIn  - PlMinSdcIn  + 1;
 const Int_t NumOfLayersSdcOut = PlMaxSdcOut - PlMinSdcOut + 1;
 const Int_t NumOfLayersTOF    = PlMaxTOF    - PlMinTOF    + 1;
-const Int_t NumOfLayersVP     = PlMaxVP     - PlMinVP     + 1;
-// const Int_t NumOfLayersTPC    = 32;
-// const Int_t NumOfPadTPC       = 5768;
-// const Int_t NumOfTimeBucket   = 170;
+const Int_t NumOfLayersVP     = 5;
+const Int_t NumOfLayersTPC    = 32;
+const Int_t NumOfPadTPC       = 5768;
+const Int_t NumOfTimeBucket   = 170;
 
 const Int_t MaxWireBC3      =  64;
 const Int_t MaxWireBC4      =  64;
@@ -215,7 +235,7 @@ const Int_t NumOfPlaneBFT   =   2;
 const Int_t NumOfSegBFT     = 160;
 
 // HulRm -----------------------------------------------
-const Int_t NumOfHulRm   = 4;
+const Int_t NumOfHulRm   = 3;
 
 // Matrix ----------------------------------------------
 const Int_t NumOfSegSFT_Mtx = 48;
@@ -253,5 +273,6 @@ const Int_t NumOfSegE72KVC   =  4;
 const Int_t NumOfSegE42BH2   =  8;
 const Int_t NumOfSegT1       =  1;
 const Int_t NumOfSegT2       =  1;
+
 
 #endif

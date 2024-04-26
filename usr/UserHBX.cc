@@ -14,7 +14,6 @@
 #include "ConfMan.hh"
 #include "DetectorID.hh"
 #include "RMAnalyzer.hh"
-#include "KuramaLib.hh"
 #include "MathTools.hh"
 #include "RawData.hh"
 #include "HodoRawHit.hh"
@@ -22,6 +21,8 @@
 #include "UnpackerManager.hh"
 #include "VEvent.hh"
 #include "Unpacker.hh"
+#include "UserParamMan.hh"
+#include "DCGeomMan.hh"
 
 namespace
 {
@@ -50,7 +51,6 @@ struct Event
   int rm2spill;
 
   //Event Sync Clock
-  Int_t hrtdc[NumOfChHRTDC][MaxDepth];
   Int_t syncclock[MaxDepth];
 
   //Trig flag
@@ -98,11 +98,7 @@ void Event::clear()
   rm2evnum   = 0;
   rm1spill   = 0;
   rm2spill   = 0;
-  for(int i=0; i<NumOfChHRTDC; ++i){
-    for(int j=0; j<MaxDepth; ++j){
-      hrtdc[i][j]      = -999;
-    }
-  }
+
   for(int i=0; i<MaxDepth; ++i){
     syncclock[i] = -999;
   }
@@ -148,8 +144,6 @@ struct Dst
   int rm1evnum;
   int rm2evnum;
 
-  //  Double_t hrtdc[NumOfChHRTDC][MaxDepth];
-  Int_t hrtdc[NumOfChHRTDC][MaxDepth];
   Int_t syncclock[MaxDepth];
 
   //Trig flag
@@ -195,11 +189,6 @@ Dst::clear()
   rm1evnum  = 0;
   rm2evnum  = 0;
 
-  for(int i=0; i<NumOfChHRTDC; ++i){
-    for(int j=0; j<MaxDepth; ++j){
-      hrtdc[i][j] = -999;
-    }
-  }
   for(int i=0; i<NumOfPlaneScaler; ++i){
     for(int j=0; j<NumOfSegScaler; ++j){
       scaler[i][j] =-1;
@@ -237,7 +226,7 @@ namespace root
   TH1   *h[MaxHist];
   TTree *tree;
   TTree *hbx;
-  TTree *e70;
+  TTree *maindaq;
 
   enum eDetHid{
     GeHid    = 270000,
@@ -258,28 +247,19 @@ ProcessingBegin()
 bool
 ProcessingNormal()
 {
-  // static const double MinTFACUT = gUser.GetParameter("TCut", 0);
-  // static const double MaxTFACUT = gUser.GetParameter("TCut", 1);
   static const double MinTFACUT = 0;
   static const double MaxTFACUT = 100;
-  // static const double MinCRMCUT = gUser.GetParameter("CCut", 0);
-  // static const double MaxCRMCUT = gUser.GetParameter("CCut", 1);
   static const double MinCRMCUT = 0;
   static const double MaxCRMCUT = 100;
-  //  static const int MinBGOCUT = gUser.GetParameter("BCut", 0);
-  //  static const int MaxBGOCUT = gUser.GetParameter("BCut", 1);
 
-  // rawData = new RawData;
   RawData rawData;
 
-  //  gRM.Decode();
-  // event.runnum = gRM.RunNumber();
-  // event.evnum  = gRM.EventNumber();
-  // event.spill  = gRM.SpillNumber();
-  // dst.evnum    = gRM.EventNumber();
-  // dst.spill    = gRM.SpillNumber();
-  // std::cout << "evnum: " << event.evnum << std::endl;
-  // std::cout << "spill num: " << event.spill << std::endl;
+  gRM.Decode();
+  event.evnum = gRM.EventNumber();
+  //  event.evnum = gUnpacker.get_event_number();
+  event.spill = gRM.SpillNumber();
+  dst.evnum   = gRM.EventNumber();
+  dst.spill   = gRM.SpillNumber();
 
   rawData.DecodeHits("HBXTFlag");
   std::bitset<NumOfSegTrig> trigger_flag;
@@ -290,7 +270,6 @@ ProcessingNormal()
     if( tdc>0 ){
       event.trigpat[trigger_flag.count()] = seg;
       event.trigflag[seg] = tdc;
-      //      std::cout << "trigflag seg" << seg <<" tdc: " << tdc << std::endl;
       dst.trigpat[trigger_flag.count()] = seg;
       dst.trigflag[seg] = tdc;
       trigger_flag.set(seg);
@@ -298,7 +277,7 @@ ProcessingNormal()
       HF1(10+seg, tdc);
     }
   }  
-  //  if(trigger_flag[trigger::kSpillEnd]) return true;
+
 
   //---Ge ADC & TDC-----------------------------------------------------
   for( int seg=0; seg<NumOfSegGe*2; ++seg ){
@@ -405,7 +384,7 @@ ProcessingNormal()
       }
     }
   } 
-  if(trigger_flag[trigger::kSpillEnd]) return true;
+  if(trigger_flag[trigger::kSpillOnEnd]) return true;
   
   return true;
 }
@@ -431,11 +410,6 @@ InitializeEvent( void )
   event.gebgonhits  = 0;
   event.trignhits = 0;
 
-  for( int it=0; it<NumOfChHRTDC; ++it){
-    for (int m=0; m<MaxDepth; ++m){
-      event.hrtdc[it][m] = -9999;
-    }
-  }
   for (int m=0; m<MaxDepth; ++m){
     event.syncclock[m] = -9999;
   }
@@ -497,12 +471,7 @@ InitializeEvent( void )
   dst.nhGeTfa = 0;
   dst.nhGeCrm = 0;
   dst.nhBgo = 0;
-
-  for( int it=0; it<NumOfChHRTDC; ++it){
-    for (int m=0; m<MaxDepth; ++m){
-      dst.hrtdc[it][m] = -9999;
-    }
-  }
+  
   for (int m=0; m<MaxDepth; ++m){
     dst.syncclock[m] = -9999;
   }
@@ -554,9 +523,7 @@ ConfMan::InitializeHistograms( void )
   tree->Branch("rm2evnum",  &event.rm2evnum,  "rm2evnum/I");
   tree->Branch("rm1spill",  &event.rm1spill,  "rm1spill/I");
   tree->Branch("rm2spill",  &event.rm1spill,  "rm2spill/I");
-  //  tree->Branch("hrtdc",  &event.hrtdc,  "hrtdc/I");
   tree->Branch("spill",  &event.spill,  "spill/I");
-  tree->Branch("hrtdc",  event.hrtdc,  Form("hrtdc[%d][%d]/I", NumOfChHRTDC, MaxDepth));
   tree->Branch("syncclock",  event.syncclock,  Form("syncclock[%d]/I", MaxDepth));
   //Trig
   tree->Branch("trignhits", &event.trignhits, "trignhits/I");
@@ -664,7 +631,6 @@ ConfMan::InitializeHistograms( void )
   hbx->Branch("rm2evnum", &dst.rm2evnum, "rm2evnum/I");
   hbx->Branch("rm1spill", &dst.rm1spill, "rm1spill/I");
   hbx->Branch("rm2spill", &dst.rm2spill, "rm2spill/I");
-  hbx->Branch("hrtdc",  dst.hrtdc,  Form("hrtdc[%d][%d]/I", NumOfChHRTDC, MaxDepth));
   hbx->Branch("syncclock",  dst.syncclock,  Form("syncclock[%d]/I", MaxDepth)); 
 
   hbx->Branch("trignhits", &dst.trignhits, "trignhits/I");
@@ -682,32 +648,6 @@ ConfMan::InitializeHistograms( void )
   hbx->Branch("geCrm",  dst.geCrm,   Form("geCrm[%d][%d]/D", NumOfSegGe, MaxDepth));
   hbx->Branch("bgoTdc", dst.bgoTdc,  Form("bgoTdc[%d][%d]/D", NumOfSegBGO, MaxDepth));
 
-  // tree for e70 data
-  e70 = new TTree( "e70", "Data Summary Table of e70" );
-  e70->Branch("evnum", &dst.evnum, "evnum/I");
-  e70->Branch("spill", &dst.spill, "spill/I");
-  e70->Branch("rm1evnum", &dst.rm1evnum, "rm1evnum/I");
-  e70->Branch("rm2evnum", &dst.rm2evnum, "rm2evnum/I");
-  e70->Branch("rm1spill", &dst.rm1spill, "rm1spill/I");
-  e70->Branch("rm2spill", &dst.rm2spill, "rm2spill/I");
-  e70->Branch("hrtdc",  dst.hrtdc,  Form("hrtdc[%d][%d]/I", NumOfChHRTDC, MaxDepth));
-  e70->Branch("syncclock",  dst.syncclock,  Form("syncclock[%d]/I", MaxDepth)); 
-
-  e70->Branch("trignhits", &dst.trignhits, "trignhits/I");
-  e70->Branch("trigpat",    dst.trigpat,   "trigpat[trignhits]/I");
-  e70->Branch("trigflag",   dst.trigflag,  Form("trigflag[%d]/I", NumOfSegTrig));
-
-  e70->Branch("geReset", dst.geReset,  Form("geReset[%d]/I", NumOfSegGe));
-  e70->Branch("geAdc",   dst.geAdc,  Form("geAdc[%d]/D", NumOfSegGe*2));
-
-  e70->Branch("nhGeTfa", &dst.nhGeTfa, "nhGeTfa/I");
-  e70->Branch("nhGeCrm", &dst.nhGeCrm, "nhGeCrm/I");
-  e70->Branch("nhBgo", &dst.nhBgo, "nhBgo/I");
-
-  e70->Branch("geTfa",  dst.geTfa,   Form("geTfa[%d][%d]/D", NumOfSegGe, MaxDepth));
-  e70->Branch("geCrm",  dst.geCrm,   Form("geCrm[%d][%d]/D", NumOfSegGe, MaxDepth));
-  e70->Branch("bgoTdc", dst.bgoTdc,  Form("bgoTdc[%d][%d]/D", NumOfSegBGO, MaxDepth));
-
   HPrint();
   return true;
 }
@@ -717,9 +657,7 @@ bool
 ConfMan::InitializeParameterFiles( void )
 {
   return
-    ( InitializeParameter<DCGeomMan>("DCGEO")        &&
-      InitializeParameter<HodoParamMan>("HDPRM")     &&
-      InitializeParameter<UserParamMan>("USER")      );
+    ( InitializeParameter<UserParamMan>("USER") );
 }
 
 //______________________________________________________________________________
