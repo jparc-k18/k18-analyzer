@@ -22,7 +22,6 @@
 #include "VEvent.hh"
 #include "Unpacker.hh"
 #include "UserParamMan.hh"
-#include "DCGeomMan.hh"
 
 namespace
 {
@@ -79,8 +78,10 @@ struct Event
   int gebgohitpat[MaxHits];
   double gebgot[NumOfSegBGO][MaxDepth];
 
-  //HBX and E70 Scaler
+  //HUL-Scaler and HUL-RM for HBX and E70
   int scaler[NumOfPlaneScaler][NumOfSegScaler];
+  int evnum_hulrm[NumOfPlaneHulRm];
+  int spill_hulrm[NumOfPlaneHulRm];
 
   void clear();
 };
@@ -88,6 +89,7 @@ struct Event
 //______________________________________________________________________________
 void Event::clear()
 {
+  runnum     = 0;
   evnum      = 0;
   spill      = 0;
   trignhits  = 0;
@@ -104,8 +106,12 @@ void Event::clear()
   }
   for(int i=0; i<NumOfPlaneScaler; ++i){
     for(int j=0; j<NumOfSegScaler; ++j){
-      scaler[i][j] =-1;
+      scaler[i][j] = -1;      
     }
+  }
+  for(int i=0; i<NumOfPlaneHulRm; ++i){
+    evnum_hulrm[i] = -1;
+    spill_hulrm[i] = -1;
   }
   for(int i=0; i<NumOfSegTrig; ++i){
     trigpat[i]  = -1;
@@ -137,6 +143,7 @@ void Event::clear()
 //______________________________________________________________________________
 struct Dst
 {
+  int runnum;
   int evnum;
   int spill;
   int rm1spill;
@@ -168,8 +175,10 @@ struct Dst
   int nhBgo;
   double bgoTdc[NumOfSegBGO][MaxDepth];
 
-  //HBX and E70 Scaler
+  //HUL-Scaler and HUL-RM for HBX and E70
   int scaler[NumOfPlaneScaler][NumOfSegScaler];
+  int evnum_hulrm[NumOfPlaneHulRm];
+  int spill_hulrm[NumOfPlaneHulRm];
 
   void clear();
 };
@@ -178,6 +187,7 @@ struct Dst
 void
 Dst::clear()
 {
+  runnum    = 0;
   evnum     = 0;
   spill     = 0;
   trignhits = 0;
@@ -191,8 +201,12 @@ Dst::clear()
 
   for(int i=0; i<NumOfPlaneScaler; ++i){
     for(int j=0; j<NumOfSegScaler; ++j){
-      scaler[i][j] =-1;
+      scaler[i][j] = -1;
     }
+  }
+  for(int i=0; i<NumOfPlaneHulRm; ++i){
+    evnum_hulrm[i] = -1;
+    spill_hulrm[i] = -1;
   }
   for(int i=0; i<MaxDepth; ++i){
     syncclock[i] = -999;
@@ -255,15 +269,15 @@ ProcessingNormal()
   RawData rawData;
 
   gRM.Decode();
-  event.evnum = gRM.EventNumber();
-  //  event.evnum = gUnpacker.get_event_number();
-  event.spill = gRM.SpillNumber();
-  dst.evnum   = gRM.EventNumber();
-  dst.spill   = gRM.SpillNumber();
+  event.runnum = gRM.RunNumber();
+  event.evnum  = gRM.EventNumber();
+  event.spill  = gRM.SpillNumber();
+  dst.runnum   = gRM.RunNumber();
+  dst.evnum    = gRM.EventNumber();
+  dst.spill    = gRM.SpillNumber();
 
   rawData.DecodeHits("HBXTFlag");
   std::bitset<NumOfSegTrig> trigger_flag;
-  //   for(const auto& hit: rawData.GetHodoRawHitContainer("TFlag")){
   for(const auto& hit: rawData.GetHodoRawHitContainer("HBXTFlag")){
     Int_t seg = hit->SegmentId();
     Int_t tdc = hit->GetTdc();
@@ -277,7 +291,7 @@ ProcessingNormal()
       HF1(10+seg, tdc);
     }
   }  
-
+  
 
   //---Ge ADC & TDC-----------------------------------------------------
   for( int seg=0; seg<NumOfSegGe*2; ++seg ){
@@ -373,19 +387,34 @@ ProcessingNormal()
       }
     }
   }
+  //---HUL-RM--------------------------------------------------------
+  for(int plane=0; plane<NumOfPlaneHulRm; ++plane){
+    static const int device_id = gUnpacker.get_device_id("HUL-RM");
+    int dtype = 0; // evnum
+    int nhit = gUnpacker.get_entries( device_id , plane, 0, 0, dtype );
+    if( nhit<=0 ) continue;
+    int data = 0;
+    data = gUnpacker.get( device_id, plane, 0, 0, 0 );
+    event.evnum_hulrm[plane] = data;
+    dst.evnum_hulrm[plane] = data;
+    data = gUnpacker.get( device_id, plane, 0, 0, 1 );
+    event.spill_hulrm[plane] = data;
+    dst.spill_hulrm[plane] = data;
+  }
+  //---HUL-Scaler----------------------------------------------------
   for(int plane=0; plane<NumOfPlaneScaler; ++plane){
     for(int seg=0; seg<NumOfSegScaler; ++seg ){
       int nhit = 0;
       nhit = gUnpacker.get_entries( DetIdScaler, plane, 0, seg, 0 ); 
       if( nhit>0 ){
-	int data = gUnpacker.get( DetIdScaler, plane, 0, seg, 0 );
+	int data = gUnpacker.get( DetIdScaler, plane, 0, seg, 0);
 	event.scaler[plane][seg] = data;
+	data = gUnpacker.get( DetIdScaler, plane, 0, seg, 1 );
 	dst.scaler[plane][seg] = data;
       }
     }
   } 
-  if(trigger_flag[trigger::kSpillOnEnd]) return true;
-  
+  if(trigger_flag[trigger::kSpillOnEnd]) return true;  
   return true;
 }
 
@@ -395,12 +424,14 @@ ProcessingEnd()
 {
   tree->Fill();
   hbx->Fill();
+  maindaq->Fill();
   return true;
 }
 //______________________________________________________________________________
 void
 InitializeEvent( void )
 {
+  event.runnum = 0;
   event.evnum = 0;
   event.spill = 0;
   event.rm1evnum = 0;
@@ -453,13 +484,18 @@ InitializeEvent( void )
   }
   // HBX and E70 scaler 
   for(int i=0; i<NumOfPlaneScaler; ++i){
-    for(int it=0; it<NumOfSegScaler; ++it){
-      event.scaler[i][it] =0;
+    for(int j=0; j<NumOfSegScaler; ++j){
+      event.scaler[i][j] = -1;      
     }
+  }
+  for(int i=0; i<NumOfPlaneHulRm; ++i){
+    event.evnum_hulrm[i] = -1;
+    event.spill_hulrm[i] = -1;
   }
 
 
   ////Dst////////////////////////
+  dst.runnum = 0;
   dst.evnum = 0;
   dst.spill = 0;
   dst.rm1evnum = 0;
@@ -491,6 +527,16 @@ InitializeEvent( void )
     for( int m=0; m<MaxDepth; ++m ){
       dst.bgoTdc[it][m] = -9999.;
     }
+  }
+  // HUL-Scaler and HUL-RM for HBX and E70
+  for(int i=0; i<NumOfPlaneScaler; ++i){
+    for(int j=0; j<NumOfSegScaler; ++j){
+      dst.scaler[i][j] = -1;      
+    }
+  }
+  for(int i=0; i<NumOfPlaneHulRm; ++i){
+    dst.evnum_hulrm[i] = -1;
+    dst.spill_hulrm[i] = -1;
   }
 }
 
@@ -625,6 +671,7 @@ ConfMan::InitializeHistograms( void )
 
   /////Dst/////////////////////////////////
   hbx = new TTree( "hbx", "Data Summary Table of hbx" );
+  hbx->Branch("runnum", &dst.runnum, "runnum/I");
   hbx->Branch("evnum", &dst.evnum, "evnum/I");
   hbx->Branch("spill", &dst.spill, "spill/I");
   hbx->Branch("rm1evnum", &dst.rm1evnum, "rm1evnum/I");
@@ -647,6 +694,14 @@ ConfMan::InitializeHistograms( void )
   hbx->Branch("geTfa",  dst.geTfa,   Form("geTfa[%d][%d]/D", NumOfSegGe, MaxDepth));
   hbx->Branch("geCrm",  dst.geCrm,   Form("geCrm[%d][%d]/D", NumOfSegGe, MaxDepth));
   hbx->Branch("bgoTdc", dst.bgoTdc,  Form("bgoTdc[%d][%d]/D", NumOfSegBGO, MaxDepth));
+
+  maindaq = new TTree( "maindaq", "Data Summary Table of maindata" );
+  maindaq->Branch("runnum", &dst.runnum, "runnum/I");
+  maindaq->Branch("evnum",  &dst.evnum,  "evnum/I");
+  maindaq->Branch("spill",  &dst.spill,  "spill/I");
+  maindaq->Branch("scaler",  dst.scaler,  Form("scaler[%d][%d]", NumOfPlaneScaler, NumOfSegScaler));
+  maindaq->Branch("evnum_hulrm", dst.evnum_hulrm, Form("evnum_hulrm[%d]", NumOfPlaneHulRm));
+  maindaq->Branch("spill_hulrm", dst.evnum_hulrm, Form("evnum_hulrm[%d]", NumOfPlaneHulRm));
 
   HPrint();
   return true;

@@ -79,6 +79,7 @@ const Int_t DetIdHulRM      = 83;
 const Int_t NumOfSegScaler  = 96;
 const Int_t NumOfPlaneVmeRm = 2;
 const Int_t NumOfPlaneScaler= 3;
+const Int_t NumOfPlaneHulRm = 3;
 
 // E70 and E96 event sync
 const Int_t NumOfChHRTDC    = 16;
