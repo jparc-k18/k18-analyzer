@@ -12,9 +12,11 @@
 #include <string>
 
 #include "ConfMan.hh"
+#include "UserParamMan.hh"
+#include "HodoParamMan.hh"
+#include "DCGeomMan.hh"
 #include "DetectorID.hh"
 #include "RMAnalyzer.hh"
-#include "KuramaLib.hh"
 #include "MathTools.hh"
 #include "RawData.hh"
 #include "HodoRawHit.hh"
@@ -81,9 +83,10 @@ struct Event
   int gebgohitpat[MaxHits];
   double gebgot[NumOfSegBGO][MaxDepth];
 
-  //Ge Scaler
-  int scaler[NumOfSegScaler];
-
+  //HUL-Scaler and HUL-RM for HBX and E70
+  int scaler[NumOfPlaneScaler][NumOfSegScaler];
+  int evnum_hulrm[NumOfPlaneHulRm];
+  int spill_hulrm[NumOfPlaneHulRm];
 
   void clear();
 };
@@ -109,8 +112,14 @@ void Event::clear()
   for(int i=0; i<MaxDepth; ++i){
     syncclock[i] = -999;
   }
-  for(int i=0; i<NumOfSegScaler; ++i){
-    scaler[i] =-1;
+  for(int i=0; i<NumOfPlaneScaler; ++i){
+    for(int j=0; j<NumOfSegScaler; ++j){
+      scaler[i][j] = -1;      
+    }
+  }
+  for(int i=0; i<NumOfPlaneHulRm; ++i){
+    evnum_hulrm[i] = -1;
+    spill_hulrm[i] = -1;
   }
   for(int i=0; i<NumOfSegTrig; ++i){
     trigpat[i]  = -1;
@@ -175,6 +184,11 @@ struct Dst
   int nhBgo;
   double bgoTdc[NumOfSegBGO][MaxDepth];
 
+  //HUL-Scaler and HUL-RM for HBX and E70
+  int scaler[NumOfPlaneScaler][NumOfSegScaler];
+  int evnum_hulrm[NumOfPlaneHulRm];
+  int spill_hulrm[NumOfPlaneHulRm];
+
   void clear();
 };
 
@@ -192,6 +206,17 @@ Dst::clear()
   rm2spill  = 0;
   rm1evnum  = 0;
   rm2evnum  = 0;
+
+
+  for(int i=0; i<NumOfPlaneScaler; ++i){
+    for(int j=0; j<NumOfSegScaler; ++j){
+      scaler[i][j] = -1;
+    }
+  }
+  for(int i=0; i<NumOfPlaneHulRm; ++i){
+    evnum_hulrm[i] = -1;
+    spill_hulrm[i] = -1;
+  }
 
   for(int i=0; i<NumOfChHRTDC; ++i){
     for(int j=0; j<MaxDepth; ++j){
@@ -530,87 +555,65 @@ ProcessingNormal()
   }
   // need to edit for multi-hit depth? 
   // and debug because scaler data is not at all decoded 
-  int scaler_0;
-  int scaler_15;
-  int daq_live;
-  for( int seg=0; seg<NumOfSegScaler; ++seg ){
-    int nhit = 0;
-    //    nhit = gUnpacker.get_entries( DetIdScaler, 2, 0, seg, 0 ); //original
-    nhit = gUnpacker.get_entries( DetIdScaler, 1, 0, seg, 0 ); // confirm if this line is right 
-    // especially in the order of the number 
-    // (this order seems to be different from other modules)
-    if( nhit>0 ){
-      // std::cout << " / / / / / /  / / / / / / / / / / / / / / " << std::endl;
-      // std::cout << "nhit: " << std::endl;
-      // std::cout << " / / / / / /  / / / / / / / / / / / / / / " << std::endl;
-      //      int data = gUnpacker.get( DetIdScaler, 2, 0, seg, 0 ); //original
-      HF1 (GeHid +75, double(seg) ); //all scaler hitpat
-      if(0<=seg&&seg<=15)HF1 (GeHid +76, double(seg) ); //trigflag scaler hitpat
-      if(0<=seg&&seg<=15)HF1 (GeHid +77, double(seg) ); //973u crm scaler hitpat
-      if(0<=seg&&seg<=15)HF1 (GeHid +78, double(seg) ); //671 crm scaler hitpat
-      if(0<=seg&&seg<=15)HF1 (GeHid +79, double(seg) ); //reset scaler hitpat
-      int data = gUnpacker.get( DetIdScaler, 1, 0, seg, 0 );
-      event.scaler[seg] = data;
-      scaler_0 = event.scaler[0];
-      scaler_15 = event.scaler[15];
-      daq_live = scaler_0 - scaler_15;
-    }
-  }
-  if(dst.trigflag[3]>0)HF1 (GeHid+71, double(daq_live));//spill on end daqlivetime                           
-  if(dst.trigflag[4]>0)HF1 (GeHid+72, double(daq_live));//spill off end daqlivetime  
+  // int scaler_0;
+  // int scaler_15;
+  // int daq_live;
+  // for( int seg=0; seg<NumOfSegScaler; ++seg ){
+  //   int nhit = 0;
+  //   //    nhit = gUnpacker.get_entries( DetIdScaler, 2, 0, seg, 0 ); //original
+  //   nhit = gUnpacker.get_entries( DetIdScaler, 1, 0, seg, 0 ); // confirm if this line is right 
+  //   // especially in the order of the number 
+  //   // (this order seems to be different from other modules)
+  //   if( nhit>0 ){
+  //     // std::cout << " / / / / / /  / / / / / / / / / / / / / / " << std::endl;
+  //     // std::cout << "nhit: " << std::endl;
+  //     // std::cout << " / / / / / /  / / / / / / / / / / / / / / " << std::endl;
+  //     //      int data = gUnpacker.get( DetIdScaler, 2, 0, seg, 0 ); //original
+  //     HF1 (GeHid +75, double(seg) ); //all scaler hitpat
+  //     if(0<=seg&&seg<=15)HF1 (GeHid +76, double(seg) ); //trigflag scaler hitpat
+  //     if(0<=seg&&seg<=15)HF1 (GeHid +77, double(seg) ); //973u crm scaler hitpat
+  //     if(0<=seg&&seg<=15)HF1 (GeHid +78, double(seg) ); //671 crm scaler hitpat
+  //     if(0<=seg&&seg<=15)HF1 (GeHid +79, double(seg) ); //reset scaler hitpat
+  //     int data = gUnpacker.get( DetIdScaler, 1, 0, seg, 0 );
+  //     event.scaler[seg] = data;
+  //     scaler_0 = event.scaler[0];
+  //     scaler_15 = event.scaler[15];
+  //     daq_live = scaler_0 - scaler_15;
+  //   }
+  // }
+  // if(dst.trigflag[3]>0)HF1 (GeHid+71, double(daq_live));//spill on end daqlivetime                           
+  // if(dst.trigflag[4]>0)HF1 (GeHid+72, double(daq_live));//spill off end daqlivetime  
 
-
-  // 10MHz clock and Parasite
-  for( int seg=0; seg<NumOfChHRTDC; ++seg ){
-    int nhit = gUnpacker.get_entries( DetIdHRTDC, 0, seg, 0, 1 );
-    if( nhit>0 ){
-      //      std::cout << "e96 hrtdc nhit: " << nhit << std::endl;
-  	for(int i=0; i<nhit; ++i){
-  	  int tdc = gUnpacker.get( DetIdHRTDC, 0, seg, 0, 1, i);
-	  event.hrtdc[seg][i] = tdc;
-	  dst.hrtdc[seg][i] = tdc;
-	  if(seg==0){
-	    event.syncclock[i] = tdc;
-	    dst.syncclock[i] = tdc;
-	    // std::cout << "// // //" << std::endl;
-	    // std::cout << "event.syncclock[" << i << "]" << event.syncclock[i] << std::endl;
-	    // std::cout << "dst.syncclock[" << i << "]" << dst.syncclock[i] << std::endl;
-	  }
-  	  // event.hrtdc[seg][i] = gUnpacker.get( DetIdHRTDC, 0, seg, 0, 1, i);
-  	  // dst.hrtdc[seg][i] = gUnpacker.get( DetIdHRTDC, 0, seg, 0, 1, i);
-	  // std::cout <<  event.hrtdc[seg][i] << std::endl;
-	  // std::cout << "hrtdc value: hrtdc e96 " << seg
-	  // 	    <<"[" << i << "]: " << tdc << std::endl;
-	  // std::cout << "// // //" << std::endl;
-  	  // std::cout << "hrtdc value: hrtdc e96 " << seg
-  	  // 	    <<"[" << i << "]: " << tdc << std::endl;
-  	}
-    }
+  // // ---HUL-RM--------------------------------------------------------
+  std::cout << "hul-rm" << std::endl;
+  for(int plane=0; plane<NumOfPlaneHulRm; ++plane){
+    static const int device_id = gUnpacker.get_device_id("HUL-RM");
+    int dtype = 0; // evnum
+    int nhit = gUnpacker.get_entries( device_id , plane, 0, 0, dtype );
+    if( nhit<=0 ) continue;
+    int data = 0;
+    data = gUnpacker.get( device_id, plane, 0, 0, 0 );
+    event.evnum_hulrm[plane] = data;
+    dst.evnum_hulrm[plane] = data;
+    data = gUnpacker.get( device_id, plane, 0, 0, 1 );
+    event.spill_hulrm[plane] = data;
+    dst.spill_hulrm[plane] = data;
   }
-  // E70 10MHz clock
-  for(int dummy=0; dummy<1; ++dummy){
-    int seg = 0; // Channel number of hul01-HRTDC-2 for TOF
-    int nhit = gUnpacker.get_entries( DetIdTOF, 0, seg, 0, 1 );
-    //    std::cout << "e70 hrtdc nhit: " << nhit << std::endl;
-    if( nhit>0 ){
-      for(int i=0; i<nhit; ++i){
-  	int tdc = gUnpacker.get( DetIdTOF, 0, seg, 0, 1, i);
-  	event.hrtdc[seg][i] = tdc;
-  	dst.hrtdc[seg][i] = tdc;
-	event.syncclock[i] = tdc;
-	dst.syncclock[i] = tdc;
-  	// std::cout << "// // //" << std::endl;
-	// std::cout << "e70 event.syncclock[" << i << "]" << event.syncclock[i] << std::endl;
-	// std::cout << "e70 dst.syncclock[" << i << "]" << dst.syncclock[i] << std::endl;
-	//  	std::cout <<  event.hrtdc[seg][i] << std::endl;
-  	// std::cout << "hrtdc value: hrtdc e70 " << seg
-  	// 	  <<"[" << i << "]: " << tdc << std::endl;
-  	// std::cout << "// // //" << std::endl;
+  // // ---HUL-Scaler----------------------------------------------------
+  std::cout << "hul-scaler" << std::endl;
+  for(int plane=0; plane<NumOfPlaneScaler; ++plane){
+    for(int seg=0; seg<NumOfSegScaler; ++seg ){
+      int nhit = 0;
+      nhit = gUnpacker.get_entries( DetIdScaler, plane, 0, seg, 0 ); 
+      if( nhit>0 ){
+  	int data = gUnpacker.get( DetIdScaler, plane, 0, seg, 0);
+  	event.scaler[plane][seg] = data;
       }
     }
   }
+
  
-  if(trigger_flag[trigger::kSpillEnd]) return true;
+  if(trigger_flag[trigger::kSpillOnEnd]) return true;
   
   return true;
 }
@@ -682,9 +685,11 @@ InitializeEvent( void )
     }
   }
 
-  //Scaler
-  for( int it=0; it<NumOfSegScaler; it++){
-    event.scaler[it] = 0;
+  // HBX and E70 scaler 
+  for(int i=0; i<NumOfPlaneScaler; ++i){
+    for(int j=0; j<NumOfSegScaler; ++j){
+      event.scaler[i][j] = -1;      
+    }
   }
 
   ////Dst////////////////////////
@@ -725,7 +730,16 @@ InitializeEvent( void )
       dst.bgoTdc[it][m] = -9999.;
     }
   }
+
+  // HUL-Scaler and HUL-RM for HBX and E70
+  for(int i=0; i<NumOfPlaneScaler; ++i){
+    for(int j=0; j<NumOfSegScaler; ++j){
+      dst.scaler[i][j] = -1;      
+    }
+  }
+
 }
+
 
 //______________________________________________________________________________
 namespace
@@ -963,8 +977,9 @@ ConfMan::InitializeParameterFiles( void )
 {
   return
     ( InitializeParameter<DCGeomMan>("DCGEO")        &&
-      InitializeParameter<HodoParamMan>("HDPRM")     &&
-      InitializeParameter<UserParamMan>("USER")      );
+      InitializeParameter<HodoParamMan>("HDPRM")     );
+      // InitializeParameter<HodoParamMan>("HDPRM")     &&
+      // InitializeParameter<UserParamMan>("USER")      );
 }
 
 //______________________________________________________________________________
