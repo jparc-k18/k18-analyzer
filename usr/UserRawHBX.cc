@@ -10,7 +10,7 @@
 #include <cmath>
 #include <iomanip>
 #include <string>
-
+#include "S2sLib.hh"
 #include "ConfMan.hh"
 #include "UserParamMan.hh"
 #include "HodoParamMan.hh"
@@ -61,6 +61,8 @@ struct Event
   int trignhits;
   int trigpat[NumOfSegTrig];
   int trigflag[NumOfSegTrig];
+  //int trigpat[32];
+  //int trigflag[32];
 
   //Ge Reset
   int gereset[NumOfSegGe];
@@ -167,6 +169,8 @@ struct Dst
   int trignhits;
   int trigpat[NumOfSegTrig];
   int trigflag[NumOfSegTrig];
+  //int trigpat[32];
+  //int trigflag[32];
 
   //Ge Reset
   int geReset[NumOfSegGe];
@@ -253,7 +257,7 @@ namespace root
 {
 Event  event;
 Dst    dst;
-TH1   *h[MaxHist];
+TH1 *h[MaxHist];
 TTree *tree;
 TTree *hbx;
 TTree *maindaq;
@@ -296,18 +300,19 @@ ProcessingNormal()
 
   // event.runnum = gRM.RunNumber();
   // event.evnum  = gRM.EventNumber();
-  // event.spill  = gRM.SpillNumber();
+  //event.spill  = gRM.SpillNumber();
   // dst.evnum    = gRM.EventNumber();
   // dst.spill    = gRM.SpillNumber();
   // std::cout << "evnum: " << event.evnum << std::endl;
-  // std::cout << "spill num: " << event.spill << std::endl;
-    
+  //std::cout << "spill num: " << event.spill << std::endl;
+  
   rawData.DecodeHits("HBXTFlag");
   std::bitset<NumOfSegTrig> trigger_flag;
   //   for(const auto& hit: rawData.GetHodoRawHitContainer("TFlag")){
   for(const auto& hit: rawData.GetHodoRawHitContainer("HBXTFlag")){
     Int_t seg = hit->SegmentId();
     Int_t tdc = hit->GetTdc();
+    std::cout<<"tflag "<<seg<<"  "<<tdc<<std::endl;
     //tdc_clock = hit->GetTdc();
     //tdc_dead = hit->GetTdc;
     if( tdc>0 ){
@@ -413,7 +418,7 @@ ProcessingNormal()
       ///adc wo tdc cut///////
       if(adc>0){
       HF1( GeHid+100*(seg+1)+10, double(adc) );
-      HF1( GeHid+100*(seg+1)+52, double(energy) );
+      //HF1( GeHid+100*(seg+1)+52, double(energy) );
       //////adc w973U crm cut///
       if( nhit_t>0){
         int tfa  = gUnpacker.get( DetIdGe, 0, seg, 0, 1, 0);
@@ -461,7 +466,7 @@ ProcessingNormal()
 	  }
 	}//tfa cut
       }//for nhit_t
-      HF2( GeHid+100 +0, seg+0.5, double(adc) );
+      //HF2( GeHid+100 +0, seg+0.5, double(adc) );
       }//for adc
       /*
       //adc w/ crm (no need at e96?)
@@ -487,13 +492,13 @@ ProcessingNormal()
     //-------tdc hist------------------------------------------------
     //tfa
     if( nhit_t>0 ){
-      HF1( GeHid+1, seg+0.5); //0 origin
+      //HF1( GeHid+1, seg+0.5); //0 origin
       for(int i = 0; i<nhit_t; ++i){
 	int tfa  = gUnpacker.get( DetIdGe, 0, seg, 0, 1, i );
 	if( tfa>0 ){
 	  HF1( GeHid+100*(seg+1)+20, double(tfa) ); //0 origin
 	  //------tfa w/adc range select------//
-	  HF2( GeHid+100+2, seg+0.5, double(tfa) );
+	  //HF2( GeHid+100+2, seg+0.5, double(tfa) );
 	}
 	event.getfa[seg][i] = tfa;
 	dst.geTfa[seg][i] = tfa;
@@ -511,7 +516,7 @@ ProcessingNormal()
 	int crm  = gUnpacker.get( DetIdGe, 0, seg, 0, 4, i );
 	if(crm > 0){
 	  HF1( GeHid+100*(seg+1)+30, double(crm) ); //0 origin
-	  HF2( GeHid+100+3, seg+0.5, double(crm) );
+	  //HF2( GeHid+100+3, seg+0.5, double(crm) );
 	  event.gecrm[seg][i] = crm;
 	  dst.geCrm[seg][i] = crm;
 	}
@@ -527,7 +532,7 @@ ProcessingNormal()
     if( nhit_r>0 ){
       int reset_time = gUnpacker.get( DetIdGe, 0, seg, 0, 7);
       HF1( GeHid+100*(seg+1)+40, double(reset_time) );
-      HF2( GeHid+100+4, seg+0.5, double(reset_time) );
+      //HF2( GeHid+100+4, seg+0.5, double(reset_time) );
       event.gereset[seg] = reset_time;
       dst.geReset[seg] = reset_time;
     }
@@ -537,12 +542,12 @@ ProcessingNormal()
   for(int seg = 0; seg<NumOfSegBGO; ++seg){
     int nhit = gUnpacker.get_entries( DetIdBGO, 0, seg, 0, 0 );
     if( nhit>0 ){
-      HF1( BGOHid+1, seg+0.5); //0 origin
+      //HF1( BGOHid+1, seg+0.5); //0 origin
       for(int i = 0; i<nhit; ++i){
 	int tdc = gUnpacker.get( DetIdBGO, 0, seg, 0, 0, i )  ;
 	if(tdc > 0){
 	  HF1( BGOHid+100*(seg+1)+0, double(tdc) );
-	  HF2( BGOHid+0, seg+0.5, double(tdc) );
+	  //HF2( BGOHid+0, seg+0.5, double(tdc) );
 	}
 	event.gebgot[seg][i] = tdc;
 	dst.bgoTdc[seg][i] = tdc;
@@ -557,37 +562,76 @@ ProcessingNormal()
   }
   // need to edit for multi-hit depth? 
   // and debug because scaler data is not at all decoded 
-  // int scaler_0;
-  // int scaler_15;
-  // int daq_live;
-  // for( int seg=0; seg<NumOfSegScaler; ++seg ){
-  //   int nhit = 0;
-  //   //    nhit = gUnpacker.get_entries( DetIdScaler, 2, 0, seg, 0 ); //original
-  //   nhit = gUnpacker.get_entries( DetIdScaler, 1, 0, seg, 0 ); // confirm if this line is right 
-  //   // especially in the order of the number 
-  //   // (this order seems to be different from other modules)
-  //   if( nhit>0 ){
-  //     // std::cout << " / / / / / /  / / / / / / / / / / / / / / " << std::endl;
-  //     // std::cout << "nhit: " << std::endl;
-  //     // std::cout << " / / / / / /  / / / / / / / / / / / / / / " << std::endl;
-  //     //      int data = gUnpacker.get( DetIdScaler, 2, 0, seg, 0 ); //original
-  //     HF1 (GeHid +75, double(seg) ); //all scaler hitpat
-  //     if(0<=seg&&seg<=15)HF1 (GeHid +76, double(seg) ); //trigflag scaler hitpat
-  //     if(0<=seg&&seg<=15)HF1 (GeHid +77, double(seg) ); //973u crm scaler hitpat
-  //     if(0<=seg&&seg<=15)HF1 (GeHid +78, double(seg) ); //671 crm scaler hitpat
-  //     if(0<=seg&&seg<=15)HF1 (GeHid +79, double(seg) ); //reset scaler hitpat
-  //     int data = gUnpacker.get( DetIdScaler, 1, 0, seg, 0 );
-  //     event.scaler[seg] = data;
-  //     scaler_0 = event.scaler[0][0];
-  //     scaler_15 = event.scaler[0][15];
-  //     daq_live = scaler_0 - scaler_15;
-  //   }
-  // }
-  // if(dst.trigflag[3]>0)HF1 (GeHid+71, double(daq_live));//spill on end daqlivetime                           
-  // if(dst.trigflag[4]>0)HF1 (GeHid+72, double(daq_live));//spill off end daqlivetime  
-
+  ///////scaler////
+  // ---HUL-RM--------------------------------------------------------                                          
+  //std::cout << "hul-rm" << std::endl;                                                                         
+  for(int plane=0; plane<NumOfPlaneHulRm; ++plane){
+    static const int device_id = gUnpacker.get_device_id("HUL-RM");
+    int dtype = 0; // evnum                                                                                     
+    int nhit = gUnpacker.get_entries( device_id , plane, 0, 0, dtype );
+    if( nhit<=0 ) continue;
+    int data = 0;
+    data = gUnpacker.get( device_id, plane, 0, 0, 0 );
+    event.evnum_hulrm[plane] = data;
+    dst.evnum_hulrm[plane] = data;
+    data = gUnpacker.get( device_id, plane, 0, 0, 1 );
+    event.spill_hulrm[plane] = data;
+    dst.spill_hulrm[plane] = data;
+  }
+  // // ---HUL-Scaler----------------------------------------------------                                       
+  //std::cout << "hul-scaler" << std::endl;                                                                     
+  for(int plane=0; plane<NumOfPlaneScaler; ++plane){
+    for(int seg=0; seg<NumOfSegScaler; ++seg ){
+      int nhit = 0;
+      nhit = gUnpacker.get_entries( DetIdScaler, plane, 0, seg, 0 );
+      if( nhit>0 ){
+        int data = gUnpacker.get( DetIdScaler, plane, 0, seg, 0);
+        event.scaler[plane][seg] = data;
+      }
+    }
+  }
+ 
+  int scaler_0;
+  int scaler_15;
+  int daq_live;
+  for( int seg=0; seg<NumOfSegScaler; ++seg ){
+    int nhit = 0;
+    nhit = gUnpacker.get_entries( DetIdScaler, 1, 0, seg, 0 ); // confirm if this line is right 
+    if( nhit>0 ){
+      HF1 (GeHid +75, double(seg) ); //all scaler hitpat
+      int seg1, seg2, seg3, seg4;
+      if(event.scaler[1][seg]>0){
+	//std::cout<<"event scaler number "<<seg<<std::endl;
+	if(0<=seg&&seg<=15){
+	  seg1 = seg;
+	  HF1 (GeHid +76, double(seg1) ); //trigflag scaler hitpat
+	}
+	if(16<=seg&&seg<=31){
+	  seg2 = seg -16;
+	  HF1 (GeHid +77, double(seg2) ); //973u crm scaler hitpat
+	}
+	if(32<=seg&&seg<=47){
+	  seg3 = seg -32;
+	  HF1 (GeHid +78, double(seg3) ); //671 crm scaler hitpat
+	}
+	if(48<=seg&&seg<=63){ 
+	  seg4 = seg -48;
+	  HF1 (GeHid +79, double(seg4) ); //reset scaler hitpat
+	}
+	}//for event scaler
+      //int data = gUnpacker.get( DetIdScaler, 1, 0, seg, 0 );
+	//std::cout<<"scaler tdc "<<seg<<"  "<<event.scaler[1][seg]<<std::endl;
+	scaler_0 = event.scaler[1][0];
+	scaler_15 = event.scaler[1][15];
+	daq_live = scaler_0 - scaler_15;
+    }
+  }
+  if(dst.trigflag[3]>0)HF1 (GeHid+71, double(daq_live));//spill on end daqlivetime   
+  if(dst.trigflag[4]>0)HF1 (GeHid+72, double(daq_live));//spill off end daqlivetime  
+   
+  /* 
   // ---HUL-RM--------------------------------------------------------
-  std::cout << "hul-rm" << std::endl;
+  //std::cout << "hul-rm" << std::endl;
   for(int plane=0; plane<NumOfPlaneHulRm; ++plane){
     static const int device_id = gUnpacker.get_device_id("HUL-RM");
     int dtype = 0; // evnum
@@ -602,7 +646,7 @@ ProcessingNormal()
     dst.spill_hulrm[plane] = data;
   }
   // // ---HUL-Scaler----------------------------------------------------
-  std::cout << "hul-scaler" << std::endl;
+  //std::cout << "hul-scaler" << std::endl;
   for(int plane=0; plane<NumOfPlaneScaler; ++plane){
     for(int seg=0; seg<NumOfSegScaler; ++seg ){
       int nhit = 0;
@@ -613,7 +657,7 @@ ProcessingNormal()
       }
     }
   } 
- 
+  */
   if(trigger_flag[trigger::kSpillOnEnd]) return true;
   
   return true;
@@ -886,8 +930,8 @@ ConfMan::InitializeHistograms( void )
   }
 
   //Hits
-  HB1( GeHid +0, "#Hits Ge",        NumOfSegGe+1, 0., double(NumOfSegGe+1) );
-  HB1( GeHid +1, "Hitpat Ge",       NumOfSegGe,   0., double(NumOfSegGe)   );
+  //HB1( GeHid +0, "#Hits Ge",        NumOfSegGe+1, 0., double(NumOfSegGe+1) );
+  //HB1( GeHid +1, "Hitpat Ge",       NumOfSegGe,   0., double(NumOfSegGe)   );
   //daq livetime
   HB1( GeHid +71, "DAQlivetime(spillon)", 2000,21000000,24000000 );
   HB1( GeHid +72, "DAQlivetime(spilloff)", 2000, 110000000, 13000000);
