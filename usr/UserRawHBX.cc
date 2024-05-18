@@ -463,6 +463,7 @@ ProcessingNormal()
 	  if(900<adc&&adc<1100)HF1( GeHid+100*(seg+1)+65, double(tfa) ); //180keV-220keV
 	  if(1100<adc&&adc<1300)HF1( GeHid+100*(seg+1)+66, double(tfa) ); //220keV-260keV
 	  if(1300<adc&&adc<1500)HF1( GeHid+100*(seg+1)+67, double(tfa) ); //260keV-300keV
+	  if(1500<adc&&adc<1700)HF1( GeHid+100*(seg+1)+68, double(tfa) ); //340keV-380keV
 	  ////ge hitpat//////
 	  HF1( GeHid+73, double(seg) );
         }
@@ -624,29 +625,33 @@ ProcessingNormal()
   }
   */
   //---------------DAQ livetime and E96 scaler hitpat-------------------
+  {
   int scaler_0;
   int scaler_15;
   int daq_live;
   for( int seg=0; seg<NumOfSegScaler; ++seg ){
-    HF1 (GeHid +75, double(seg) ); //all scaler hitpat
+    scaler_0 = 0;
+    scaler_15 = 0;
+    daq_live = 0;
+    HF1 (GeHid +75, int(seg) ); //all scaler hitpat
       int seg1, seg2, seg3, seg4, seg5;
       //-----plane num = 1--------------------------
       if(event.scaler[1][seg]>0){
 	if(0<=seg&&seg<=15){
 	  seg1 = seg;
-	  HF1 (GeHid +76, double(seg1) ); //trigflag scaler hitpat
+	  HF1 (GeHid +76, int(seg1) ); //trigflag scaler hitpat
 	}
 	if(16<=seg&&seg<=31){
 	  seg2 = seg -16;
-	  HF1 (GeHid +77, double(seg2) ); //973u crm scaler hitpat
+	  HF1 (GeHid +77, int(seg2) ); //973u crm scaler hitpat
 	}
 	if(32<=seg&&seg<=47){
 	  seg3 = seg -32;
-	  HF1 (GeHid +78, double(seg3) ); //671 crm scaler hitpat
+	  HF1 (GeHid +78, int(seg3) ); //671 crm scaler hitpat
 	}
 	if(48<=seg&&seg<=63){ 
 	  seg4 = seg -48;
-	  HF1 (GeHid +79, double(seg4) ); //reset scaler hitpat
+	  HF1 (GeHid +79, int(seg4) ); //reset scaler hitpat
 	}
 	
 	scaler_0 = event.scaler[1][0];
@@ -659,13 +664,13 @@ ProcessingNormal()
       if(event.scaler[0][seg]>0){
 	//std::cout<<"event scaler plane = 0 number "<<seg<<std::endl;
 	seg5 = seg -16;
-	HF1 (GeHid +80, double(seg5) );
+	HF1 (GeHid +80, int(seg5) );
       }
   }//for seg
 
-  if(dst.trigflag[3]>0)HF1 (GeHid+71, double(daq_live));//spill on end daqlivetime   
-  if(dst.trigflag[4]>0)HF1 (GeHid+72, double(daq_live));//spill off end daqlivetime  
-  
+  if(dst.trigflag[3]>0)HF1 (GeHid+71, int(daq_live));//spill on end daqlivetime   
+  if(dst.trigflag[4]>0)HF1 (GeHid+72, int(daq_live));//spill off end daqlivetime  
+  }
   //------Reset rate for each ge crystal-------
   for(int i=0; i<NumOfSegGe; i++){
     if(dst.trigflag[4]>0){
@@ -927,6 +932,7 @@ ConfMan::InitializeHistograms( void )
     TString title65  = Form("Ge_973CRM_%d_180-220keV", i);
     TString title66  = Form("Ge_973CRM_%d_220-260keV", i);
     TString title67  = Form("Ge_973CRM_%d_260-300keV", i);
+    TString title68  = Form("Ge_973CRM_%d_300keV-340keV", i);
     ////////////////////////////////////////////////////////////////
     if(1<=i&&i<=16){
       HB1( GeHid +100*i +10, title10, NbinAdc, MinAdc, MaxAdc );
@@ -949,7 +955,7 @@ ConfMan::InitializeHistograms( void )
       HB1( GeHid +100*i +65, title65, 3000, 0, 5000 );
       HB1( GeHid +100*i +66, title66, 3000, 0, 5000 );
       HB1( GeHid +100*i +67, title67, 3000, 0, 5000 );
-
+      HB1( GeHid +100*i +68, title68, 3000, 0, 5000 );
       /////////////////////
     }
     if(17<=i&&i<=32){
@@ -983,8 +989,8 @@ ConfMan::InitializeHistograms( void )
   //HB1( GeHid +0, "#Hits Ge",        NumOfSegGe+1, 0., double(NumOfSegGe+1) );
   //HB1( GeHid +1, "Hitpat Ge",       NumOfSegGe,   0., double(NumOfSegGe)   );
   //daq livetime
-  HB1( GeHid +71, "DAQlivetime(spillon)", 2000,21000000,24000000 );
-  HB1( GeHid +72, "DAQlivetime(spilloff)", 2000, 110000000, 13000000);
+  HB1( GeHid +71, "DAQlivetime(spillon)", 4000,21000000,25000000 );
+  HB1( GeHid +72, "DAQlivetime(spilloff)", 2000, 11000000, 13000000);
   //hitpat
   HB1( GeHid +73, "Ge Hitpat",  NumOfSegGe+1, 0., double(NumOfSegGe+1) );
   HB1( GeHid +74, "BGO Hitpat",  NumOfSegBGO+1, 0., double(NumOfSegBGO+1) );
