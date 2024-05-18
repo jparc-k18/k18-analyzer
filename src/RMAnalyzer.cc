@@ -74,6 +74,7 @@ RMAnalyzer::Decode( void )
   if( gUnpackerRoot ) m_run_number = gUnpackerRoot->get_run_number();
 
   // VmeRm
+  /*
   for( int plane=0; plane<NumOfPlaneVmeRm; ++plane ){
     for( int ch=0; ch<nType; ++ch ){
       for( int data=0; data<nData; ++data ){
@@ -85,7 +86,7 @@ RMAnalyzer::Decode( void )
       }// for(data)
     }// for(ch)
   }// for(plane)
-
+  */
   // HulRm
   for( int plane=0; plane<NumOfHulRm; ++plane ){
     for( int data=0; data<nData-2; ++data ){

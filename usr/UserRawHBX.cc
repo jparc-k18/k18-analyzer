@@ -125,9 +125,9 @@ void Event::clear()
     spill_hulrm[i] = -1;
   }
   for(int i=0; i<NumOfSegTrig; ++i){
-    trigpat[i]  = -1;
-    trigflag[i] = -1;
-  }
+      trigpat[i]  = -1;
+      trigflag[i] = -1;
+    }
   for(int i=0; i<NumOfSegGe; ++i){
     gereset[i] = qnan;
     //geadc[i]   = qnan;
@@ -232,9 +232,9 @@ Dst::clear()
     syncclock[i] = -999;
   }
   for(int i=0; i<NumOfSegTrig; ++i){
-    trigpat[i]=-1;
-    trigflag[i]=-1;
-  }
+      trigpat[i]=-1;
+      trigflag[i]=-1;
+    }
   for(int i=0; i<NumOfSegGe; ++i){
     geReset[i]=qnan;
     //geAdc[i]=qnan;
@@ -294,18 +294,12 @@ ProcessingNormal()
 
   // rawData = new RawData;
   RawData rawData;
-
-
-  //  gRM.Decode();
-
-  // event.runnum = gRM.RunNumber();
-  // event.evnum  = gRM.EventNumber();
-  //event.spill  = gRM.SpillNumber();
-  // dst.evnum    = gRM.EventNumber();
-  // dst.spill    = gRM.SpillNumber();
-  // std::cout << "evnum: " << event.evnum << std::endl;
-  //std::cout << "spill num: " << event.spill << std::endl;
-  
+  gRM.Decode();
+  event.evnum  = gRM.EventNumber();
+  event.spill  = gRM.SpillNumber();
+  dst.evnum    = gRM.EventNumber();
+  dst.spill    = gRM.SpillNumber();
+  /*
   rawData.DecodeHits("HBXTFlag");
   std::bitset<NumOfSegTrig> trigger_flag;
   //   for(const auto& hit: rawData.GetHodoRawHitContainer("TFlag")){
@@ -315,21 +309,62 @@ ProcessingNormal()
     std::cout<<"tflag "<<seg<<"  "<<tdc<<std::endl;
     //tdc_clock = hit->GetTdc();
     //tdc_dead = hit->GetTdc;
+    
     if( tdc>0 ){
-      event.trigpat[trigger_flag.count()] = seg;
-      event.trigflag[seg] = tdc;
-      dst.trigpat[trigger_flag.count()] = seg;
-      dst.trigflag[seg] = tdc;
+      event.trigpat[0][trigger_flag.count()] = seg;
+      event.trigflag[0][seg] = tdc;
+      dst.trigpat[0][trigger_flag.count()] = seg;
+      dst.trigflag[0][seg] = tdc;
       trigger_flag.set(seg);
       HF1(10, seg);
       HF1(10+seg, tdc);
     }
   }
-  //  if(trigger_flag[trigger::kSpillEnd]) return true;
-  //int seg_bgo[NumOfSegGe];
-    //int seg_bgo0[4]
+  */
+  //-----HUL RM------//
+  for(int plane=0; plane<NumOfPlaneHulRm; ++plane){
+    static const int device_id = gUnpacker.get_device_id("HUL-RM");
+    int dtype = 0; // evnum     
+    int nhit = gUnpacker.get_entries( device_id , plane, 0, 0, dtype );
+    if( nhit<=0 ) continue;
+    int data = 0;
+    data = gUnpacker.get( device_id, plane, 0, 0, 0 );
+    event.evnum_hulrm[plane] = data;
+    dst.evnum_hulrm[plane] = data;
+    data = gUnpacker.get( device_id, plane, 0, 0, 1 );
+    event.spill_hulrm[plane] = data;
+    dst.spill_hulrm[plane] = data;
+  }
+  ////-----HBX TFlag----////
+  {
+    static const int device_id = DetIdHBXTFlag;
+    for(int seg = 0; seg<NumOfSegTrig; seg++){
+      int nhit = 0;
+      nhit = gUnpacker.get_entries( device_id, 0, seg, 0, 1);
+      if(nhit > 0){
+	int tdc =  gUnpacker.get( device_id, 0, seg, 0, 1);
+	dst.trigflag[seg] = tdc;
+	event.trigflag[seg] = tdc;
+	HF1( GeHid +100*(seg+1) + 81, double(tdc) );//trigflag tdc
+	HF1( GeHid + 82, double(seg) );//trigflag hitpat
+      }
+    }
+  } 
+  //////e96 HUL scaler//////
+  for(int plane=0; plane<NumOfPlaneScaler; ++plane){
+    for(int seg=0; seg<NumOfSegScaler; ++seg ){
+      int nhit = 0;
+      nhit = gUnpacker.get_entries( DetIdScaler, plane, 0, seg, 0 );
+      if( nhit>0 ){
+        int data = gUnpacker.get( DetIdScaler, plane, 0, seg, 0);
+        event.scaler[plane][seg] = data;
+	dst.scaler[plane][seg] = data;
+      }//if nhit
+    }//for seg
+  }//for plane
+
+ 
     int seg_bgo[NumOfSegBGO+16];
-    
     int seg_bgo1[4] = {0, 1, 10, 11};//slot1-1
     int seg_bgo2[4] = {1, 2, 3, 4};
     int seg_bgo3[4] = {4, 5, 6, 7};
@@ -370,6 +405,7 @@ ProcessingNormal()
     for(int seg_b = 0; seg_b<NumOfSegBGO; seg_b++){
       int nhit_bgo =  gUnpacker.get_entries( DetIdBGO, 0, seg_b, 0, 0 );
       if(nhit_bgo>0){
+	//BGO first hit//
 	tdc_bgo[seg_b] = gUnpacker.get( DetIdBGO, 0, seg_b, 0, 0, 0 );
 	HF1 (GeHid + 74, double(seg_b) );
 	//tdc_bgo[seg] = 100;
@@ -377,27 +413,23 @@ ProcessingNormal()
     }
     for(int k=0; k<NumOfSegGe; k++){
       flag_bgo[k]=0;
-      if(tdc_bgo[seg_bgo[4*k+3]]>500||tdc_bgo[seg_bgo[4*k+2]]>500||tdc_bgo[seg_bgo[4*k+1]]>500||tdc_bgo[seg_bgo[4*k]]>500){
+      if(200<tdc_bgo[seg_bgo[4*k+3]]&&200<tdc_bgo[seg_bgo[4*k+3]]<1500||200<tdc_bgo[seg_bgo[4*k+2]]&&tdc_bgo[seg_bgo[4*k+2]]<1500||tdc_bgo[seg_bgo[4*k+1]]&&tdc_bgo[seg_bgo[4*k+1]]<1500||200<tdc_bgo[seg_bgo[4*k]]&&tdc_bgo[seg_bgo[4*k]]<1500){
 	flag_bgo[k] = 1;
       }
       int nhit_adc[NumOfSegGe];
       int nhit_tdc[NumOfSegGe];
       nhit_adc[k] = gUnpacker.get_entries( DetIdGe, 0, k, 0, 0 ); //adc
       nhit_tdc[k] = gUnpacker.get_entries( DetIdGe, 0, k, 0, 1 ); //adc
-      //std::cout<<"kama chan"<<std::endl;
       if(nhit_adc[k]>0&&flag_bgo[k]==0&&nhit_tdc[k]>0){
 	int adc = gUnpacker.get( DetIdGe, 0, k, 0, 0, 0);
 	int tdc = gUnpacker.get( DetIdGe, 0, k, 0, 1, 0); //tdc(first hit)
 	double energy = adc*0.21;
 	if(MinTFACUT<tdc&&tdc<MaxTFACUT){
 	HF1 ( GeHid + 100*(k+1) +16, double(adc) ); 
-	HF1 ( GeHid + 100*(k+1) +50, double(energy) );
 	if(dst.trigflag[2]>0&&dst.trigflag[6]>0)HF1 ( GeHid + 100*(k+1) +17, double(adc) ); //lsoxge adc(spill off)
 	if(dst.trigflag[1]>0&&dst.trigflag[5]>0){
 	  HF1 ( GeHid + 100*(k+1) +18, double(adc) ); //l1 and apill onadc
-	  HF1 ( GeHid + 100*(k+1) +51, double(energy) ); //l1 and apill onadc
 	}
-	//if(dst.trigflag[1]>0)HF1 ( GeHid + 100*(k+1) +19, double(adc) ); //l1
 	}//tfa cut range
       }//nhitadc&nhittdc&flagbgo
     }//numofsegge k
@@ -418,7 +450,6 @@ ProcessingNormal()
       ///adc wo tdc cut///////
       if(adc>0){
       HF1( GeHid+100*(seg+1)+10, double(adc) );
-      //HF1( GeHid+100*(seg+1)+52, double(energy) );
       //////adc w973U crm cut///
       if( nhit_t>0){
         int tfa  = gUnpacker.get( DetIdGe, 0, seg, 0, 1, 0);
@@ -448,21 +479,21 @@ ProcessingNormal()
       //------adc(w crm)wTrigger flag-----//
 	if(MinTFACUT<tfa && tfa<MaxTFACUT){ 
 	  if(dst.trigflag[2]>0){//lsoxge
-	    if(dst.trigflag[5]>0){//spill on 
+	    if(dst.trigflag[5]>0){//spill on
 	      HF1( GeHid+100*(seg+1)+11, double(adc) );
 	      HF1( GeHid+100*(seg+1)+12, double(adc) );
-	      HF1( GeHid+100*(seg+1)+53, double(energy) );
+	      //HF1( GeHid+100*(seg+1)+53, double(energy) );
 	    }
 	    if(dst.trigflag[6]>0){//spill off
 	      HF1( GeHid+100*(seg+1)+13, double(adc) );
 	      HF1( GeHid+100*(seg+1)+14, double(adc) );
-	      HF1( GeHid+100*(seg+1)+54, double(energy) );
+	      //HF1( GeHid+100*(seg+1)+54, double(energy) );
 	    }
 	  }//LSOxGe trig
 	  //////L1 and spill on adc///////
 	  if(dst.trigflag[1]>0&&dst.trigflag[5]>0){
 	    HF1 ( GeHid + 100*(seg+1) +15, double(adc) );
-	    HF1 ( GeHid + 100*(seg+1) +55, double(energy) );
+	    //HF1 ( GeHid + 100*(seg+1) +55, double(energy) );
 	  }
 	}//tfa cut
       }//for nhit_t
@@ -562,6 +593,7 @@ ProcessingNormal()
   }
   // need to edit for multi-hit depth? 
   // and debug because scaler data is not at all decoded 
+  /*
   ///////scaler////
   // ---HUL-RM--------------------------------------------------------                                          
   //std::cout << "hul-rm" << std::endl;                                                                         
@@ -590,18 +622,16 @@ ProcessingNormal()
       }
     }
   }
- 
+  */
+  //---------------DAQ livetime and E96 scaler hitpat-------------------
   int scaler_0;
   int scaler_15;
   int daq_live;
   for( int seg=0; seg<NumOfSegScaler; ++seg ){
-    int nhit = 0;
-    nhit = gUnpacker.get_entries( DetIdScaler, 1, 0, seg, 0 ); // confirm if this line is right 
-    if( nhit>0 ){
-      HF1 (GeHid +75, double(seg) ); //all scaler hitpat
-      int seg1, seg2, seg3, seg4;
+    HF1 (GeHid +75, double(seg) ); //all scaler hitpat
+      int seg1, seg2, seg3, seg4, seg5;
+      //-----plane num = 1--------------------------
       if(event.scaler[1][seg]>0){
-	//std::cout<<"event scaler number "<<seg<<std::endl;
 	if(0<=seg&&seg<=15){
 	  seg1 = seg;
 	  HF1 (GeHid +76, double(seg1) ); //trigflag scaler hitpat
@@ -618,17 +648,38 @@ ProcessingNormal()
 	  seg4 = seg -48;
 	  HF1 (GeHid +79, double(seg4) ); //reset scaler hitpat
 	}
-	}//for event scaler
-      //int data = gUnpacker.get( DetIdScaler, 1, 0, seg, 0 );
-	//std::cout<<"scaler tdc "<<seg<<"  "<<event.scaler[1][seg]<<std::endl;
+	
 	scaler_0 = event.scaler[1][0];
-	scaler_15 = event.scaler[1][15];
-	daq_live = scaler_0 - scaler_15;
-    }
-  }
+        scaler_15 = event.scaler[1][15];
+        daq_live = scaler_0 - scaler_15;
+	
+	}//for event scaler
+      
+      //------------------plane num = 0---------
+      if(event.scaler[0][seg]>0){
+	//std::cout<<"event scaler plane = 0 number "<<seg<<std::endl;
+	seg5 = seg -16;
+	HF1 (GeHid +80, double(seg5) );
+      }
+  }//for seg
+
   if(dst.trigflag[3]>0)HF1 (GeHid+71, double(daq_live));//spill on end daqlivetime   
   if(dst.trigflag[4]>0)HF1 (GeHid+72, double(daq_live));//spill off end daqlivetime  
-   
+  
+  //------Reset rate for each ge crystal-------
+  for(int i=0; i<NumOfSegGe; i++){
+    if(dst.trigflag[4]>0){
+      int reset_rate = event.scaler[1][i+48];
+      //std::cout<<"reset rate(spill off) "<<reset_rate<<std::endl;
+      HF1 (GeHid + 100*(i+1)+ 83, double(reset_rate) );
+    }
+    if(dst.trigflag[3]>0){
+      int reset_rate = event.scaler[1][i+48];
+      HF1 (GeHid + 100*(i+1)+ 84, double(reset_rate) );
+    }
+  } 
+
+
   /* 
   // ---HUL-RM--------------------------------------------------------
   //std::cout << "hul-rm" << std::endl;
@@ -658,7 +709,7 @@ ProcessingNormal()
     }
   } 
   */
-  if(trigger_flag[trigger::kSpillOnEnd]) return true;
+  //if(trigger_flag[trigger::kSpillOnEnd]) return true;
   
   return true;
 }
@@ -694,12 +745,11 @@ InitializeEvent( void )
     event.syncclock[m] = -9999;
   }
   for( int it=0; it<NumOfSegTrig; it++){
-    event.trigpat[it] = -1;
-    event.trigflag[it] = -1;
-    dst.trigpat[it]  = -1;
-    dst.trigflag[it] = -1;
-  }
-
+      event.trigpat[it] = -1;
+      event.trigflag[it] = -1;
+      dst.trigpat[it]  = -1;
+      dst.trigflag[it] = -1;
+    }
   //Ge Reset
   for( int it=0; it<NumOfSegGe; it++){
     event.gereset[it] = 0;
@@ -940,11 +990,25 @@ ConfMan::InitializeHistograms( void )
   HB1( GeHid +74, "BGO Hitpat",  NumOfSegBGO+1, 0., double(NumOfSegBGO+1) );
   //scaler hitpat
   HB1( GeHid +75, "ALL Scaler Hitpat",  NumOfSegGe+1, 0., double(NumOfSegGe+1) );
-  HB1( GeHid +76, "TrigFlag scaler Hitpat",  NumOfSegGe+1, 0., double(NumOfSegGe+1) );
-  HB1( GeHid +77, "973U CRM Hitpat",  NumOfSegGe+1, 0., double(NumOfSegGe+1) );
-  HB1( GeHid +78, "671 CRM Hitpat",  NumOfSegGe+1, 0., double(NumOfSegGe+1) );
-  HB1( GeHid +79, "Ge Reset Scaler Hitpat",  NumOfSegGe+1, 0., double(NumOfSegGe+1) );
-
+  HB1( GeHid +76, "Scaler TrigFlag Hitpat(0-15)" ,NumOfSegGe+1, 0., double(NumOfSegGe+1) );
+  HB1( GeHid +77, "Scaler 973U CRM Hitpat",  NumOfSegGe+1, 0., double(NumOfSegGe+1) );
+  HB1( GeHid +78, "Scaler 671 CRM Hitpat",  NumOfSegGe+1, 0., double(NumOfSegGe+1) );
+  HB1( GeHid +79, "Scaler Ge Reset Hitpat",  NumOfSegGe+1, 0., double(NumOfSegGe+1) );
+  HB1( GeHid +80, "TrigFlag scaler Hitpat(16-31)",  NumOfSegGe+1, 16., double(NumOfSegGe*2+1) );
+  HB1( GeHid +82, "TrigFlag Hitpat(0-31)",  NumOfSegGe+1, 0., double(NumOfSegGe*2+1) );
+  
+  //////------HBX trigFlag tdc hist--------------------
+  for(int i=0; i<NumOfSegTrig; i++){
+    TString title_trigflag = Form("trigflag tdc %d",i);
+    HB1( GeHid +100*(i+1) +81, title_trigflag, 10000, 0, 10000);
+  }
+  /////----Reset rate---------------------------------
+  for(int i=0; i<NumOfSegGe; i++){
+    TString title_resetrate1 = Form("reset_rate %d (spilloff)",i);
+    HB1( GeHid + 100*(i+1) +83, title_resetrate1,  10, 0., 10. );
+    TString title_resetrate2 = Form("reset_rate %d (spillon)",i);
+    HB1( GeHid + 100*(i+1) +84, title_resetrate2,  400, 0., 400. );
+  }
   /*
   HB2( GeHid +100 +1, "Adc%Ch",
        NumOfSegGe, 0, NumOfSegGe, NbinAdc, MinAdc, MaxAdc);
