@@ -345,16 +345,30 @@ ProcessingNormal()
   }
   ////-----HBX TFlag----////
   {
+    int tdc_flag_min[NumOfSegTrig];
+    int tdc_flag_max[NumOfSegTrig];
+    //10M clock tdc//
+    tdc_flag_min[0] = 0;
+    tdc_flag_max[0] = 10000;
+    tdc_flag_min[31] = 0;
+    tdc_flag_max[31] = 10000;
+    //trigflag except for 10M clock
+    for(int i=0; i<30; i++){
+      tdc_flag_min[i+1] = 3000;
+      tdc_flag_max[i+1] = 4000;
+    }
     static const int device_id = DetIdHBXTFlag;
     for(int seg = 0; seg<NumOfSegTrig; seg++){
       int nhit = 0;
       nhit = gUnpacker.get_entries( device_id, 0, seg, 0, 1);
       if(nhit > 0){
 	int tdc =  gUnpacker.get( device_id, 0, seg, 0, 1);
-	dst.trigflag[seg] = tdc;
-	event.trigflag[seg] = tdc;
-	HF1( GeHid +100*(seg+1) + 81, double(tdc) );//trigflag tdc
-	HF1( GeHid + 82, double(seg) );//trigflag hitpat
+	if(tdc_flag_min[seg]<tdc&&tdc<tdc_flag_max[seg]){
+	  dst.trigflag[seg] = tdc;
+	  event.trigflag[seg] = tdc;
+	  HF1( GeHid +100*(seg+1) + 81, double(tdc) );//trigflag tdc
+	  HF1( GeHid + 82, double(seg) );//trigflag hitpat
+	}//trigger flag tdc accept range
       }
     }
   } 
@@ -509,6 +523,10 @@ ProcessingNormal()
 	  HF1 ( GeHid + 100*(seg+1) +19, double(adc) );
 	  //HF1 ( GeHid + 100*(seg+1) +55, double(energy) );
 	}
+	//only spill off and lsoxge trig adc before tdc cut
+	if(dst.trigflag[2]>0&&dst.trigflag[6]>0){
+	  HF1 ( GeHid + 100*(seg+1) +95, double(adc) );
+	}
       //------adc(w crm)wTrigger flag-----//
 	if(MinTFACUT<tfa && tfa<MaxTFACUT){ 
 	  if(dst.trigflag[2]>0){//lsoxge
@@ -518,9 +536,9 @@ ProcessingNormal()
 	      //HF1( GeHid+100*(seg+1)+53, double(energy) );
 	    }
 	    if(dst.trigflag[6]>0){//spill off
-	      HF1( GeHid+100*(seg+1)+13, double(adc) );
-	      HF1( GeHid+100*(seg+1)+14, double(adc) );
-	      //HF1( GeHid+100*(seg+1)+54, double(energy) );
+	      HF1( GeHid+100*(seg+1)+13, double(adc) );//for fit//lsoxge spillof  adc and tdc cut
+	      HF1( GeHid+100*(seg+1)+14, double(adc) );//for fit
+	      HF1( GeHid+100*(seg+1)+94, double(adc) );//for evvent slip
 	    }
 	  }//LSOxGe trig
 	  //////L1 and spill on adc///////
@@ -966,7 +984,7 @@ ConfMan::InitializeHistograms( void )
     TString title17  = Form("Ge_671_%d Adc all (wo/BGO) wtdc", i);
     TString title18  = Form("Ge_671_%d Adc lsoxge spilloff (wo/BGO) wtdc", i);
     TString title19  = Form("Ge_671_%d Adc L1 spill on (wo/BGO) wtdc", i);
-    TString title19_2  = Form("Ge_671_%d Adc (L1&spillon) (no bgo select)", i);
+    TString title19_2  = Form("Ge_671_%d Adc (L1&spillon) (wo tdc& bgo)", i);
     TString title51  = Form("Ge_671_%d energy L1&spillon(wo/BGO)", i);
     TString title55  = Form("Ge_671_%d energy L1&spillon(all)", i);
     TString title61  = Form("Ge_973CRM_%d_20-60keV", i);
@@ -977,6 +995,8 @@ ConfMan::InitializeHistograms( void )
     TString title66  = Form("Ge_973CRM_%d_220-260keV", i);
     TString title67  = Form("Ge_973CRM_%d_260-300keV", i);
     TString title68  = Form("Ge_973CRM_%d_300keV-340keV", i);
+    TString title94  = Form("Ge_671_%d_Adc lsoxge spill off wnocut", i);
+    TString title95  = Form("Ge_671_%d_Adc lsoxge spill off wotdc&bgo", i);
     ////////////////////////////////////////////////////////////////
     if(1<=i&&i<=16){
       HB1( GeHid +100*i +10, title10, NbinAdc, MinAdc, MaxAdc );
@@ -1000,6 +1020,8 @@ ConfMan::InitializeHistograms( void )
       HB1( GeHid +100*i +66, title66, 3000, 0, 5000 );
       HB1( GeHid +100*i +67, title67, 3000, 0, 5000 );
       HB1( GeHid +100*i +68, title68, 3000, 0, 5000 );
+      HB1( GeHid +100*i +94, title94, NbinAdc, MinAdc, MaxAdc );
+      HB1( GeHid +100*i +95, title95, NbinAdc, MinAdc, MaxAdc );
       /////////////////////
     }
     ////for 973u adc////-----------------------------------------
