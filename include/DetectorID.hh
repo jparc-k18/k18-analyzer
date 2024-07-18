@@ -64,6 +64,7 @@ const Int_t DetIdMtx        = 26;
 const Int_t DetIdVmeRm      = 81;
 const Int_t DetIdMsTRM      = 82;
 const Int_t DetIdHulRM      = 83;
+const Int_t DetIdUnixTime   = 200;
 const Int_t NumOfSegScaler  = 96;
 const Int_t NumOfPlaneVmeRm = 2;
 
@@ -209,7 +210,7 @@ const Int_t MaxWireSDC5Y    =  96;
 const Double_t CellSizeBC3 = 3.0;
 const Double_t CellSizeBC4 = 3.0;
 const Double_t CellSizeSDC1 =  6.0;
-const Double_t CellSizeSDC2 = 10.0;
+const Double_t CellSizeSDC2 =  5.0;
 const Double_t CellSizeSDC3 =  9.0;
 const Double_t CellSizeSDC4 =  9.0;
 const Double_t CellSizeSDC5 =  9.0;
@@ -241,7 +242,7 @@ enum dTypesMst
   };
 
 // Scaler ----------------------------------------------
-const Int_t NumOfScaler  = 2;
+const Int_t NumOfScaler  = 3;
 
 // Parasite ___________________________________________________________
 const Int_t DetIdE72BAC      =  501;

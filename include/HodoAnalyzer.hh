@@ -181,7 +181,6 @@ HodoAnalyzer::MakeUpClusters(const std::vector<T*>& HitCont,
 
   if(HitCont.empty())
     return 0;
-
   for(Int_t iA=0, n=HitCont.size(); iA<n; ++iA){
     const auto& hitA = HitCont[iA];
     if(hitA->IsClusteredAll())
@@ -189,7 +188,7 @@ HodoAnalyzer::MakeUpClusters(const std::vector<T*>& HitCont,
     T* hitLast = hitA;
     for(Int_t jA=0, mA=hitA->GetEntries(); jA<mA; ++jA){
       if(hitA->IsClustered(jA))
-        continue;
+	continue;
       Int_t jLast = jA;
       HodoHC CandCont;
       index_t index;
@@ -202,7 +201,7 @@ HodoAnalyzer::MakeUpClusters(const std::vector<T*>& HitCont,
         const auto& hitB = HitCont[iB];
         for(Int_t jB=0, mB=hitB->GetEntries(); jB<mB; ++jB){
           if(hitB->IsClustered(jB))
-            continue;
+	    continue;
           if(Connectable(hitLast, jLast, hitB, jB, MaxTimeDiff)){
             hitB->JoinCluster(jB);
             CandCont.push_back(hitB);

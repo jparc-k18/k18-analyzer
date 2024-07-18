@@ -21,6 +21,7 @@
 #include "RawData.hh"
 
 #define HodoCut     0
+#define TdcCut      1
 #define TotCut      1
 #define Chi2Cut     0
 #define MaxMultiCut 0
@@ -347,6 +348,9 @@ ProcessingNormal()
 #if 0
   static const Double_t MaxMultiHitSdcIn = gUser.GetParameter("MaxMultiHitSdcIn");
   //////////////SdcIn number of hit layer
+#if TdcCut
+  rawData.TdcCutSDCIn();
+#endif
   DCAna.DecodeSdcInHits();
   Double_t multi_SdcIn=0.;
   for(Int_t layer=1; layer<=NumOfLayersSdcIn; ++layer){
@@ -361,8 +365,10 @@ ProcessingNormal()
 
   HF1(1, 10.);
   // Double_t offset = common_stop_is_tof ? 0 : StopTimeDiffSdcOut;
+#if TdcCut
+  rawData.TdcCutSDCOut();
+#endif
   DCAna.DecodeSdcOutHits();
-
 #if TotCut
   DCAna.TotCutSDC3(MinTotSDC3);
   DCAna.TotCutSDC4(MinTotSDC4);
@@ -383,17 +389,17 @@ ProcessingNormal()
     for(Int_t i=0; i<nhOut; ++i){
       const auto& hit = contOut[i];
       Double_t wire=hit->GetWire();
-      HF1(100*layer+1, wire+0.5);
       event.wire[layer-1][i] = wire+0.5;
       Int_t nhtdc = hit->GetTdcSize();
+      if( nhtdc != 0 ) HF1(100*layer+1, wire+0.5);
       Int_t tdc1st = -1;
       for(Int_t k=0; k<nhtdc; k++){
         Int_t tdc = hit->GetTdcVal(k);
-        // Int_t tot_1 = hit->GetTot(k);
+        Int_t tot_1 = hit->GetTot(k);
         HF1(100*layer+2, tdc);
         HF1(10000*layer+Int_t(wire), tdc);
         HF2(100*layer+51, tdc, wire+0.5);
-        // HF2(100*layer+53, tdc, tot_1);
+        HF2(100*layer+53, tdc, tot_1);
         if(tdc > tdc1st){
           tdc1st = tdc;
           fl_valid_sig = true;

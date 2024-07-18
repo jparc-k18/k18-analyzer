@@ -68,6 +68,10 @@ struct Event
   Double_t baca[NumOfSegBAC];
   Double_t bact[NumOfSegBAC][MaxDepth];
 
+  Int_t bac1nhits;
+  Int_t bac2nhits;
+
+
   Int_t tofnhits;
   Int_t tofhitpat[MaxHits];
   Double_t tofua[NumOfSegTOF];
@@ -166,6 +170,8 @@ Event::clear()
   spill      = 0;
   bh1nhits   = 0;
   bacnhits   = 0;
+  bac1nhits   = 0;
+  bac2nhits   = 0;
   bh2nhits   = 0;
   tofnhits   = 0;
   ac1nhits   = 0;
@@ -351,6 +357,12 @@ struct Dst
   Double_t Ac1Seg[NumOfSegAC1*MaxDepth];
   Double_t tAc1[NumOfSegAC1*MaxDepth];
 
+  Int_t    nhWc;
+  Int_t    csWc[NumOfSegWC*MaxDepth];
+  Double_t WcSeg[NumOfSegWC*MaxDepth];
+  Double_t tWc[NumOfSegWC*MaxDepth];
+  Double_t deWc[NumOfSegWC*MaxDepth];
+
   // for HodoParam
   Double_t tofua[NumOfSegTOF];
   Double_t tofut[NumOfSegTOF][MaxDepth];
@@ -373,6 +385,7 @@ Dst::clear()
   nhBh2    = 0;
   nhTof    = 0;
   nhAc1    = 0;
+  nhWc    = 0;
   evnum    = 0;
   spill    = 0;
   Time0Seg = qnan;
@@ -447,6 +460,15 @@ Dst::clear()
     }
   }
 
+  for(Int_t it=0; it<NumOfSegWC; it++){
+    for(Int_t m=0; m<MaxDepth; ++m){
+      csWc[MaxDepth*it + m]  = 0;
+      WcSeg[MaxDepth*it + m] = qnan;
+      tWc[MaxDepth*it + m]   = qnan;
+      deWc[MaxDepth*it + m]  = qnan;
+    }
+  }
+
 }
 
 
@@ -515,6 +537,7 @@ ProcessingNormal()
   //****************** RawData
 
   // Trigger Flag
+  rawData.DecodeHits("TFlag");
   std::bitset<NumOfSegTrig> trigger_flag;
   for(const auto& hit: rawData.GetHodoRawHC("TFlag")){
     Int_t seg = hit->SegmentId();
@@ -641,6 +664,8 @@ ProcessingNormal()
   rawData.DecodeHits("BAC");
   {
     Int_t bac_nhits = 0;
+    Int_t bac1_nhits = 0;
+    Int_t bac2_nhits = 0;
     const auto& cont = rawData.GetHodoRawHC("BAC");
     Int_t nh = cont.size();
     HF1(BACHid, nh);
@@ -657,7 +682,11 @@ ProcessingNormal()
       for(const auto& T: hit->GetArrayTdcLeading()){
         HF1(BACHid+100*seg+3, T);
         if(m < MaxDepth) event.bact[seg-1][m++] = T;
-        if(MinTdcBAC < T && T < MaxTdcBAC) is_hit = true;
+        if(MinTdcBAC < T && T < MaxTdcBAC){
+	  is_hit = true;
+	  if(seg==1)++bac1_nhits;
+	  if(seg==2)++bac2_nhits;
+	}
       }
       if(is_hit) HF1(BACHid+100*seg+5, A);
       else       HF1(BACHid+100*seg+7, A);
@@ -669,6 +698,8 @@ ProcessingNormal()
     }
     HF1(BACHid+2, nh1);
     event.bacnhits = bac_nhits;
+    event.bac1nhits = bac1_nhits;
+    event.bac2nhits = bac2_nhits;
   }
 
   ///// TOF
@@ -1367,9 +1398,6 @@ ProcessingNormal()
     }
   }
 
-  hodoAna.DecodeHits("WC");
-  hodoAna.DecodeHits("AC1");
-
   ////////// Dst
   {
     Int_t nc = hodoAna.GetNClusters("BH1");
@@ -1441,6 +1469,7 @@ ProcessingNormal()
     }
   }
 
+  hodoAna.DecodeHits("AC1");
   {
     Int_t nc = hodoAna.GetNClusters("AC1");
     dst.nhAc1 = nc;
@@ -1452,6 +1481,21 @@ ProcessingNormal()
       dst.tAc1[i]   = cl->CMeanTime();
     }
   }
+
+  hodoAna.DecodeHits("WC");
+  {
+    Int_t nc = hodoAna.GetNClusters("WC");
+    dst.nhWc = nc;
+    for(Int_t i=0; i<nc; ++i){
+      const auto& cl = hodoAna.GetCluster("WC", i);
+      if(!cl) continue;
+      dst.csWc[i]  = cl->ClusterSize();
+      dst.WcSeg[i] = cl->MeanSeg()+1;
+      dst.tWc[i]   = cl->CMeanTime();
+      dst.deWc[i]  = cl->DeltaE();
+    }
+  }
+
 
 #if 0
   // BH1 (for parameter tuning)
@@ -1518,7 +1562,7 @@ ConfMan::InitializeHistograms()
   HB1(1, "Status", 20, 0., 20.);
   HB1(10, "Trigger HitPat", NumOfSegTrig, 0., Double_t(NumOfSegTrig));
   for(Int_t i=0; i<NumOfSegTrig; ++i){
-    HB1(10+i+1, Form("Trigger Trig %d", i+1), 0x1000, 0, 0x1000);
+    HB1(10+i+1, Form("Trigger Flag %d", i+1), 0x1000, 0, 0x1000);
   }
 
   // BH1
@@ -2016,6 +2060,8 @@ ConfMan::InitializeHistograms()
   tree->Branch("bachitpat",   event.bachitpat,  Form("bachitpat[%d]/I", NumOfSegBAC));
   tree->Branch("baca",        event.baca,       Form("baca[%d]/D", NumOfSegBAC));
   tree->Branch("bact",        event.bact,       Form("bact[%d][%d]/D", NumOfSegBAC, MaxDepth));
+  tree->Branch("bac1nhits",   &event.bac1nhits,   "bac1nhits/I");
+  tree->Branch("bac2nhits",   &event.bac2nhits,   "bac2nhits/I");
   //TOF
   tree->Branch("tofnhits",   &event.tofnhits,   "tofnhits/I");
   tree->Branch("tofhitpat",   event.tofhitpat,  Form("tofhitpat[%d]/I", NumOfSegTOF));
@@ -2163,6 +2209,12 @@ ConfMan::InitializeHistograms()
   hodo->Branch("csAc1",      dst.csAc1,     "csAc1[nhAc1]/I");
   hodo->Branch("Ac1Seg",     dst.Ac1Seg,    "Ac1Seg[nhAc1]/D");
   hodo->Branch("tAc1",       dst.tAc1,      "tAc1[nhAc1]/D");
+
+  hodo->Branch("nhWc",     &dst.nhWc,     "nhWc/I");
+  hodo->Branch("csWc",      dst.csWc,     "csWc[nhWc]/I");
+  hodo->Branch("WcSeg",     dst.WcSeg,    "WcSeg[nhWc]/D");
+  hodo->Branch("tWc",       dst.tWc,      "tWc[nhWc]/D");
+  hodo->Branch("deWc",      dst.deWc,     "deWc[nhWc]/D");
 
   // HPrint();
   return true;
