@@ -115,9 +115,24 @@ RawData::DecodeHits(const TString& name)
           for(Int_t i=0, n=gUnpacker.get_entries(id, plane, seg, ch, data);
               i<n; ++i){
             UInt_t val = gUnpacker.get(id, plane, seg, ch, data, i);
-            if(is_hodo)  AddHodoRawHit(name, plane, seg, ch, data, val);
-            if(is_fiber) AddFiberRawHit(name, plane, seg, ch, data, val);
-            if(is_dc)    AddDCRawHit(name, plane, seg, ch, data, val);
+            if(is_hodo)
+	      AddHodoRawHit(name, plane, seg, ch, data, val);
+	    if(is_fiber)
+	      AddFiberRawHit(name, plane, seg, ch, data, val);
+            if(is_dc)
+	    AddDCRawHit(name, plane, seg, ch, data, val);
+            // if(is_hodo){
+	    //   AddHodoRawHit(name, plane, seg, ch, data, val);
+	    //   std::cout << "is_hodo: " << n << std::endl;
+	    // }
+	    // if(is_fiber){
+	    //   AddFiberRawHit(name, plane, seg, ch, data, val);
+	    //   std::cout << "is_fiber: " << n << std::endl;
+	    // }
+            // if(is_dc){
+	    //   AddDCRawHit(name, plane, seg, ch, data, val);
+	    //   std::cout << "is_dc: " << n << std::endl;
+	    // }
           }
         }
       }
@@ -205,6 +220,8 @@ RawData::AddFiberRawHit(const TString& name, Int_t plane, Int_t seg,
     p->SetAdcHigh(ch, val);
   }else if(data == gUnpacker.get_data_id(name, "lowgain")){
     p->SetAdcLow(ch, val);
+  }else if(data == gUnpacker.get_data_id(name, "crs_cnt")){
+    return true;
   }else{
     hddaq::cerr << FUNC_NAME << " wrong data type " << std::endl
                 << " Detector   = " << name  << std::endl

@@ -132,8 +132,8 @@ ProcessingNormal()
 
   HF1(1, 1);
 
-#if 0  
-  { 
+#if 0
+  {
     // from Rawdata
     const auto& cont = rawData.GetHodoRawHC("RAYRAW");
     Int_t nh = cont.size();
@@ -193,7 +193,7 @@ ProcessingNormal()
     } // for nh
 #endif
 
-#if 0  
+#if 0
     { // for single waveform
       // from Rawdata
       const auto& cont = rawData.GetHodoRawHC("RAYRAW");
@@ -308,7 +308,7 @@ ProcessingNormal()
 	// if(tdc_l != 0 ){
 	//   if(min_l < tdc_l && tdc_l < max_l){
 	//     leading_hit_in += 1;
-	//   }else{ 
+	//   }else{
 	//     leading_hit_out += 1;
 	//   }
 	// }
@@ -388,22 +388,22 @@ ProcessingNormal()
 	// // Raw Waveform w/ leading
 	// if( leading_hit_in > 0){
 	//   HF2(hid_wf_wl, j, fadc);
-	// }	
+	// }
 
 	// // Raw Waveform w/o leading
 	// if( leading_hit_out > 0){
 	//   HF2(hid_wf_wol, j, fadc);
-	// }	
+	// }
 
 	// // Raw Waveform w/ trailing
 	// if( trailing_hit_in > 0){
 	//   HF2(hid_wf_wt, j, fadc);
-	// }	
+	// }
 
 	// // Raw Waveform w/o trailing
 	// if( trailing_hit_in > 0){
 	//   HF2(hid_wf_wot, j, fadc);
-	// }	
+	// }
 
       } // for ADC block
 
@@ -416,18 +416,18 @@ ProcessingNormal()
       // // Max ADC w/ leading
       // if( leading_hit_in > 0){
       // 	HF1(hid_adc_wl, max_adc);
-      // }	
+      // }
 
       // // Max ADC w/o leading
       // if( leading_hit_out > 0){
       // 	HF1(hid_adc_wol, max_adc);
-      // }	
+      // }
 
     } // for nh
 
     //    std::cout << "Efficiency = " << true_hit/nh << std::endl;
 #endif
-    
+
 // #if 0
 //     // T2
 //     hodoAna->DecodeRayrawHits(rawData);
@@ -467,7 +467,7 @@ ProcessingNormal()
 
 // 	// Charge
 // 	double charge1 = hit->GetQ();
-// 	Int_t hid = RayrawHid + (seg)*100+4;      
+// 	Int_t hid = RayrawHid + (seg)*100+4;
 // 	HF1(hid, charge1);
 
 // 	// Charge w/ TDC
@@ -608,7 +608,7 @@ ConfMan::InitializeHistograms()
     // sprintf(buf, "RAYRAW - Wave Height (ch%d)", seg);
     // hid = RayrawHid + (seg)*1000 + 1;
     // HB1( hid, buf, NbinFADC_Y, MinFADC, MaxFADC);
-    
+
     // for(Int_t i=0; i<10000; i++){
 
     //   sprintf(buf, "RAYRAW - Raw Waveform Single(ch%d)", seg);
@@ -616,7 +616,7 @@ ConfMan::InitializeHistograms()
     //   HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
 
     // }
-    
+
     // for(Int_t i=0; i<100; i++){
 
     //   sprintf(buf, "RAYRAW - Raw Waveform Single(ch%d)", seg);
