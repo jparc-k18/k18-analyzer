@@ -120,7 +120,7 @@ RawData::DecodeHits(const TString& name)
 	    if(is_fiber)
 	      AddFiberRawHit(name, plane, seg, ch, data, val);
             if(is_dc)
-	    AddDCRawHit(name, plane, seg, ch, data, val);
+	      AddDCRawHit(name, plane, seg, ch, data, val);
             // if(is_hodo){
 	    //   AddHodoRawHit(name, plane, seg, ch, data, val);
 	    //   std::cout << "is_hodo: " << n << std::endl;
