@@ -208,11 +208,6 @@ ProcessingNormal()
 	    event.pedestal.push_back(fadc);
 	  }
 
-	// if(event.evnum < 100){
-	//   //	  HF1(hid_single, fadc);
-	//   HF2(hid_single, j, fadc);
-	// }
-
 	// Max ADC
 	if(MinRange <= nsample && nsample <= MaxRange){
 	  integral += fadc - baseline[seg];
