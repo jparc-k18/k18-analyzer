@@ -33,6 +33,8 @@ using S2sTC = std::vector<S2sTrack*>;
 using HodoHC = std::vector<HodoHit*>;
 using HodoCC = std::vector<HodoCluster*>;
 
+// geant4
+using DCPC = TTreeReaderArray<TParticle>;
 // no use
 using MWPCClusterContainer = std::vector<MWPCCluster*>;
 using K18TrackU2DContainer = std::vector<K18TrackU2D*>;
@@ -72,6 +74,9 @@ private:
   DCLocalTC              m_SdcInSdcOutTC;
   std::vector<DCLocalTC> m_SdcInExTC;
   std::vector<DCLocalTC> m_SdcOutExTC;
+  // geant4
+  map_t<const DCPC*> m_SdcInPC;
+  map_t<const DCPC*> m_SdcOutPC;
   // no use
   std::vector<MWPCClusterContainer>  m_MWPCClCont;
   K18TrackU2DContainer               m_K18U2DTC;
@@ -91,6 +96,8 @@ public:
   Bool_t DecodeSdcOutHitsGeant4(const TTreeReaderArray<TParticle>& sdc3,
 				const TTreeReaderArray<TParticle>& sdc4,
 				const TTreeReaderArray<TParticle>& sdc5);
+  Bool_t DecodeSdcHitsGeant4(TString SdcName, Int_t PlMinSdc,
+			     std::vector<DCHC>& HC, map_t<const DCPC*>& PC);
   void DecodeHitsGeant4(const TString& name,
 			const std::vector<Int_t>& plane, const std::vector<Int_t>& layer,
 			const std::vector<TVector3>& lpos, const std::vector<Double_t>& de);

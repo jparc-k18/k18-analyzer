@@ -356,42 +356,10 @@ Bool_t
 DCAnalyzer::DecodeSdcInHitsGeant4(const TTreeReaderArray<TParticle>& sdc1,
 				  const TTreeReaderArray<TParticle>& sdc2)
 {
-  static const auto& digit_info =
-    hddaq::unpacker::GConfig::get_instance().get_digit_info();
-  m_SdcInHC.clear();
-  Int_t plane_offset = 0;
-  // std::map< TString, TTreeReaderArray<TParticle> > SdcInParticleList;
-  // SdcInParticleList["SDC1"] = sdc1;
-  // SdcInParticleList["SDC2"] = sdc2;
-  for(const auto& name: DCNameList.at("SdcIn")){
-    Int_t id = digit_info.get_device_id(name.Data());
-    Int_t n_plane = digit_info.get_n_plane(id);
-    std::vector<Int_t> planeArr;
-    std::vector<Int_t> layerArr;
-    std::vector<TVector3> lposArr;
-    std::vector<Double_t> deArr;
-    const auto& particles = (name == "SDC1") ? sdc1 : sdc2;
-    for(const auto& particle: particles){
-      Int_t plane = particle.GetSecondMother() - 101;
-      Int_t layer = PlMinSdcIn + plane_offset + plane;
-      TVector3 lpos( particle.Vx(),
-		     particle.Vy(),
-		     particle.Vz() );
-      Double_t de = particle.Energy();
-      planeArr.push_back(plane);
-      layerArr.push_back(layer);
-      lposArr.push_back(lpos);
-      deArr.push_back(de);
-    }
-    DecodeHitsGeant4(name, planeArr, layerArr, lposArr, deArr);
-    m_SdcInHC.resize(n_plane + m_SdcInHC.size());
-    for(const auto& hit: m_dc_hit_collection.at(name)){
-      if(hit && hit->CalcDCObservablesGeant4()){
-	m_SdcInHC[hit->PlaneId() + plane_offset].push_back(hit);
-      }
-    }
-    plane_offset += n_plane;
-  }
+  m_SdcInPC.clear();
+  m_SdcInPC["SDC1"] = &sdc1;
+  m_SdcInPC["SDC2"] = &sdc2;
+  DecodeSdcHitsGeant4("SdcIn", PlMinSdcIn, m_SdcInHC, m_SdcInPC);
   return true;
 }
 
@@ -401,30 +369,35 @@ DCAnalyzer::DecodeSdcOutHitsGeant4(const TTreeReaderArray<TParticle>& sdc3,
 				   const TTreeReaderArray<TParticle>& sdc4,
 				   const TTreeReaderArray<TParticle>& sdc5)
 {
+  m_SdcOutPC.clear();
+  m_SdcOutPC["SDC3"] = &sdc3;
+  m_SdcOutPC["SDC4"] = &sdc4;
+  m_SdcOutPC["SDC5"] = &sdc5;
+  DecodeSdcHitsGeant4("SdcOut", PlMinSdcOut, m_SdcOutHC, m_SdcOutPC);
+  return true;
+}
+
+//_____________________________________________________________________________
+Bool_t
+DCAnalyzer::DecodeSdcHitsGeant4(TString SdcName, Int_t PlMinSdc,
+				std::vector<DCHC>& HC, map_t<const DCPC*>& PC)
+{
   static const auto& digit_info =
     hddaq::unpacker::GConfig::get_instance().get_digit_info();
-  m_SdcOutHC.clear();
+  HC.clear();
   Int_t plane_offset = 0;
-  // std::map< TString, TTreeReaderArray<TParticle> > SdcOutParticleList;
-  // SdcOutParticleList["SDC3"] = sdc3;
-  // SdcOutParticleList["SDC4"] = sdc4;
-  // SdcOutParticleList["SDC5"] = sdc5;
-  for(const auto& name: DCNameList.at("SdcOut")){
+  for(const auto& name: DCNameList.at(SdcName)){
     Int_t id = digit_info.get_device_id(name.Data());
     Int_t n_plane = digit_info.get_n_plane(id);
     std::vector<Int_t> planeArr;
     std::vector<Int_t> layerArr;
     std::vector<TVector3> lposArr;
     std::vector<Double_t> deArr;
-    const auto& particles =
-      (name == "SDC3") ? sdc3 :
-      ((name == "SDC4") ? sdc4 : sdc5);
-    for(const auto& particle: particles){
+    for(const auto& particle: *PC.at(name)){
+      if(particle.GetFirstMother()!=0) continue;
       Int_t plane = particle.GetSecondMother() - 101;
-      Int_t layer = PlMinSdcOut + plane_offset + plane;
-      TVector3 lpos( particle.Vx(),
-		     particle.Vy(),
-		     particle.Vz() );
+      Int_t layer = PlMinSdc + plane_offset + plane;
+      TVector3 lpos( particle.Vx(), particle.Vy(), particle.Vz() );
       Double_t de = particle.Energy();
       planeArr.push_back(plane);
       layerArr.push_back(layer);
@@ -432,10 +405,10 @@ DCAnalyzer::DecodeSdcOutHitsGeant4(const TTreeReaderArray<TParticle>& sdc3,
       deArr.push_back(de);
     }
     DecodeHitsGeant4(name, planeArr, layerArr, lposArr, deArr);
-    m_SdcOutHC.resize(n_plane + m_SdcOutHC.size());
+    HC.resize(n_plane + HC.size());
     for(const auto& hit: m_dc_hit_collection.at(name)){
       if(hit && hit->CalcDCObservablesGeant4()){
-	m_SdcOutHC[hit->PlaneId() + plane_offset].push_back(hit);
+	HC[hit->PlaneId() + plane_offset].push_back(hit);
       }
     }
     plane_offset += n_plane;
