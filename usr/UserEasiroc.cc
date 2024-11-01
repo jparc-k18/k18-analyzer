@@ -182,10 +182,10 @@ Event::clear()
   }
 
   //aft cluster
-  aft_ncl   = qnan;
+  aft_ncl   = 0;
   aft_desum = qnan;
   for(Int_t it=0; it<MaxCluster; it++){
-	aft_clsize[it]  = qnan;
+	aft_clsize[it]  = 0;
 	aft_clseg[it]   = qnan;
 	aft_cltot[it]   = qnan;
 	aft_clde[it]    = qnan;
@@ -234,12 +234,12 @@ ProcessingNormal()
   static const Double_t MinTimeBFT = gUser.GetParameter("TimeBFT", 0);
   static const Double_t MaxTimeBFT = gUser.GetParameter("TimeBFT", 1);
   static const Double_t MinTimeAFT = gUser.GetParameter("TimeAFT", 0);
-  static const Double_t MaxTimeAFT = gUser.GetParameter("TimeAFT", 1);  
+  static const Double_t MaxTimeAFT = gUser.GetParameter("TimeAFT", 1);
 #endif
 #if DE_CUT
   static const Double_t MinDeAFT   = gUser.GetParameter("DeAFT", 0);
   static const Double_t MaxDeAFT   = gUser.GetParameter("DeAFT", 1);
-#endif 
+#endif
 
   RawData rawData;
   rawData.DecodeHits("TFlag");
@@ -517,7 +517,7 @@ ProcessingNormal()
     //HF1(AFTHid+plane*1000+1, event.aft_nhits[plane]);
   }
 
-  //AFT cluster 
+  //AFT cluster
 #if TIME_CUT
   hodoAna.TimeCut("AFT", MinTimeAFT, MaxTimeAFT);
 #endif
@@ -561,7 +561,7 @@ ProcessingNormal()
 
   //aft_analysis
   int multiplicity_pair[18] = { 0 };
-  for(int ud=0; ud<kUorD; ud++){ 
+  for(int ud=0; ud<kUorD; ud++){
     for(int plane=0; plane<NumOfPlaneAFT; plane++){
       std::vector<std::pair<int,int>> adc_seg_pair;
       int multiplicity = 0;
@@ -577,7 +577,7 @@ ProcessingNormal()
 	  bool MeanTimecut = ( MinTimeAFT<mt && mt<MaxTimeAFT);
 	  bool Decut   = ( 0.2<de_high );
 	  if( Timecut )  HF2(AFTHid+plane*1000+62+ud, adc, tot);
-	  if (MeanTimecut ) HF2(AFTHid+plane*1000+64+ud, de_high, mt); 
+	  if (MeanTimecut ) HF2(AFTHid+plane*1000+64+ud, de_high, mt);
 	  if( MeanTimecut && Decut){
 	    multiplicity++;
 	    HF1(AFTHid+plane*1000+2, s);
@@ -589,7 +589,7 @@ ProcessingNormal()
 	  if(1000<adc) adc_seg_pair.push_back( {adc, s} );
 	}
       }//for seg
-      if(ud==0) multiplicity_pair[plane/2] += multiplicity; 
+      if(ud==0) multiplicity_pair[plane/2] += multiplicity;
       if( ((plane%2)==1) && (ud==0) )  HF1(AFTHid+(plane/2)*1000+1, multiplicity_pair[plane/2]);
       if(!adc_seg_pair.empty()){
 	std::sort(adc_seg_pair.rbegin(), adc_seg_pair.rend());
