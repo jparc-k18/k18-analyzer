@@ -20,10 +20,13 @@ dst_build_dir	= $(dst_dir)/build
 root_config	= root-config
 root_include	= $(shell $(root_config) --cflags)
 root_libs	= $(shell $(root_config) --libs) -lMinuit -lEG -lSpectrum -lGeom -lEve
+root_ldflag	= $(shell $(root_config) --ldflags)
+root_cint	= rootcling
+
 #
 # HDDAQ Unpacker
-#unpacker_config		= unpacker-config
-unpacker_config         = /group/had/sks/software/unpacker/dev/bin/unpacker-config
+unpacker_config		= unpacker-config
+#unpacker_config         = /group/had/sks/software/unpacker/dev/bin/unpacker-config
 unpacker_include	= $(shell $(unpacker_config) --include)
 unpacker_libs		= $(shell $(unpacker_config) --libs)
 #
@@ -40,7 +43,7 @@ FLAGS	= $(CFLAGS) $(DFLAGS) -I. $(root_include) \
 #
 lib_objs	= $(lib_dir)/libK18Analyzer.a
 k18lib		= -L$(lib_dir)/ -lK18Analyzer
-libs		= $(root_libs) $(unpacker_libs) -lrt -ltbb
+libs		= $(root_libs) $(unpacker_libs) -lrt
 #
 core_srcs	= $(wildcard $(src_dir)/*.cc)
 headers		= $(wildcard $(include_dir)/*.hh)
@@ -63,6 +66,7 @@ echo	:= /bin/echo -e
 mkdir	:= mkdir -p
 mv	:= mv -f
 rm	:= rm -rfv
+cp      := cp -fr
 # escape sequence
 ifeq ($(color),1)
 default_color	= \033[0m

@@ -3,7 +3,7 @@
 #ifndef DC_GEOM_RECORD_HH
 #define DC_GEOM_RECORD_HH
 
-
+#include <TString.h>
 #include <string>
 #include <functional>
 

@@ -3,6 +3,7 @@
 #ifndef TPC_POSITION_CORRECTOR_HH
 #define TPC_POSITION_CORRECTOR_HH
 
+#include <TString.h>
 #include <string>
 #include <vector>
 #include <TVector3.h>

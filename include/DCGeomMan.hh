@@ -3,6 +3,7 @@
 #ifndef DC_GEOM_MAN_HH
 #define DC_GEOM_MAN_HH
 
+#include <TString.h>
 #include "ThreeVector.hh"
 #include <string>
 #include <vector>
