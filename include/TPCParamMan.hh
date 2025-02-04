@@ -7,6 +7,27 @@
 #include <TMath.h>
 #include <TString.h>
 
+class TPCResParam
+{
+public:
+  TPCResParam(const std::vector<Double_t> params)
+    : m_params(params)
+    {}
+  ~TPCResParam()
+    {}
+
+private:
+  TPCResParam();
+  TPCResParam(const TPCResParam&);
+  TPCResParam& operator =(const TPCResParam&);
+
+private:
+  std::vector<Double_t> m_params;
+
+public:
+  const std::vector<Double_t>& Params() const { return m_params; }
+};
+
 //_____________________________________________________________________________
 class TPCAParam
 {
@@ -143,21 +164,30 @@ private:
 
 private:
   //  enum eAorT { kAdc, kTdc, kY, kATY };
-  enum eAorT { kAdc, kTdc, kY, kCobo };
+  enum eAorT { kAdc, kTdc, kY, kCobo, kRes };
   typedef std::map<Int_t, TPCAParam*> AContainer;
   typedef std::map<Int_t, TPCTParam*> TContainer;
   typedef std::map<Int_t, TPCYParam*> YContainer;
   typedef std::map<Int_t, TPCCoboParam*> CoboContainer;
+  typedef std::map<Int_t, TPCResParam*> ResContainer;
+  
   typedef AContainer::const_iterator AIterator;
   typedef TContainer::const_iterator TIterator;
   typedef YContainer::const_iterator YIterator;
   typedef CoboContainer::const_iterator CoboIterator;
+  typedef ResContainer::const_iterator ResIterator;
   Bool_t        m_is_ready;
   TString       m_file_name;
   AContainer    m_APContainer;
   TContainer    m_TPContainer;
   YContainer    m_YPContainer;
   CoboContainer m_CoboContainer;
+  ResContainer m_ResContainer;
+
+  std::vector<Double_t> m_Res_HSON_Inner;
+  std::vector<Double_t> m_Res_HSON_Outer;
+  std::vector<Double_t> m_Res_HSOFF_Inner;
+  std::vector<Double_t> m_Res_HSOFF_Outer;
 
 public:
   Bool_t GetCDe(Int_t layer, Int_t row, Double_t de, Double_t &cde) const;
@@ -183,7 +213,22 @@ private:
   TPCTParam*    GetTmap(Int_t layer, Int_t row) const;
   TPCYParam*    GetYmap(Int_t layer, Int_t row) const;
   TPCCoboParam* GetCobomap(Int_t Cobo) const;
+  TPCResParam*  GetResmap(Int_t B, Int_t InnerOrOuter) const;
+
+public:
+  static const std::vector<Double_t>& TPCResolutionParams(Bool_t HSOn, Bool_t Inner);
 };
+
+//_____________________________________________________________________________
+inline const std::vector<Double_t>&
+TPCParamMan::TPCResolutionParams(Bool_t HSOn, Bool_t Inner)
+{
+  if(!HSOn&&Inner) return GetInstance().m_Res_HSOFF_Inner;
+  if(!HSOn&&!Inner) return GetInstance().m_Res_HSOFF_Outer;
+  if(HSOn&&Inner) return GetInstance().m_Res_HSON_Inner;
+  //if(HSOn&&!Inner) return GetInstance().m_Res_HSON_Outer;
+  return GetInstance().m_Res_HSON_Outer;
+}
 
 //_____________________________________________________________________________
 inline const TString&

@@ -44,6 +44,8 @@
 #include "TPCLocalTrack.hh"
 #include "TPCLocalTrackHelix.hh"
 #include "TPCTrackSearch.hh"
+#include "TPCPatternRecognition.hh"
+#include "TPCRiemannTrack.hh"
 
 #define DefStatic
 #include "DCParameters.hh"
@@ -159,6 +161,7 @@ DCAnalyzer::DCAnalyzer()
     m_is_decoded[i] = false;
     m_much_combi[i] = 0;
   }
+  tpcPR = new TPCPatternRecognition();
   debug::ObjectCounter::increase(ClassName());
 }
 
@@ -393,6 +396,30 @@ DCAnalyzer::DecodeTPCHits(RawData *rawData, Double_t clock)
 
 //_____________________________________________________________________________
 Bool_t
+DCAnalyzer::MakeUpTPCClustersGeant4(const TPCHitContainer& HitCont,
+                              TPCClusterContainer& ClCont,
+                              Double_t maxdy)
+{
+  const auto nh = HitCont.size();
+  if(nh==0) return false;
+  
+  std::vector<Int_t> joined(nh, 0);
+  for(Int_t i=0; i<nh; ++i){
+    TPCHitContainer CandCont;
+    TPCHit* hit = HitCont[i];
+    Int_t layer = hit->GetLayer();
+    CandCont.push_back(hit);
+    TPCCluster* cluster = new TPCCluster(layer, CandCont);
+    if(!cluster) continue;
+    cluster->Calculate();
+    ClCont.push_back(cluster);
+  }
+
+  return true;
+}
+
+//_____________________________________________________________________________
+Bool_t
 DCAnalyzer::ReCalcTPCHits(const Int_t nhits,
                           const std::vector<Int_t>& pad,
                           const std::vector<Double_t>& time,
@@ -470,7 +497,7 @@ DCAnalyzer::DecodeTPCHitsGeant4(const Int_t nhits,
 #if 1
   static const Double_t MaxYDif = gUser.GetParameter("MaxYDifClusterTPC");
   for(Int_t layer=0; layer<NumOfLayersTPC; ++layer){
-    MakeUpTPCClusters(m_TPCHitCont[layer], m_TPCClCont[layer], MaxYDif);
+    MakeUpTPCClustersGeant4(m_TPCHitCont[layer], m_TPCClCont[layer], MaxYDif);
   }
 #endif
 
@@ -1100,6 +1127,23 @@ DCAnalyzer::TrackSearchTPCHelix(std::vector<std::vector<TVector3>> K18VPs,
 
 //_____________________________________________________________________________
 Bool_t
+DCAnalyzer::TrackSearchTPCG4Riemann()
+{
+
+  if (!tpcPR->ReadGeant4(m_TPCHitCont)) {    
+    std::cout << "Error"<< std::endl;
+    return false;
+  }
+  
+  tpcPR->Execute();
+  m_TPCTC_Riemann = tpcPR->GetFinalTracks();
+  delete tpcPR;
+  
+  return true;
+}
+
+//_____________________________________________________________________________
+Bool_t
 DCAnalyzer::TestHoughTransform()
 {
   static const Int_t MinLayer = gUser.GetParameter("MinLayerTPC");
@@ -1117,6 +1161,8 @@ DCAnalyzer::TestHoughTransformHelix()
   tpc::HoughTransformTestHelix(m_TPCClCont, m_TPCTCHelix, MinLayer);
   return true;
 }
+
+
 
 //_____________________________________________________________________________
 void
@@ -1271,6 +1317,7 @@ DCAnalyzer::ClearTracksTPC()
   del::ClearContainer(m_TPCTCFailed);
   del::ClearContainer(m_TPCTCHelix);
   del::ClearContainer(m_TPCTCHelixFailed);
+  del::ClearContainer(m_TPCTC_Riemann);
 }
 
 //_____________________________________________________________________________

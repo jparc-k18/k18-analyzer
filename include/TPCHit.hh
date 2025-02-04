@@ -54,6 +54,8 @@ protected:
   std::vector<Double_t> m_drift_length; // this means Y (beam height = 0)
   std::vector<TVector3> m_position;
   Bool_t                m_is_good;
+  Bool_t                m_is_beam_cand;
+  Bool_t                m_is_kurama_cand;
   Int_t                 m_is_calculated;
   Int_t                 m_hough_flag;
   std::vector<Int_t>    m_houghY_num;
@@ -68,6 +70,10 @@ protected:
   DCHit* m_hit_yz;
 
   std::vector<TPCLTrackHit*> m_register_container;
+
+  Double_t m_s;
+  Int_t m_trackID;
+  Int_t m_clusterID;
 
 public:
   void            AddHit(Double_t de, Double_t time, Double_t sigma=0.,
@@ -100,6 +106,18 @@ public:
   Double_t        GetX(Int_t i=0) const { return m_position.at(i).X(); }
   Double_t        GetY(Int_t i=0) const { return m_position.at(i).Y(); }
   Double_t        GetZ(Int_t i=0) const { return m_position.at(i).Z(); }
+  Double_t        GetR(Int_t i=0) const {
+    return sqrt(m_position.at(i).X()*m_position.at(i).X() + (m_position.at(i).Z()+143)*(m_position.at(i).Z()+143));
+  }
+  Double_t        GetTheta(Int_t i = 0) const {
+    return TMath::ATan2(m_position.at(i).X()*m_position.at(i).X() + (143.+m_position.at(i).Z())* ( 143.+m_position.at(i).Z()),m_position.at(i).Y());
+  }
+  Double_t        GetPhi(Int_t i = 0) const {
+    return TMath::ATan2(m_position.at(i).X(),m_position.at(i).Z() + 143.);
+  }    
+  Double_t        GetAlpha(Int_t i = 0) const {
+    return TMath::ATan2(m_position.at(i).Z() + 143. , m_position.at(i).X());
+  }    
   DCHit*          GetHitXZ() const { return m_hit_xz; }
   DCHit*          GetHitYZ() const { return m_hit_yz; }
   //Double_t        GetMPadTheta() const { return m_mpadtheta; }
@@ -147,6 +165,18 @@ public:
   void            SetHoughDist(Double_t hough_dist) { m_hough_dist = hough_dist; }
   void            SetHoughDistY(Double_t hough_disty) { m_hough_disty = hough_disty; }
   void            SetPull(Double_t pull) { m_pull = pull; }
+  void            SetS(Double_t val) {m_s = val;}
+  Double_t        GetS() const { return m_s;}
+  void            SetTrackID(Int_t trackID) { m_trackID = trackID;}
+  Int_t           GetTrackID() const {return m_trackID;}
+
+  void            SetClusterID(Int_t clusterID) { m_clusterID = clusterID;}
+  Int_t           GetClusterID() const {return m_clusterID;}
+  void            SetIsBeamCand(Bool_t flag) { m_is_beam_cand = flag;}
+  Bool_t          GetIsBeamCand() const {return m_is_beam_cand;}
+  
+  void            SetIsKuramaCand(Bool_t flag) { m_is_kurama_cand = flag;}
+  Bool_t          GetIsKuramaCand() const {return m_is_kurama_cand;}
 protected:
   void ClearRegisteredHits();
 };

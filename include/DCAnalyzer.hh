@@ -23,6 +23,9 @@ class TPCHit;
 class TPCCluster;
 class TPCLocalTrack;
 class TPCLocalTrackHelix;
+class TPCLinearTrack;
+class TPCRiemannTrack;
+class TPCPatternRecognition;
 
 class Hodo1Hit;
 class Hodo2Hit;
@@ -39,6 +42,8 @@ typedef std::vector<TPCHit*>        TPCHitContainer;
 typedef std::vector<TPCCluster*>    TPCClusterContainer;
 typedef std::vector<TPCLocalTrack*> TPCLocalTrackContainer;
 typedef std::vector<TPCLocalTrackHelix*> TPCLocalTrackHelixContainer;
+typedef std::vector<TPCRiemannTrack*> TPCRiemannTrackContainer;
+typedef std::vector<TPCLinearTrack*> TPCLinearTrackContainer;
 
 typedef std::vector<Hodo1Hit*> Hodo1HitContainer;
 typedef std::vector<Hodo2Hit*> Hodo2HitContainer;
@@ -81,6 +86,8 @@ private:
   TPCLocalTrackContainer             m_TPCTCFailed;
   TPCLocalTrackHelixContainer        m_TPCTCHelix;
   TPCLocalTrackHelixContainer        m_TPCTCHelixFailed;
+  TPCRiemannTrackContainer           m_TPCTC_Riemann;
+  TPCLinearTrackContainer            m_TPCTC_Linear;
   K18TrackU2DContainer               m_K18U2DTC;
   K18TrackD2UContainer               m_K18D2UTC;
   KuramaTrackContainer               m_KuramaTC;
@@ -89,6 +96,7 @@ private:
   std::vector<DCLocalTrackContainer> m_SdcInExTC;
   std::vector<DCLocalTrackContainer> m_SdcOutExTC;
 
+  TPCPatternRecognition              *tpcPR;
 public:
   Int_t  MuchCombinationSdcIn() const { return m_much_combi[kSdcIn]; }
   Bool_t DecodeRawHits(RawData* rawData);
@@ -134,6 +142,7 @@ public:
   Bool_t TrackSearchTPCHelix(std::vector<std::vector<TVector3>> K18VPs,
 			     std::vector<std::vector<TVector3>> KuramaVPs,
 			     Bool_t exclusive=false);
+  Bool_t TrackSearchTPCG4Riemann();
   Bool_t TestHoughTransform();
   Bool_t TestHoughTransformHelix();
 
@@ -145,6 +154,7 @@ public:
   Int_t GetNTracksTPCFailed() const { return m_TPCTCFailed.size(); }
   Int_t GetNTracksTPCHelix() const { return m_TPCTCHelix.size(); }
   Int_t GetNTracksTPCHelixFailed() const { return m_TPCTCHelixFailed.size(); }
+  Int_t GetNTracksTPCRiemann() const { return m_TPCTC_Riemann.size(); }
   // Exclusive Tracks
   Int_t GetNtracksSdcInEx(Int_t l) const { return m_SdcInExTC.at(l).size(); }
   Int_t GetNtracksSdcOutEx(Int_t l) const { return m_SdcOutExTC.at(l).size(); }
@@ -157,6 +167,13 @@ public:
   TPCLocalTrack* GetTrackTPCFailed(Int_t l) const { return m_TPCTCFailed.at(l); }
   TPCLocalTrackHelix* GetTrackTPCHelix(Int_t l) const { return m_TPCTCHelix.at(l); }
   TPCLocalTrackHelix* GetTrackTPCHelixFailed(Int_t l) const { return m_TPCTCHelixFailed.at(l); }
+  TPCRiemannTrack* GetTrackTPCRiemann(Int_t l) const {
+    return m_TPCTC_Riemann.at(l);
+  }
+  TPCLinearTrack* GetTrackTPCLinear(Int_t l) const {
+    return m_TPCTC_Linear.at(l);
+  }
+  TPCRiemannTrackContainer GetTrackTPCRiemann() const {return m_TPCTC_Riemann;}
   // Exclusive Tracks
   DCLocalTrack* GetTrackSdcInEx(Int_t l, Int_t i) const
     { return m_SdcInExTC.at(l).at(i); }
@@ -264,6 +281,9 @@ protected:
   void TotCut(DCHitContainer& cont, Double_t min_tot, Bool_t adopt_nan);
   void DriftTimeCut(DCHitContainer& cont, Double_t min_dt, Double_t max_dt, Bool_t select_1st);
   static Bool_t MakeUpTPCClusters(const TPCHitContainer& HitCont,
+                                  TPCClusterContainer& ClCont,
+                                  Double_t maxdy);
+  static Bool_t MakeUpTPCClustersGeant4(const TPCHitContainer& HitCont,
                                   TPCClusterContainer& ClCont,
                                   Double_t maxdy);
   static Int_t MakeUpMWPCClusters(const DCHitContainer& HitCont,
