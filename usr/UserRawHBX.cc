@@ -1,7 +1,7 @@
 /**
  *  file: UserHBX.cc
  *  Ref. file: UserSkeleton.cc
- *  date: 2023.06.13
+ *  fineal update: 2025.01.20
  *
  */
 
@@ -24,7 +24,7 @@
 #include "UnpackerManager.hh"
 #include "VEvent.hh"
 #include "Unpacker.hh"
-
+#include "defines.hh"
 ///////////include each Ge gain (ADC ch/keV)/////////////
 
 namespace
@@ -39,6 +39,7 @@ namespace
 namespace
 {
   using namespace hddaq::unpacker;
+  using namespace hddaq;
   const UnpackerManager& gUnpacker = GUnpacker::get_instance();
 }
 
@@ -280,6 +281,7 @@ enum eDetHid{
 bool
 ProcessingBegin()
 {
+  //gUnpacker.get_root()->set_dump_mode(defines::k_hex);
   event.clear();
   dst.clear();
   return true;
@@ -289,17 +291,94 @@ ProcessingBegin()
 bool
 ProcessingNormal()
 {
+  //return true;
+  //std::cout<<1234<<std::endl;
   // static const double MinTFACUT = gUser.GetParameter("TCut", 0);
   // static const double MaxTFACUT = gUser.GetParameter("TCut", 1);
-  static const double MinTFACUT = 3800;
+  //static const double MinTFACUT = 3800;
+  static const double MinTFACUT = 3000;
   static const double MaxTFACUT = 4300;//decided by run4028 tmpdata
   // static const double MinCRMCUT = gUser.GetParameter("CCut", 0);
   // static const double MaxCRMCUT = gUser.GetParameter("CCut", 1);
   static const double MinCRMCUT = 3800;
+
   static const double MaxCRMCUT = 4300;//decided by run4028 2024/4/22 tmp data
   //  static const int MinBGOCUT = gUser.GetParameter("BCut", 0);
   //  static const int MaxBGOCUT = gUser.GetParameter("BCut", 1);
+  
+  //read gain of each ge crystal analyzed by offline analysis//                                                           
+  //std::ifstream fin("gain.txt");
+  double Gain[32]; //0-15 gain (spill on) , 16-31 gain(spill off)        
+  double Gain_on[32];
+  double b[32];
+  double b_on[32];
+  //spill off gain//
+  //slot1                                                                                                                                              
+  Gain[0] = 0.204865;
+  Gain[1] = 0.203807;
+  Gain[2] = 0.204777;
+  Gain[3] = 0.205762;
+  //slot2                                                                                                                                              
+  Gain[4] = 0.203575;
+  Gain[5] = 0.202507;
+  Gain[6] = 0.204467;
+  Gain[7] = 0.207610;
+  //slot3                                                                                                                                              
+  Gain[8] = 0.202981;
+  Gain[9] = 0.203005;
+  Gain[10] = 0.204589;
+  Gain[11] = 0.163591;
+  //slot4                                                                                                                                              
+  Gain[12] = 0.174917;
+  Gain[13] = 0.204430;
+  Gain[14] = 0.207000;
+  Gain[15] = 0.206852;
+  
+  //spill on gain//
+  //slot1                                                                                                                                              
+  Gain_on[0] = 0.204865;
+  Gain_on[1] = 0.203807;
+  Gain_on[2] = 0.204777;
+  Gain_on[3] = 0.205762;
+  //slot2                                                                                                                                              
+  Gain_on[4] = 0.203575;
+  Gain_on[5] = 0.202507;
+  Gain_on[6] = 0.204467;
+  Gain_on[7] = 0.207610;
+  //slot3                                                                                                                                              
+  Gain_on[8] = 0.202981;
+  Gain_on[9] = 0.203005;
+  Gain_on[10] = 0.204589;
+  Gain_on[11] = 0.163591;
+  //slot4                                                                                                                                              
+  Gain_on[12] = 0.174917;
+  Gain_on[13] = 0.204430;
+  Gain_on[14] = 0.207000;
+  Gain_on[15] = 0.206852;
 
+  //seppen part//
+  b[0]= -1.35968;
+  b[1]= 0.503182;
+  b[2]=-1.49082;
+  b[3]=-2.75001;
+  b[4]=1.18452;
+  b[5]=1.76325;
+  b[6]=-1.28381;
+  b[7]=-6.32111;
+  b[8]=-0.609187;
+  b[9]=1.13474;
+  b[10]=-1.80272;
+  b[11]=1.45404;
+  b[12]=79.2134;
+  b[13]=0.166846;
+  b[14]=-2.74918;
+  b[15]=-3.28362;
+  for(int i=0;i<16;i++){
+    b_on[i] = b[i];
+  }
+  
+  ///////////////////////
+  
   // rawData = new RawData;
   RawData rawData;
   gRM.Decode();
@@ -327,7 +406,7 @@ ProcessingNormal()
       HF1(10, seg);
       HF1(10+seg, tdc);
     }
-  }
+    }
   */
   //-----HUL RM------//
   for(int plane=0; plane<NumOfPlaneHulRm; ++plane){
@@ -354,13 +433,14 @@ ProcessingNormal()
     tdc_flag_max[31] = 10000;
     //trigflag except for 10M clock
     for(int i=0; i<30; i++){
-      tdc_flag_min[i+1] = 3000;
-      tdc_flag_max[i+1] = 4000;
+      tdc_flag_min[i+1] =0;
+      tdc_flag_max[i+1] = 8196;
     }
     static const int device_id = DetIdHBXTFlag;
     for(int seg = 0; seg<NumOfSegTrig; seg++){
       int nhit = 0;
       nhit = gUnpacker.get_entries( device_id, 0, seg, 0, 1);
+      //std::cout<<123<<std::endl;
       if(nhit > 0){
 	int tdc =  gUnpacker.get( device_id, 0, seg, 0, 1);
 	if(tdc_flag_min[seg]<tdc&&tdc<tdc_flag_max[seg]){
@@ -436,7 +516,6 @@ ProcessingNormal()
     if(52<=i&&i<=55)seg_bgo[i] = seg_bgo14[i-52];
     if(56<=i&&i<=59)seg_bgo[i] = seg_bgo15[i-56];
     if(60<=i&&i<=63)seg_bgo[i] = seg_bgo16[i-60];
-    //std::cout<<seg_bgo[i]<<std::endl;
   }
   
   int tdc_bgo[NumOfSegBGO];
@@ -448,7 +527,6 @@ ProcessingNormal()
       tdc_bgo[seg_b] = gUnpacker.get( DetIdBGO, 0, seg_b, 0, 0, 0 );
       ////BGO hitpat wTDC cut
       if(200<tdc_bgo[seg_b]&&tdc_bgo[seg_b]<1500)HF1 (GeHid + 74, double(seg_b) );
-      //tdc_bgo[seg] = 100;
     }
   }
   for(int k=0; k<NumOfSegGe; k++){
@@ -462,15 +540,19 @@ ProcessingNormal()
     nhit_tdc[k] = gUnpacker.get_entries( DetIdGe, 0, k, 0, 1 ); //tdc
     if(nhit_adc[k]>0&&flag_bgo[k]==0&&nhit_tdc[k]>0){
       int adc = gUnpacker.get( DetIdGe, 0, k, 0, 0, 0);
+      //std::cout<<"adc "<<k<<" seg "<<adc<<std::endl;
       int tdc = gUnpacker.get( DetIdGe, 0, k, 0, 1, 0); //tdc(first hit)
-      double energy = adc*0.21;
-      // std::cout<<"ge seg "<<k<<std::endl;
       if(MinTFACUT<tdc&&tdc<MaxTFACUT){
 	HF1 ( GeHid + 100*(k+1) +16, double(adc) ); 
 	if(dst.trigflag[2]>0&&dst.trigflag[6]>0)HF1 ( GeHid + 100*(k+1) +17, double(adc) ); //lsoxge adc(spill off)
-	if(dst.trigflag[1]>0&&dst.trigflag[5]>0){
-	  //std::cout<<"ge seg "<<k<<std::endl;
+	if(dst.trigflag[1]>3500&&dst.trigflag[1]<3700&&dst.trigflag[5]>0){
 	  HF1 ( GeHid + 100*(k+1) +18, double(adc) ); //l1 and spill on adc wTDC and BGO cut
+	  double energy = adc*Gain_on[k]+b_on[k];
+	  //good energy resolutio sement
+	  if(k==1||k==3||k==5||k==6|k==7|k==8||k==9){
+	  HF1 ( GeHid +69, double(energy) ); //All ge crystal energy l1 and spill on energy distribution wTDC and BGO cut
+	  }
+	  HF1 ( GeHid + 100*(k+1) +60, double(energy) ); //l1 and spill on energy distribution wTDC and BGO cut
 	}
       }//tfa cut range
     }//nhitadc&nhittdc&flagbgo
@@ -486,7 +568,7 @@ ProcessingNormal()
     
     if( nhit_a>0 ){
       int adc = gUnpacker.get( DetIdGe, 0, seg, 0, 0, 0);
-      double energy = adc*0.20;
+      //double energy = adc*Gain[seg];
       event.geadc[seg] = adc;
       dst.geAdc[seg] = adc;
       ///adc wo tdc cut///////
@@ -521,30 +603,40 @@ ProcessingNormal()
 	//only L1 and spill on trig adc before tdccut///
 	if(dst.trigflag[1]>0&&dst.trigflag[5]>0){
 	  HF1 ( GeHid + 100*(seg+1) +19, double(adc) );
-	  //HF1 ( GeHid + 100*(seg+1) +55, double(energy) );
+	  double energy = adc*Gain_on[seg]+b_on[seg];
+	  HF1 ( GeHid + 100*(seg+1) +55, double(energy) );
 	}
 	//only spill off and lsoxge trig adc before tdc cut
 	if(dst.trigflag[2]>0&&dst.trigflag[6]>0){
+	  double energy = adc*Gain[seg]+b[seg];
 	  HF1 ( GeHid + 100*(seg+1) +95, double(adc) );
+	  HF1 ( GeHid + 100*(seg+1) +56, double(energy) );
 	}
-      //------adc(w crm)wTrigger flag-----//
+      //------adc(w crm) wTrigger flag-----//
 	if(MinTFACUT<tfa && tfa<MaxTFACUT){ 
 	  if(dst.trigflag[2]>0){//lsoxge
 	    if(dst.trigflag[5]>0){//spill on
 	      HF1( GeHid+100*(seg+1)+11, double(adc) );
 	      HF1( GeHid+100*(seg+1)+12, double(adc) );
-	      //HF1( GeHid+100*(seg+1)+53, double(energy) );
+	      double energy = adc*Gain_on[seg];
+	      HF1( GeHid+100*(seg+1)+57, double(energy) );
 	    }
 	    if(dst.trigflag[6]>0){//spill off
 	      HF1( GeHid+100*(seg+1)+13, double(adc) );//for fit//lsoxge spillof  adc and tdc cut
 	      HF1( GeHid+100*(seg+1)+14, double(adc) );//for fit
 	      HF1( GeHid+100*(seg+1)+94, double(adc) );//for evvent slip
+	      double energy = adc*Gain[seg]+b[seg];
+	      HF1( GeHid+100*(seg+1)+58, double(energy) );
 	    }
 	  }//LSOxGe trig
 	  //////L1 and spill on adc///////
-	  if(dst.trigflag[1]>0&&dst.trigflag[5]>0){
+	  if(dst.trigflag[1]>3500&&dst.trigflag[1]<3600&&dst.trigflag[5]>0){
 	    HF1 ( GeHid + 100*(seg+1) +15, double(adc) );
-	    //HF1 ( GeHid + 100*(seg+1) +55, double(energy) );
+	    double energy = adc*Gain_on[seg] + b_on[seg];
+	    HF1 ( GeHid + 100*(seg+1) +59, double(energy) );
+	    if(seg==1||seg==3||seg==5||seg==6||seg==7||seg==8||seg==9){
+	      HF1 ( GeHid +70, double(energy) );
+	    }//good seg
 	  }
 	}//tfa cut
       }//for nhit_t
@@ -713,12 +805,17 @@ ProcessingNormal()
 	  HF1 (GeHid +79, int(seg4) ); //reset scaler hitpat
 	}
 	
-	scaler_0 = event.scaler[1][0];
-        scaler_15 = event.scaler[1][15];
-	daq_live = scaler_0 - scaler_15; 
+	//scaler_0 = event.scaler[1][0];
+        //scaler_15 = event.scaler[1][15];
+	//std::cout<<"10m clock = "<<scaler_0<<" dead time = "<<scaler_15<<std::endl;
+	//daq_live = scaler_0 - scaler_15;
+	//std::cout<<"daq livetime = "<<daq_live<<std::endl;
 	  
       }//for event scaler
       
+      scaler_0 = event.scaler[1][0];                                                                                               
+      scaler_15 = event.scaler[1][15];   
+      daq_live = scaler_0 - scaler_15;
       //------------------plane num = 0---------
       if(event.scaler[0][seg]>0){
 	//std::cout<<"event scaler plane = 0 number "<<seg<<std::endl;
@@ -727,8 +824,8 @@ ProcessingNormal()
       }
   }//for seg
 
-  if(dst.trigflag[3]>0)HF1 (GeHid+71, int(daq_live));//spill on end daqlivetime   
-  if(dst.trigflag[4]>0)HF1 (GeHid+72, int(daq_live));//spill off end daqlivetime  
+  if(event.trigflag[3]>0)HF1 (GeHid+71, int(daq_live));//spill on end daqlivetime   
+  if(event.trigflag[4]>0)HF1 (GeHid+72, int(daq_live));//spill off end daqlivetime  
   }
   //------Reset rate for each ge crystal-------
   for(int i=0; i<NumOfSegGe; i++){
@@ -744,7 +841,7 @@ ProcessingNormal()
   } 
 
 
-  /* 
+   /* 
   // ---HUL-RM--------------------------------------------------------
   //std::cout << "hul-rm" << std::endl;
   for(int plane=0; plane<NumOfPlaneHulRm; ++plane){
@@ -925,6 +1022,7 @@ namespace
   const double MinGeTdc  =   0.;
   const double MaxGeTdc  = 8192.;
   
+  
   const int    NbinBGOTdc = 8192;
   const double MinBGOTdc  =   0.;
   const double MaxBGOTdc  = 8192.;
@@ -952,7 +1050,7 @@ ConfMan::InitializeHistograms( void )
   for(Int_t i=0; i<NumOfSegTrig; ++i){
     HB1( 10+i+1, Form("Trigger Trig %d", i+1), 0x1000, 0, 0x1000 );
   }
-
+  
   //---Ge ADC & TDC-----------------------------------------------------
   for( int i=1; i<=NumOfSegGe*2; ++i ){
     TString title10  = Form("Ge_671_%d Adc", i);
@@ -986,7 +1084,12 @@ ConfMan::InitializeHistograms( void )
     TString title19  = Form("Ge_671_%d Adc L1 spill on (wo/BGO) wtdc", i);
     TString title19_2  = Form("Ge_671_%d Adc (L1&spillon) (wo tdc& bgo)", i);
     TString title51  = Form("Ge_671_%d energy L1&spillon(wo/BGO)", i);
-    TString title55  = Form("Ge_671_%d energy L1&spillon(all)", i);
+    TString title55  = Form("Ge_671_%d energy L1&spillon wo/tdc", i);
+    TString title56  = Form("Ge_671_%d energy spilloff&LSOxGe wo/tdc", i);
+    TString title57  = Form("Ge_671_%d energy spillon&LSOxGe w/tdc", i);
+    TString title58  = Form("Ge_671_%d energy spilloff&LSOxGe w/tdc", i);
+    TString title59  = Form("Ge_671_%d energy L1&spillon w/tdc", i);
+    TString title60  = Form("Ge_671_%d energy L1&spillon w/tdc&bgo", i);
     TString title61  = Form("Ge_973CRM_%d_20-60keV", i);
     TString title62  = Form("Ge_973CRM_%d_60-100keV", i);
     TString title63  = Form("Ge_973CRM_%d_100-140keV", i);
@@ -1011,7 +1114,12 @@ ConfMan::InitializeHistograms( void )
       HB1( GeHid +100*i +18, title19, NbinAdc, MinAdc, MaxAdc );
       HB1( GeHid +100*i +19, title19_2, NbinAdc, MinAdc, MaxAdc );
       HB1( GeHid +100*i +50, title51, 1000, 0, 1000 );
-      HB1( GeHid +100*i +55, title55, 1000, 0, 1000 );
+      HB1( GeHid +100*i +55, title55, 10000, 0, 1000 );
+      HB1( GeHid +100*i +56, title56, 10000, 0, 1000 );
+      HB1( GeHid +100*i +57, title57, 10000, 0, 1000 );
+      HB1( GeHid +100*i +58, title58, 10000, 0, 1000 );
+      HB1( GeHid +100*i +59, title59, 10000, 0, 1000 );
+      HB1( GeHid +100*i +60, title60, 10000, 0, 1000 );
       HB1( GeHid +100*i +61, title61, 3000, 0, 5000 );
       HB1( GeHid +100*i +62, title62, 3000, 0, 5000 );
       HB1( GeHid +100*i +63, title63, 3000, 0, 5000 );
@@ -1049,18 +1157,24 @@ ConfMan::InitializeHistograms( void )
     HB1( GeHid +100*i +37, title37, NbinGeTdc, MinGeTdc, MaxGeTdc );
     HB1( GeHid +100*i +38, title38, NbinGeTdc, MinGeTdc, MaxGeTdc );
     
-    HB1( GeHid +100*i +40, title40, NbinGeTdc, MinGeTdc, MaxGeTdc );
+    HB1( GeHid +100*i +40, title40, 2000, 0, 20000 );
     HB2( GeHid +100*i +44, title44,
-    	 NbinGeTdc/8, MinGeTdc, MaxGeTdc, NbinAdc/8, MinAdc, MaxAdc);
+    	 2000, 0, 20000, NbinAdc/8, MinAdc, MaxAdc);
 
   }
-
+  //All energy distribution after calib//
+  HB1( GeHid + 69, "Ge energy all (spillon&L1&wtdc wBGO cut)", 1000,0,1000);
+  //All energy wno bgo cut//
+  HB1( GeHid + 70, "Ge energy all (spillon&L1&wtdc woBGO cut)", 1000,0,1000);
+  ////////////////////////////
   //Hits
   //HB1( GeHid +0, "#Hits Ge",        NumOfSegGe+1, 0., double(NumOfSegGe+1) );
   //HB1( GeHid +1, "Hitpat Ge",       NumOfSegGe,   0., double(NumOfSegGe)   );
   //daq livetime
   HB1( GeHid +71, "DAQlivetime(spillon)", 4000,21000000,25000000 );
+  //HB1( GeHid +71, "DAQlivetime(spillon)", 4000,0,100000000 );
   HB1( GeHid +72, "DAQlivetime(spilloff)", 2000, 11000000, 13000000);
+  //HB1( GeHid +72, "DAQlivetime(spilloff)", 2000, 0, 100000000);
   //hitpat
   HB1( GeHid +73, "Ge Hitpat wtdc",  NumOfSegGe+1, 0., double(NumOfSegGe+1) );
   HB1( GeHid +74, "BGO Hitpat wtdc",  NumOfSegBGO+1, 0., double(NumOfSegBGO+1) );
@@ -1143,7 +1257,7 @@ ConfMan::InitializeHistograms( void )
   tree->Branch("gebgot",        event.gebgot,       Form("gebgot[%d][%d]/D", NumOfSegBGO, MaxDepth));
 
   //Ge Scaler
-  tree->Branch("scaler", event.scaler, Form("scaler[%d]/I", NumOfSegScaler));
+  tree->Branch("scaler", event.scaler, Form("scaler[%d][%d]/I", NumOfPlaneScaler, NumOfSegScaler));
 
   /////Dst/////////////////////////////////
   hbx = new TTree( "hbx", "Data Summary Table of hbx" );
