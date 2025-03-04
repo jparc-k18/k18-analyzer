@@ -83,6 +83,10 @@ public:
     { return GetArrayTdcLeading(kUp); }
   const std::vector<Double_t>& GetArrayTdcDown() const
     { return GetArrayTdcLeading(kDown); }
+  const std::vector<Double_t>& GetArrayTdcTrailingUp() const
+    { return GetArrayTdcTrailing(kUp); }
+  const std::vector<Double_t>& GetArrayTdcTrailingDown() const
+    { return GetArrayTdcTrailing(kDown); }  
   const std::vector<Double_t>& GetArrayTdcExtra() const
     { return GetArrayTdcLeading(kExtra); }
   Double_t GetAdc(Int_t i=0, Int_t j=0) const
