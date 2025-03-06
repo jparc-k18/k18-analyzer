@@ -7,6 +7,8 @@
 
 #include "ThreeVector.hh"
 #include "DetectorID.hh"
+#include "K18TrackD2U.hh"
+#include "S2sTrack.hh"
 
 class DCLocalTrack;
 
@@ -204,8 +206,12 @@ private:
   TMarker                   *m_VertexPointYZ;
   std::vector<TPolyLine*>    m_BcOutXZ_line;
   std::vector<TPolyLine*>    m_BcOutYZ_line;
+  std::vector<TPolyLine*>    m_BcOutXZInAFT_line;
+  std::vector<TPolyLine*>    m_BcOutYZInAFT_line;
   std::vector<TPolyLine*>    m_SdcInXZ_line;
   std::vector<TPolyLine*>    m_SdcInYZ_line;
+  std::vector<TPolyLine*>    m_SdcInXZInAFT_line;
+  std::vector<TPolyLine*>    m_SdcInYZInAFT_line;
   TPolyMarker               *m_HSMarkVertexXShs;
   TPolyMarker               *m_S2sMarkVertexXShs;
   TPolyMarker               *m_S2sMarkVertexX;
@@ -242,6 +248,7 @@ public:
   void DrawSdcInLocalTrack(const DCLocalTrack *tp);
   void DrawSdcOutLocalTrack(const DCLocalTrack *tp);
   void DrawSsdHit(Int_t lid, Int_t seg, Double_t de);
+  void DrawLocalTrackInAft(const ThreeVector& vertex, const K18TrackD2U* tkm, const S2sTrack* tkp);
   void DrawVertex(const ThreeVector& vertex);
   void DrawS2sTrack(Int_t nStep, const std::vector<TVector3>& StepPoint,
 		    Double_t q);

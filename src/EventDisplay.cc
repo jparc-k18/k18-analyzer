@@ -8,6 +8,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <typeinfo>
 
 #include <TApplication.h>
 #include <TBRIK.h>
@@ -62,6 +63,8 @@
 #include "HodoParamMan.hh"
 #include "DCTdcCalibMan.hh"
 #include "AftHelper.hh"
+#include "K18TrackD2U.hh"
+#include "S2sTrack.hh"
 
 #define BH2        1
 #define BcOut      1
@@ -82,17 +85,18 @@ namespace
 const auto& gUnpackerConf = hddaq::unpacker::GConfig::get_instance();
 const auto& gGeom = DCGeomMan::GetInstance();
 auto& gAftHelper = AftHelper::GetInstance();
-const Int_t& IdTarget  = gGeom.DetectorId("Target");
-const Int_t& IdBH1     = gGeom.DetectorId("BH1");
-const Int_t& IdBH2     = gGeom.DetectorId("BH2");
-const Int_t& IdSDC2U2  = gGeom.DetectorId("SDC2-U2");
-const Int_t& IdS2SD1EG = gGeom.DetectorId("S2SD1EG");
-const Int_t& IdRKINIT  = gGeom.DetectorId("RKINIT");
-const Int_t& IdTOF     = gGeom.DetectorId("TOF");
-const Int_t& IdAC1     = gGeom.DetectorId("AC1");
-const Int_t& IdWC      = gGeom.DetectorId("WC");
-const Double_t& zTarget = gGeom.LocalZ("Target");
-const Double_t& zK18Target = gGeom.LocalZ("K18Target");
+const Int_t& IdTarget    = gGeom.DetectorId("Target");
+const Int_t& IdK18Target = gGeom.DetectorId("K18Target");
+const Int_t& IdBH1       = gGeom.DetectorId("BH1");
+const Int_t& IdBH2       = gGeom.DetectorId("BH2");
+const Int_t& IdSDC2U2    = gGeom.DetectorId("SDC2-U2");
+const Int_t& IdS2SD1EG   = gGeom.DetectorId("S2SD1EG");
+const Int_t& IdRKINIT    = gGeom.DetectorId("RKINIT");
+const Int_t& IdTOF       = gGeom.DetectorId("TOF");
+const Int_t& IdAC1       = gGeom.DetectorId("AC1");
+const Int_t& IdWC        = gGeom.DetectorId("WC");
+const Double_t& zTarget     = gGeom.LocalZ("Target");
+const Double_t& zK18Target  = gGeom.LocalZ("K18Target");
 const Double_t& gzK18Target = gGeom.GlobalZ("K18Target");
 // const Double_t& gxK18Target = gGeom.GetGlobalPosition("K18Target").x();
 const Double_t& gxK18Target = -240.;
@@ -103,14 +107,12 @@ const Double_t& zBFT = gGeom.LocalZ("BFT");
 // const Double_t BeamAxis = -50.; //E42
 const Double_t BeamAxis = 0.; //E70
 
-#if Vertex
-const Double_t MinX = -50.;
-const Double_t MaxX =  50.;
-const Double_t MinY = -50.;
-const Double_t MaxY =  50.;
-const Double_t MinZ = -25.;
-#endif
-const Double_t MaxZ =  50.;
+const Double_t MinX = -65.;
+const Double_t MaxX =  65.;
+const Double_t MinY = -35.;
+const Double_t MaxY =  35.;
+const Double_t MinZ = -15.-52.2;
+const Double_t MaxZ =  125.-52.2;
 
 const HodoParamMan& gHodo = HodoParamMan::GetInstance();
 const DCTdcCalibMan& gTdc = DCTdcCalibMan::GetInstance();
@@ -240,6 +242,7 @@ EventDisplay::Initialize()
   }
 
   gStyle->SetOptStat(0);
+  gStyle->SetOptTitle(0);
   gStyle->SetStatH(0.040);
   gStyle->SetStatX(0.900);
   gStyle->SetStatY(0.900);
@@ -327,13 +330,10 @@ EventDisplay::Initialize()
   m_canvas->Update();
 
 
-  m_canvas->cd(2)->Divide(1, 2);
-  m_canvas->cd(2)->cd(1)->SetPad(0.00, 0.37, 1.00, 1.00);
-  m_canvas->cd(2)->cd(2)->SetPad(0.00, 0.00, 1.00, 0.37);
   const char* title_x = "AFT_X";
   const char* title_y = "AFT_Y";
-  m_hist_aft_x = new TH2Poly(title_x, title_x, -15, 125, -70, 70);
-  m_hist_aft_y = new TH2Poly(title_y, title_y, -15, 125, -35, 35);
+  m_hist_aft_x = new TH2Poly(title_x, title_x, MinZ, MaxZ, MinX, MaxX);
+  m_hist_aft_y = new TH2Poly(title_y, title_y, MinZ, MaxZ, MinY, MaxY);
   const double phi   = gAftHelper.GetPhi();
   const int    npoly = gAftHelper.GetNPoly();
   double X[npoly], Z[npoly];
@@ -343,7 +343,7 @@ EventDisplay::Initialize()
     if( iPlane%4 == 2 || iPlane%4 == 3 ) nseg = NumOfSegAFTY;
     for( int iSeg = 0; iSeg < nseg; iSeg++ ){
       double posx = gAftHelper.GetX( iPlane, iSeg );
-      double posz = gAftHelper.GetZ( iPlane, iSeg );
+      double posz = gAftHelper.GetZ( iPlane, iSeg )-52.2;
       for( int ipoly = 0; ipoly < npoly; ipoly++ ){
 	X[ipoly] = posx + phi/2.*TMath::Cos(ipoly*2*TMath::Pi()/npoly);
 	Z[ipoly] = posz + phi/2.*TMath::Sin(ipoly*2*TMath::Pi()/npoly);
@@ -352,14 +352,35 @@ EventDisplay::Initialize()
       if( iPlane%4 == 2 || iPlane%4 == 3 ) m_hist_aft_y->AddBin(npoly, Z, X);
     }
   }
+
+  m_canvas->cd(2)->Divide(1, 2);
+  double m = 0.005; // margin
+  double L = 0.99; // size of horizontal axis
+  m_canvas->cd(2)->cd(1)->SetPad(m, m+L/3, 1-m, 1-m);
+  m_canvas->cd(2)->cd(2)->SetPad(m, m, 1-m, m+L/3);
+  m_canvas->cd(2)->GetPad(1)->SetTopMargin(0.);
+  m_canvas->cd(2)->GetPad(1)->SetBottomMargin(0.);
   m_canvas->cd(2)->cd(1);
-  // m_hist_aft_x->SetStats( 0 );
-  m_hist_aft_x->SetMinimum( 0. );
-  m_hist_aft_x->Draw("colz");
+  m_hist_aft_x->SetMinimum(0);
+  // m_hist_aft_x->SetMaximum(5);
+  m_hist_aft_x->GetYaxis()->SetLabelSize(0.035);
+  m_hist_aft_x->Draw("colz1");
+  m_canvas->cd(2)->GetPad(2)->SetTopMargin(0.);
+  m_canvas->cd(2)->GetPad(2)->SetBottomMargin(0.12);
+  m_canvas->cd(2)->GetPad(2)->SetTickx(2);
+  m_canvas->cd(2)->GetPad(2)->SetTicky(1);
+  m_hist_aft_y->SetTickLength(0.05);
+  m_hist_aft_y->GetYaxis()->SetNdivisions(404);
+  m_hist_aft_y->GetXaxis()->SetLabelSize(0.07);
+  m_hist_aft_y->GetYaxis()->SetLabelSize(0.07);
+  m_hist_aft_y->GetXaxis()->SetTitle("Z axis");
+  m_hist_aft_y->GetXaxis()->SetTitleSize(0.07);
+  m_hist_aft_y->GetXaxis()->SetTitleOffset(0.8);
   m_canvas->cd(2)->cd(2);
-  // m_hist_aft_y->SetStats( 0 );
-  m_hist_aft_y->SetMinimum( 0. );
-  m_hist_aft_y->Draw("colz");
+  m_hist_aft_y->SetMinimum(0);
+  // m_hist_aft_y->SetMaximum(5);
+  m_hist_aft_y->Draw("colz1");
+
 
 #if Vertex
 
@@ -2183,7 +2204,8 @@ EventDisplay::DrawHitHodoscope(Int_t lid, Int_t seg, Int_t Tu, Int_t Td)
 void
 EventDisplay::DrawBcOutLocalTrack(const DCLocalTrack *tp)
 {
-  const Double_t offsetZ = -6526.5; // 5326.5(S2S-FF) + 1200.0(FF-V0)
+  // const Double_t offsetZ = -6526.5; // 5326.5(S2S-FF) + 1200.0(FF-V0)
+  const Double_t offsetZ = gGeom.GetLocalZ("Target") - gGeom.GetLocalZ("K18Target"); // -4926.9(Tgt.-S2S) - 1599.6(Tgt.-VO)
 
   Double_t z0 = gGeom.GetLocalZ("BC3-X1") - 100.;
   Double_t x0 = tp->GetX(z0) + BeamAxis;
@@ -2207,7 +2229,6 @@ EventDisplay::DrawBcOutLocalTrack(const DCLocalTrack *tp)
   m_canvas->cd(1)->cd(2);
   p->Draw();
 
-#if Vertex
   z0 = zK18Target + MinZ;
   z1 = zK18Target;
   x0 = tp->GetX(z0); y0 = tp->GetY(z0);
@@ -2215,26 +2236,38 @@ EventDisplay::DrawBcOutLocalTrack(const DCLocalTrack *tp)
   z0 -= zK18Target;
   z1 -= zK18Target;
   {
-    m_canvas_vertex->cd(1);
     TPolyLine *line = new TPolyLine(2);
     line->SetPoint(0, z0, x0);
     line->SetPoint(1, z1, x1);
     line->SetLineColor(kRed);
     line->SetLineWidth(1);
-    line->Draw();
     m_BcOutXZ_line.push_back(line);
+
+#if Vertex
+    m_canvas_vertex->cd(1);
+    line->Draw();
+#endif
+    m_canvas->cd(2)->cd(1);
+    line->Draw();
   }
   {
-    m_canvas_vertex->cd(2);
     TPolyLine *line = new TPolyLine(2);
     line->SetPoint(0, z0, y0);
     line->SetPoint(1, z1, y1);
     line->SetLineColor(kRed);
     line->SetLineWidth(1);
-    line->Draw();
     m_BcOutYZ_line.push_back(line);
-  }
+#if Vertex
+    m_canvas_vertex->cd(2);
+    line->Draw();
 #endif
+    m_canvas->cd(2)->cd(2);
+    line->Draw();
+  }
+#if Vertex
+  m_canvas_vertex->Update();
+#endif
+
 }
 
 //_____________________________________________________________________________
@@ -2300,9 +2333,9 @@ void
 EventDisplay::DrawSdcInLocalTrack(const DCLocalTrack *tp)
 {
 #if SdcIn
-  Double_t z0 = gGeom.GetLocalZ(IdTarget);
+  Double_t z0 = gGeom.GetLocalZ(IdK18Target);
   Double_t x0 = tp->GetX(z0), y0 = tp->GetY(z0);
-  ThreeVector gPos0 = gGeom.Local2GlobalPos(IdTarget, TVector3(x0, y0, 0.));
+  ThreeVector gPos0 = gGeom.Local2GlobalPos(IdK18Target, TVector3(x0, y0, 0.));
 
   Double_t z1 = gGeom.GetLocalZ(IdSDC2U2);
   Double_t x1 = tp->GetX(z1), y1 = tp->GetY(z1);
@@ -2319,33 +2352,41 @@ EventDisplay::DrawSdcInLocalTrack(const DCLocalTrack *tp)
   gPad->Update();
 #endif
 
-#if Vertex
-  Double_t z0 = zTarget;
-  Double_t z1 = zTarget + MaxZ;
+  z0 = zK18Target;
+  z1 = zK18Target + MaxZ;
   x0 = tp->GetX(z0); y0 = tp->GetY(z0);
   x1 = tp->GetX(z1); y1 = tp->GetY(z1);
-  z0 -= zTarget;
-  z1 -= zTarget;
+  z0 -= zK18Target;
+  z1 -= zK18Target;
   {
-    m_canvas_vertex->cd(1);
     TPolyLine *line = new TPolyLine(2);
     line->SetPoint(0, z0, x0);
     line->SetPoint(1, z1, x1);
     line->SetLineColor(kRed);
     line->SetLineWidth(1);
-    line->Draw();
     m_SdcInXZ_line.push_back(line);
+#if Vertex
+    m_canvas_vertex->cd(1);
+    line->Draw();
+#endif
+    m_canvas->cd(2)->cd(1);
+    line->Draw();
   }
   {
-    m_canvas_vertex->cd(2);
     TPolyLine *line = new TPolyLine(2);
     line->SetPoint(0, z0, y0);
     line->SetPoint(1, z1, y1);
     line->SetLineColor(kRed);
     line->SetLineWidth(1);
-    line->Draw();
     m_SdcInYZ_line.push_back(line);
+#if Vertex
+    m_canvas_vertex->cd(2);
+    line->Draw();
+#endif
+    m_canvas->cd(2)->cd(2);
+    line->Draw();
   }
+#if Vertex
   m_canvas_vertex->Update();
 #endif
 
@@ -2374,6 +2415,72 @@ EventDisplay::DrawSdcOutLocalTrack(const DCLocalTrack *tp)
   p->Draw();
   gPad->Update();
 #endif
+}
+
+
+//_____________________________________________________________________________
+void
+EventDisplay::DrawLocalTrackInAft(const ThreeVector& vertex, const K18TrackD2U* tkm, const S2sTrack* tkp)
+{
+  {  // BcOut Local Track
+    const auto& trBcOut = tkm->TrackOut();
+    Double_t z0 = zK18Target + MinZ;
+    Double_t z1 = zK18Target + vertex.z();
+    Double_t x0 = trBcOut->GetX(z0), y0 = trBcOut->GetY(z0);
+    Double_t x1 = trBcOut->GetX(z1), y1 = trBcOut->GetY(z1);
+    z0 -= zK18Target;
+    z1 -= zK18Target;
+    {
+      TPolyLine *line = new TPolyLine(2);
+      line->SetPoint(0, z0, x0);
+      line->SetPoint(1, z1, x1);
+      m_BcOutXZInAFT_line.push_back(line);
+      line->SetLineColor(kGreen+1);
+      line->SetLineWidth(2);
+      m_canvas->cd(2)->cd(1);
+      line->Draw();
+    }
+    {
+      TPolyLine *line = new TPolyLine(2);
+      line->SetPoint(0, z0, y0);
+      line->SetPoint(1, z1, y1);
+      m_BcOutYZInAFT_line.push_back(line);
+      line->SetLineColor(kGreen+1);
+      line->SetLineWidth(2);
+      m_canvas->cd(2)->cd(2);
+      line->Draw();
+    }
+  }
+
+  {  // SdcIn Local Track
+    const auto& trSdcIn  = tkp->GetLocalTrackIn();
+    Double_t z0 = zK18Target + vertex.z();
+    Double_t z1 = zK18Target + MaxZ;
+    Double_t x0 = trSdcIn->GetX(z0), y0 = trSdcIn->GetY(z0);
+    Double_t x1 = trSdcIn->GetX(z1), y1 = trSdcIn->GetY(z1);
+    z0 -= zK18Target;
+    z1 -= zK18Target;
+    {
+      TPolyLine *line = new TPolyLine(2);
+      line->SetPoint(0, z0, x0);
+      line->SetPoint(1, z1, x1);
+      m_SdcInXZInAFT_line.push_back(line);
+      line->SetLineColor(kRed);
+      line->SetLineWidth(2);
+      m_canvas->cd(2)->cd(1);
+      line->Draw();
+    }
+    {
+      TPolyLine *line = new TPolyLine(2);
+      line->SetPoint(0, z0, y0);
+      line->SetPoint(1, z1, y1);
+      m_SdcInYZInAFT_line.push_back(line);
+      line->SetLineColor(kRed);
+      line->SetLineWidth(2);
+      m_canvas->cd(2)->cd(2);
+      line->Draw();
+    }
+  }
 }
 
 //_____________________________________________________________________________
@@ -2616,15 +2723,19 @@ EventDisplay::EndOfEvent()
   del::DeleteObject(m_init_step_mark);
   del::DeleteObject(m_BcOutXZ_line);
   del::DeleteObject(m_BcOutYZ_line);
+  del::DeleteObject(m_BcOutXZInAFT_line);
+  del::DeleteObject(m_BcOutYZInAFT_line);
   del::DeleteObject(m_SdcInXZ_line);
   del::DeleteObject(m_SdcInYZ_line);
+  del::DeleteObject(m_SdcInXZInAFT_line);
+  del::DeleteObject(m_SdcInYZInAFT_line);
   del::DeleteObject(m_BcInTrack);
   del::DeleteObject(m_BcOutTrack);
   del::DeleteObject(m_BcOutTrack2);
   del::DeleteObject(m_BcOutTrack3);
   del::DeleteObject(m_SdcInTrack);
   del::DeleteObject(m_SdcInTrack2);
-  del::DeleteObject(m_SdcOutTrack);
+  // del::DeleteObject(m_SdcOutTrack);
   del::DeleteObject(m_hs_step_mark);
   del::DeleteObject(m_s2s_step_mark);
   del::DeleteObject(m_s2s_step_mark_tolast);
@@ -2903,7 +3014,7 @@ EventDisplay::FillAFT(Int_t plane, Int_t seg, Double_t de_high)
 {
 
   double posx = gAftHelper.GetX( plane, seg );
-  double posz = gAftHelper.GetZ( plane, seg );
+  double posz = gAftHelper.GetZ( plane, seg )-52.2;
   if( plane%4 == 0 || plane%4 == 1 ) m_hist_aft_x->Fill(posz, posx, de_high);
   if( plane%4 == 2 || plane%4 == 3 ) m_hist_aft_y->Fill(posz, posx, de_high);
   //m_canvas_hist2->cd(1);
@@ -3342,12 +3453,13 @@ EventDisplay::Update()
   while (true) {
     auto canvas = dynamic_cast<TCanvas*>(canvas_iterator.Next());
     if (!canvas) break;
-    canvas->UseCurrentStyle();
+    if( strcmp(canvas->GetTitle(), "K1.8 Event Display")!=0 ){
+      canvas->UseCurrentStyle();
+    }
     canvas->cd(1)->SetLogz();
     canvas->Modified();
     canvas->Update();
   }
-
 // #if Hist_Timing
 //   for (Int_t i=0; i<9; i++) {
 //     m_canvas_hist2->cd(i+1);
@@ -3554,7 +3666,7 @@ EventDisplay::Print(Int_t run_number, Int_t event_number)
     fig_dir = Form("fig/evdisp/run%05d", run_number);
     gSystem->MakeDirectory(fig_dir);
   }
-  m_canvas->Print(Form("%s/evdisp_run%05d_ev%d.png",
+  m_canvas->Print(Form("%s/evdisp_run%05d_ev%08d.png",
                        fig_dir.Data(), run_number, event_number));
   prev_run_number = run_number;
 }

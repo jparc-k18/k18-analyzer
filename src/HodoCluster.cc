@@ -21,6 +21,7 @@ HodoCluster::HodoCluster(const HodoHC& cont,
     m_hit_container(cont.size()),
     m_index(index.size()),
     m_cluster_size(cont.size()),
+    m_is_saturated(cont.size(), false),
     m_mean_time(),
     m_ctime(),
     m_time_diff(),
@@ -81,9 +82,11 @@ HodoCluster::Calculate()
       const auto& rawhit = hit->GetRawHit();
       bool IsSaturate = ( rawhit->GetAdcHigh(0)>3200 || rawhit->GetAdcHigh(1)>3200 );
       if(IsSaturate){
+	m_is_saturated.at(i) = true;
 	m_de += hit->DeltaELowGain();
       }
       else{
+	m_is_saturated.at(i) = false;
 	m_de += hit->DeltaEHighGain();
       }
     }

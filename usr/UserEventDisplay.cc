@@ -23,7 +23,7 @@
 #include "HodoHit.hh"
 #include "S2sLib.hh"
 #include "RawData.hh"
-//#include "RootHelper.hh"
+#include "RootHelper.hh"
 #include "UnpackerManager.hh"
 #include "BH2Filter.hh"
 
@@ -32,6 +32,7 @@
 
 namespace
 {
+using namespace root;
 const auto& gGeom   = DCGeomMan::GetInstance();
 auto&       gEvDisp = EventDisplay::GetInstance();
 const auto& gUser   = UserParamMan::GetInstance();
@@ -39,6 +40,14 @@ auto&       gUnpacker = hddaq::unpacker::GUnpacker::get_instance();
 const Double_t PionMass   = pdg::PionMass();
 const Double_t KaonMass   = pdg::KaonMass();
 const Double_t ProtonMass = pdg::ProtonMass();
+const ThreeVector tgtSize(100.75, 51.15, 104.4);
+const ThreeVector tgtCenterOfs(-1.0, -0.53, 0.);
+}
+
+//_____________________________________________________________________________
+namespace root
+{
+TH1   *h[MaxHist];
 }
 
 //_____________________________________________________________________________
@@ -56,8 +65,10 @@ ProcessingNormal()
   static const auto MaxMultiHitSdcIn = gUser.GetParameter("MaxMultiHitSdcIn");
   static const auto MaxMultiHitSdcOut = gUser.GetParameter("MaxMultiHitSdcOut");
 
-  // static const auto MinTimeAFT = gUser.GetParameter("TimeAFT", 0);
-  // static const auto MaxTimeAFT = gUser.GetParameter("TimeAFT", 1);
+  static const auto MinTimeAFT = gUser.GetParameter("TimeAFT", 0);
+  static const auto MaxTimeAFT = gUser.GetParameter("TimeAFT", 1);
+  static const auto MinDeAFT   = gUser.GetParameter("DeAFT", 0);
+  static const auto MaxDeAFT   = gUser.GetParameter("DeAFT", 1);
   static const auto MinTdcBH2 = gUser.GetParameter("TdcBH2", 0);
   static const auto MaxTdcBH2 = gUser.GetParameter("TdcBH2", 1);
   static const auto MinTdcBH1 = gUser.GetParameter("TdcBH1", 0);
@@ -70,8 +81,8 @@ ProcessingNormal()
   static const auto MaxTdcWC = gUser.GetParameter("TdcWC", 1);
 
   // static const auto StopTimeDiffSdcOut = gUser.GetParameter("StopTimeDiffSdcOut");
-  // static const auto MinStopTimingSdcOut = gUser.GetParameter("StopTimingSdcOut", 0);
-  // static const auto MaxStopTimingSdcOut = gUser.GetParameter("StopTimingSdcOut", 1);
+  static const auto MinStopTimingSdcOut = gUser.GetParameter("StopTimingSdcOut", 0);
+  static const auto MaxStopTimingSdcOut = gUser.GetParameter("StopTimingSdcOut", 1);
   // static const auto MinTotBcOut = gUser.GetParameter("MinTotBcOut");
   // static const auto MinTotSDC3 = gUser.GetParameter("MinTotSDC3");
   // static const auto MinTotSDC4 = gUser.GetParameter("MinTotSDC4");
@@ -88,40 +99,60 @@ ProcessingNormal()
               << "[Info] " << evinfo << std::endl;
   gEvDisp.DrawRunEvent(0.04, 0.5, evinfo);
 
+
   RawData rawData;
   rawData.DecodeHits();
   HodoAnalyzer hodoAna(rawData);
   DCAnalyzer DCAna(rawData);
 
+  Double_t common_stop_tdc = TMath::QuietNaN();
+
   //________________________________________________________
   //___ TrigRawHit
   std::bitset<NumOfSegTrig> trigger_flag;
   for(auto& hit: rawData.GetHodoRawHitContainer("TFlag")){
-    if(hit->GetTdc(0) > 0) trigger_flag.set(hit->SegmentId());
+    Int_t seg = hit->SegmentId();
+    Int_t tdc = hit->GetTdc();
+    if(tdc > 0){
+      trigger_flag.set(seg);
+      if(seg == trigger::kCommonStopSdcOut){
+        common_stop_tdc = tdc;
+      }
+    }
   }
+
+  HF1(1, 0.);
+  
   if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd])
     return true;
   // if(!trigger_flag[trigger::kTrigBPS]) return true;
   hddaq::cout << "[Info] TrigPat = " << trigger_flag << std::endl;
 
+  HF1(1, 1.);
+  
+  // Common stop timing
+  Bool_t common_stop_is_tof = (common_stop_tdc < MinStopTimingSdcOut
+                               || MaxStopTimingSdcOut < common_stop_tdc);
+  if(!common_stop_is_tof) return true;
+
+  HF1(1, 2.);
+
   //________________________________________________________
   //___ AFT
   hodoAna.DecodeHits<FiberHit>("AFT");
-  for(Int_t i=0, n=hodoAna.GetNHits("AFT"); i<n; ++i){
-    const auto& hit = hodoAna.GetHit<FiberHit>("AFT", i);
-    Int_t plane = hit->PlaneId();
-    Int_t seg = hit->SegmentId();
-    // Int_t m = hit->GetEntries();
-    // for(Int_t j=0; j<m; ++j){
-    //   auto mt = hit->MeanTime(j);
-    //   if( MinTimeAFT < mt && mt < MaxTimeAFT ){
-    // 	auto de_high = hit->DeltaEHighGain();
-    // 	gEvDisp.FillAFT(plane, seg, de_high);
-    // 	break;
-    //   }
-    // }
-    auto de_high = hit->DeltaEHighGain();
-    gEvDisp.FillAFT(plane, seg, de_high);
+  hodoAna.TimeCut("AFT", MinTimeAFT, MaxTimeAFT);
+  hodoAna.DeCut("AFT", MinDeAFT, MaxDeAFT);
+  for(Int_t i=0, n=hodoAna.GetNClusters("AFT"); i<n; ++i){
+    const auto& cl = hodoAna.GetCluster("AFT", i);
+    for(Int_t j=0, m=cl->ClusterSize(); j<m; j++ ){
+      const auto& hit = cl->GetHit(j);
+      Int_t plane = hit->PlaneId();
+      Int_t seg   = hit->SegmentId();
+      Double_t de;
+      if( cl->IsSaturated(j) ) de = hit->DeltaELowGain();
+      else de = hit->DeltaEHighGain();
+      gEvDisp.FillAFT(plane, seg, de);
+    }
   }
 
   //________________________________________________________
@@ -249,6 +280,25 @@ ProcessingNormal()
     }
   }
 
+  //________________________________________________________
+  //___ Hodo Cut
+  hodoAna.DecodeHits("AC1");
+  Bool_t ac1hit = false;
+  Int_t  nhAc1  = hodoAna.GetNClusters("AC1");
+  for( Int_t i = 0; i < nhAc1; i++ ){
+    const auto& cl = hodoAna.GetCluster("AC1", i);
+    if(!cl) continue;
+    Double_t Ac1Seg = cl->MeanSeg()+1;
+    if( Ac1Seg == 22 ) ac1hit = true;
+  }
+  hodoAna.DecodeHits("WC");
+  Int_t  nhWc  = hodoAna.GetNClusters("WC");
+  Bool_t wchit = (nhWc > 0);
+
+  if( !(!ac1hit && wchit) ) return true;
+
+  HF1(1, 3.);
+  
 #if 0
   static const Int_t IdSDC1 = gGeom.DetectorId("SDC1-X1");
   // static const Int_t IdSDC2 = gGeom.DetectorId("SDC2-X1");
@@ -372,6 +422,8 @@ ProcessingNormal()
     // gEvDisp.GetCommand();
     return true;
   }
+  
+  HF1(1, 4.);
 
   //________________________________________________________
   //___ BcOutTracking
@@ -383,27 +435,29 @@ ProcessingNormal()
     auto chisqr = track->GetChiSquare();
     hddaq::cout << "       " << it << "-th track, chi2 = "
                 << chisqr << std::endl;
-    // auto nh = track->GetNHit();
-    // for(Int_t ih=0; ih<nh; ++ih){
-    //   auto hit = track->GetHit(ih);
-    //   Int_t layerId = hit->GetLayer();
-    //   Double_t wire = hit->GetWire();
-    //   Double_t res = hit->GetResidual();
-    //   hddaq::cout << "       layer = " << layerId << ", wire = "
-    //             << wire << ", res = " << res << std::endl;
-    // }
-    gEvDisp.DrawBcOutLocalTrack(track);
+    auto nh = track->GetNHit();
+    for(Int_t ih=0; ih<nh; ++ih){
+      auto hit = track->GetHit(ih);
+      Int_t layerId = hit->GetLayer();
+      Double_t wire = hit->GetWire();
+      Double_t res = hit->GetResidual();
+      hddaq::cout << "       layer = " << layerId << ", wire = "
+                << wire << ", res = " << res << std::endl;
+    }
+    // gEvDisp.DrawBcOutLocalTrack(track);
   }
-  if(ntBcOut==0) {
+  if(ntBcOut!=1) {
     hddaq::cout << "[Warning] BcOutTrack is empty!" << std::endl;
     return true;
   }
 
+  HF1(1, 5.);
+
   //________________________________________________________
   //___ BFTCluster
-  hodoAna.DecodeHits("BFT");
-  hodoAna.TimeCut("BFT", MinTimeBFT, MaxTimeBFT);
   std::vector<Double_t> BftXCont;
+  hodoAna.DecodeHits<FiberHit>("BFT");
+  hodoAna.TimeCut("BFT", MinTimeBFT, MaxTimeBFT);
   for(const auto& cl: hodoAna.GetClusterContainer("BFT")){
     BftXCont.push_back(cl->MeanPosition());
   }
@@ -412,6 +466,7 @@ ProcessingNormal()
     // return true;
   }
 
+  std::vector<const K18TrackD2U*> KmTCont;
   std::vector<ThreeVector> KmPCont, KmXCont;
 
   //________________________________________________________
@@ -427,6 +482,7 @@ ProcessingNormal()
     Double_t pt = p/TMath::Sqrt(1.+u*u+v*v);
     ThreeVector Pos(x, y, 0.);
     ThreeVector Mom(pt*u, pt*v, pt);
+    KmTCont.push_back(track);
     KmPCont.push_back(Mom);
     KmXCont.push_back(Pos);
   }
@@ -434,6 +490,9 @@ ProcessingNormal()
     hddaq::cout << "[Warning] Km is empty!" << std::endl;
     // gEvDisp.GetCommand();
     // return true;
+  }
+  else{
+    hddaq::cout << "[Info] KmPCont = " << KmPCont.size() << std::endl;
   }
 
   //________________________________________________________
@@ -467,6 +526,8 @@ ProcessingNormal()
     return true;
   }
 
+  HF1(1, 6.);
+  
   //________________________________________________________
   //___ SdcInTracking
   DCAna.TrackSearchSdcIn();
@@ -486,12 +547,14 @@ ProcessingNormal()
     //   hddaq::cout << "       layer = " << layerId << ", wire = "
     //             << wire << ", res = " << res << std::endl;
     // }
-    gEvDisp.DrawSdcInLocalTrack(track);
+    // gEvDisp.DrawSdcInLocalTrack(track);
   }
   if(ntSdcIn != 1){
     hddaq::cout << "[Warning] SdcInTrack is empty!" << std::endl;
     return true;
   }
+
+  HF1(1, 7.);
 
   //________________________________________________________
   //___ SdcOutDCHit
@@ -523,6 +586,8 @@ ProcessingNormal()
     return true;
   }
 
+  HF1(1, 8.);
+  
   //________________________________________________________
   //___ SdcOutTracking
   DCAna.TrackSearchSdcOut();
@@ -550,8 +615,13 @@ ProcessingNormal()
     return true;
   }
 
+  HF1(1, 9);
+  
   gEvDisp.Update();
 
+  HF1(1, 10.);
+  
+  std::vector<const S2sTrack*> KpTCont;
   std::vector<ThreeVector> KpPCont, KpXCont;
   std::vector<Double_t> M2Cont;
   std::vector<Double_t> Chi2S2sCont;
@@ -560,12 +630,22 @@ ProcessingNormal()
   //___ S2sTracking
   static const auto StofOffset = gUser.GetParameter("StofOffset");
   // DCAna.SetMaxV0Diff(10.);
-  DCAna.TrackSearchS2s();
+  Int_t nhTof = hodoAna.GetNClusters("TOF");
+  if( nhTof > 0 ){
+    const auto& hit = hodoAna.GetCluster("TOF", 0);
+    Double_t seg = hit->MeanSeg()+1;
+    Double_t par[3] = {1.59, -3.07e-2, 4.19e-4};
+    Double_t initial_momentum = par[0]+seg*par[1]+seg*seg*par[2];
+    DCAna.TrackSearchS2s(initial_momentum);
+  }
+  else{
+    DCAna.TrackSearchS2s();
+  }
   Bool_t through_target = false;
   Int_t ntS2s = DCAna.GetNTracksS2s();
   hddaq::cout << "[Info] ntS2s = " << ntS2s << std::endl;
   for(Int_t it=0; it<ntS2s; ++it){
-    auto track = DCAna.GetS2sTrack(it);
+    const auto& track = DCAna.GetS2sTrack(it);
     // track->Print();
     auto chisqr = track->GetChiSquare();
     hddaq::cout << "       " << it << "-th track, chi2 = "
@@ -576,12 +656,13 @@ ProcessingNormal()
     Double_t p = momtgt.Mag();
     gEvDisp.FillMomentum(p);
     if(chisqr > 20.) continue;
-    if(TMath::Abs(postgt.x()) < 30.
-       && TMath::Abs(postgt.y()) < 20.){
+    if(true
+       && TMath::Abs(postgt.x()-tgtCenterOfs.x()) < tgtSize.x()/2.
+       && TMath::Abs(postgt.y()-tgtCenterOfs.y()) < tgtSize.y()/2.){
       through_target = true;
     }
     // MassSquare
-    Double_t tofseg = track->TofSeg();
+    Double_t tofseg = track->TofSeg()+1;
     for(const auto& hit: TOFCont){
       Double_t seg = hit->SegmentId()+1;
       if(tofseg != seg) continue;
@@ -589,6 +670,7 @@ ProcessingNormal()
       if(stof <= 0) continue;
       Double_t m2 = Kinematics::MassSquare(p, path, stof);
       gEvDisp.FillMassSquare(m2);
+      KpTCont.push_back(track);
       KpPCont.push_back(momtgt);
       KpXCont.push_back(postgt);
       M2Cont.push_back(m2);
@@ -600,7 +682,11 @@ ProcessingNormal()
     // gEvDisp.GetCommand();
     // return true;
   }
+  else{
+    hddaq::cout << "[Info] KpPCont = " << KpPCont.size() << std::endl;
+  }
   if(through_target) gEvDisp.DrawTarget();
+
 
   //________________________________________________________
   //___ DrawText
@@ -665,6 +751,8 @@ ProcessingNormal()
   //___ Reaction
   Bool_t is_good = false;
   if(KmPCont.size()==1 && KpPCont.size()==1){
+    const S2sTrack*    tkp = KpTCont[0];
+    const K18TrackD2U* tkm = KmTCont[0];
     ThreeVector pkp = KpPCont[0];
     ThreeVector pkm = KmPCont[0];
     ThreeVector xkp = KpXCont[0];
@@ -672,7 +760,7 @@ ProcessingNormal()
     Double_t m2 = M2Cont[0];
     Double_t mass = TMath::QuietNaN();
     if(TMath::Abs(m2) < 0.15 && pkp.Mag() < 1.5) mass = PionMass;
-    if(m2 > 0.15 && m2 < 0.35 && pkp.Mag() < 1.4) mass = KaonMass;
+    if(m2 > 0.15 && m2 < 0.30 && pkp.Mag() < 1.4) mass = KaonMass;
     if(m2 > 0.55) mass = ProtonMass;
     ThreeVector vertex = Kinematics::VertexPoint(xkm, xkp, pkm, pkp);
     Double_t closedist = Kinematics::CloseDist(xkm, xkp, pkm, pkp);
@@ -682,17 +770,19 @@ ProcessingNormal()
     LorentzVector LvRp = LvKm+LvP-LvKp;
     ThreeVector MissMom = LvRp.Vect();
     Double_t MissMass = LvRp.Mag();
+    hddaq::cout << "[Info] mass = " << mass << std::endl;
     hddaq::cout << "[Info] Vertex = " << vertex << std::endl;
+    hddaq::cout << "[Info] closedist = " << closedist << std::endl;
     hddaq::cout << "[Info] MissingMomentum = " << MissMom << std::endl;
+    gEvDisp.DrawLocalTrackInAft(vertex, tkm, tkp);
     gEvDisp.DrawVertex(vertex);
     gEvDisp.DrawMissingMomentum(MissMom, vertex);
     if(true
-       && TMath::Abs(vertex.z()) < 200
-       && TMath::Abs(vertex.x()) < 40.
-       && TMath::Abs(vertex.y()) < 20.
-       && closedist < 20.
-       // && through_target
-    ){
+       && TMath::Abs(vertex.x()-tgtCenterOfs.x()) < tgtSize.x()/2.
+       && TMath::Abs(vertex.y()-tgtCenterOfs.y()) < tgtSize.y()/2.
+       && TMath::Abs(vertex.z()-tgtCenterOfs.z()) < tgtSize.z()/2.+50.
+       && closedist < 100.
+       ){
       gEvDisp.DrawText(0.680, 0.920, "pK18");
       gEvDisp.DrawText(0.860, 0.920, Form("%.3f", pkm.Mag()));
       gEvDisp.DrawText(0.680, 0.880, "pS2s");
@@ -710,8 +800,8 @@ ProcessingNormal()
       gEvDisp.DrawText(0.660, 0.160, "MissMass");
       gEvDisp.DrawText(0.770, 0.160, Form("%.4f", MissMass));
       if(true
-         // && mass == KaonMass
-         // && pkp.z() > 0
+         && mass == KaonMass
+         && pkp.z() > 0
       ){
         // gEvDisp.GetCommand();
         is_good = true;
@@ -720,10 +810,14 @@ ProcessingNormal()
   }
 
   gEvDisp.Update();
+  gSystem->Sleep(5000);
   // gEvDisp.GetCommand();
   hddaq::cout << "[Info] IsGood = " << is_good << std::endl;
 
+  HF1(1, 11.);
+  
   if(is_good){
+  HF1(1, 12.);
 #if SAVEPDF
     gEvDisp.Print(gUnpacker.get_run_number(),
                   gUnpacker.get_event_number());
@@ -754,6 +848,7 @@ Bool_t
 ConfMan:: InitializeHistograms()
 {
   gUnpacker.disable_istream_bookmark();
+  HB1(1, "Status", 30, 0., 30.);
   return true;
 }
 

@@ -38,6 +38,7 @@ protected:
   Double_t m_1st_time;
   Double_t m_time0;
   Double_t m_ctime0;
+  std::vector<Bool_t> m_is_saturated;
 
 public:
   const TString& DetectorName() const
@@ -63,6 +64,7 @@ public:
   HodoHit*  GetHit(Int_t i) const;
   void      Print(Option_t* opt="") const;
   Bool_t    ReCalc(Bool_t applyRecusively=false);
+  Bool_t    IsSaturated(Int_t m) const { return m_is_saturated.at(m); }
 
 protected:
   void      Calculate();
