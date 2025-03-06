@@ -110,17 +110,6 @@ HodoCluster::Calculate()
 }
 
 //_____________________________________________________________________________
-HodoHit*
-HodoCluster::GetHit(Int_t i) const
-{
-  // try {
-    return m_hit_container.at(i);
-  // }catch(const std::out_of_range&){
-  //   return nullptr;
-  // }
-}
-
-//_____________________________________________________________________________
 void
 HodoCluster::Print(Option_t*) const
 {

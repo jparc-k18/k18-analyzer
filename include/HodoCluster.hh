@@ -61,7 +61,8 @@ public:
   Double_t  MeanSeg() const { return m_segment; }
   Double_t  FirstSeg() const { return m_1st_seg; }
   Double_t  FirstTime() const { return m_1st_time; }
-  HodoHit*  GetHit(Int_t i) const;
+  template <typename T=HodoHit>
+  const T*  GetHit(Int_t i) const;
   void      Print(Option_t* opt="") const;
   Bool_t    ReCalc(Bool_t applyRecusively=false);
   Bool_t    IsSaturated(Int_t m) const { return m_is_saturated.at(m); }
@@ -76,6 +77,18 @@ HodoCluster::ClassName()
 {
   static TString s_name("HodoCluster");
   return s_name;
+}
+
+//_____________________________________________________________________________
+template <typename T=HodoHit>
+inline const T*
+HodoCluster::GetHit(Int_t i) const
+{
+  // try {
+  return dynamic_cast<T*>(m_hit_container.at(i));
+  // }catch(const std::out_of_range&){
+  //   return nullptr;
+  // }
 }
 
 #endif

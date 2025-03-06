@@ -145,13 +145,14 @@ ProcessingNormal()
   for(Int_t i=0, n=hodoAna.GetNClusters("AFT"); i<n; ++i){
     const auto& cl = hodoAna.GetCluster("AFT", i);
     for(Int_t j=0, m=cl->ClusterSize(); j<m; j++ ){
-      const auto& hit = cl->GetHit(j);
-      Int_t plane = hit->PlaneId();
-      Int_t seg   = hit->SegmentId();
+      const auto& hit = cl->GetHit<FiberHit>(j);
+      Int_t    plane = hit->PlaneId();
+      Double_t posz  = hit->GetZ();
+      Double_t posx  = hit->Position();
       Double_t de;
       if( cl->IsSaturated(j) ) de = hit->DeltaELowGain();
       else de = hit->DeltaEHighGain();
-      gEvDisp.FillAFT(plane, seg, de);
+      gEvDisp.FillAFT(plane, posz, posx, de);
     }
   }
 
@@ -774,7 +775,8 @@ ProcessingNormal()
     hddaq::cout << "[Info] Vertex = " << vertex << std::endl;
     hddaq::cout << "[Info] closedist = " << closedist << std::endl;
     hddaq::cout << "[Info] MissingMomentum = " << MissMom << std::endl;
-    gEvDisp.DrawLocalTrackInAft(vertex, tkm, tkp);
+    // gEvDisp.DrawLocalTrackInAft(vertex, tkm, tkp);
+    gEvDisp.DrawGlobalTrackInAft(vertex, xkm, xkp, pkm, pkp);
     gEvDisp.DrawVertex(vertex);
     gEvDisp.DrawMissingMomentum(MissMom, vertex);
     if(true

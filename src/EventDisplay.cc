@@ -62,7 +62,6 @@
 #include "DeleteUtility.hh"
 #include "HodoParamMan.hh"
 #include "DCTdcCalibMan.hh"
-#include "AftHelper.hh"
 #include "K18TrackD2U.hh"
 #include "S2sTrack.hh"
 
@@ -84,11 +83,11 @@ namespace
 {
 const auto& gUnpackerConf = hddaq::unpacker::GConfig::get_instance();
 const auto& gGeom = DCGeomMan::GetInstance();
-auto& gAftHelper = AftHelper::GetInstance();
 const Int_t& IdTarget    = gGeom.DetectorId("Target");
 const Int_t& IdK18Target = gGeom.DetectorId("K18Target");
 const Int_t& IdBH1       = gGeom.DetectorId("BH1");
 const Int_t& IdBH2       = gGeom.DetectorId("BH2");
+const Int_t& IdAFTX1     = gGeom.DetectorId("AFT-X1");
 const Int_t& IdSDC2U2    = gGeom.DetectorId("SDC2-U2");
 const Int_t& IdS2SD1EG   = gGeom.DetectorId("S2SD1EG");
 const Int_t& IdRKINIT    = gGeom.DetectorId("RKINIT");
@@ -96,6 +95,7 @@ const Int_t& IdTOF       = gGeom.DetectorId("TOF");
 const Int_t& IdAC1       = gGeom.DetectorId("AC1");
 const Int_t& IdWC        = gGeom.DetectorId("WC");
 const Double_t& zTarget     = gGeom.LocalZ("Target");
+const Double_t& gzTarget    = gGeom.GlobalZ("Target");
 const Double_t& zK18Target  = gGeom.LocalZ("K18Target");
 const Double_t& gzK18Target = gGeom.GlobalZ("K18Target");
 // const Double_t& gxK18Target = gGeom.GetGlobalPosition("K18Target").x();
@@ -111,8 +111,8 @@ const Double_t MinX = -65.;
 const Double_t MaxX =  65.;
 const Double_t MinY = -35.;
 const Double_t MaxY =  35.;
-const Double_t MinZ = -15.-52.2;
-const Double_t MaxZ =  125.-52.2;
+const Double_t MinZ = -65.;
+const Double_t MaxZ =  65.;
 
 const HodoParamMan& gHodo = HodoParamMan::GetInstance();
 const DCTdcCalibMan& gTdc = DCTdcCalibMan::GetInstance();
@@ -334,36 +334,36 @@ EventDisplay::Initialize()
   const char* title_y = "AFT_Y";
   m_hist_aft_x = new TH2Poly(title_x, title_x, MinZ, MaxZ, MinX, MaxX);
   m_hist_aft_y = new TH2Poly(title_y, title_y, MinZ, MaxZ, MinY, MaxY);
-  const double phi   = gAftHelper.GetPhi();
-  const int    npoly = gAftHelper.GetNPoly();
+  const int    npoly = 360;
   double X[npoly], Z[npoly];
-  for( int iPlane = 0; iPlane < NumOfPlaneAFT; iPlane++ ){
-    int nseg;
-    if( iPlane%4 == 0 || iPlane%4 == 1 ) nseg = NumOfSegAFTX;
-    if( iPlane%4 == 2 || iPlane%4 == 3 ) nseg = NumOfSegAFTY;
-    for( int iSeg = 0; iSeg < nseg; iSeg++ ){
-      double posx = gAftHelper.GetX( iPlane, iSeg );
-      double posz = gAftHelper.GetZ( iPlane, iSeg )-52.2;
+  for( int plane = 0; plane < NumOfPlaneAFT; plane++ ){
+    int layer = IdAFTX1 + plane;
+    int NumOfSeg = NumOfSegAFTarr.at(plane);
+    for( int seg = 0; seg < NumOfSeg; seg++ ){
+      double posx = gGeom.CalcWirePosition(layer, seg);
+      double posz = gGeom.GetLocalZ(layer)-zK18Target;
+      double phi  = gGeom.dXdW(layer);
       for( int ipoly = 0; ipoly < npoly; ipoly++ ){
 	X[ipoly] = posx + phi/2.*TMath::Cos(ipoly*2*TMath::Pi()/npoly);
 	Z[ipoly] = posz + phi/2.*TMath::Sin(ipoly*2*TMath::Pi()/npoly);
       }
-      if( iPlane%4 == 0 || iPlane%4 == 1 ) m_hist_aft_x->AddBin(npoly, Z, X);
-      if( iPlane%4 == 2 || iPlane%4 == 3 ) m_hist_aft_y->AddBin(npoly, Z, X);
+      if( plane%4 == 0 || plane%4 == 1 ) m_hist_aft_x->AddBin(npoly, Z, X);
+      if( plane%4 == 2 || plane%4 == 3 ) m_hist_aft_y->AddBin(npoly, Z, X);
     }
   }
 
   m_canvas->cd(2)->Divide(1, 2);
   double m = 0.005; // margin
-  double L = 0.99; // size of horizontal axis
-  m_canvas->cd(2)->cd(1)->SetPad(m, m+L/3, 1-m, 1-m);
-  m_canvas->cd(2)->cd(2)->SetPad(m, m, 1-m, m+L/3);
+  double L = 1-2*m; // size of horizontal axis
+  m_canvas->cd(2)->cd(1)->SetPad(m, m+L*0.38, 1-m, 1-m);
+  m_canvas->cd(2)->cd(2)->SetPad(m, m, 1-m, m+L*0.38);
   m_canvas->cd(2)->GetPad(1)->SetTopMargin(0.);
   m_canvas->cd(2)->GetPad(1)->SetBottomMargin(0.);
   m_canvas->cd(2)->cd(1);
   m_hist_aft_x->SetMinimum(0);
   // m_hist_aft_x->SetMaximum(5);
-  m_hist_aft_x->GetYaxis()->SetLabelSize(0.035);
+  m_hist_aft_x->GetYaxis()->SetLabelSize(0.038);
+  m_hist_aft_x->GetZaxis()->SetLabelSize(0.032);
   m_hist_aft_x->Draw("colz1");
   m_canvas->cd(2)->GetPad(2)->SetTopMargin(0.);
   m_canvas->cd(2)->GetPad(2)->SetBottomMargin(0.12);
@@ -371,8 +371,9 @@ EventDisplay::Initialize()
   m_canvas->cd(2)->GetPad(2)->SetTicky(1);
   m_hist_aft_y->SetTickLength(0.05);
   m_hist_aft_y->GetYaxis()->SetNdivisions(404);
-  m_hist_aft_y->GetXaxis()->SetLabelSize(0.07);
-  m_hist_aft_y->GetYaxis()->SetLabelSize(0.07);
+  m_hist_aft_y->GetXaxis()->SetLabelSize(0.06);
+  m_hist_aft_y->GetYaxis()->SetLabelSize(0.06);
+  m_hist_aft_y->GetZaxis()->SetLabelSize(0.05);
   m_hist_aft_y->GetXaxis()->SetTitle("Z axis");
   m_hist_aft_y->GetXaxis()->SetTitleSize(0.07);
   m_hist_aft_y->GetXaxis()->SetTitleOffset(0.8);
@@ -2485,6 +2486,72 @@ EventDisplay::DrawLocalTrackInAft(const ThreeVector& vertex, const K18TrackD2U* 
 
 //_____________________________________________________________________________
 void
+EventDisplay::DrawGlobalTrackInAft(const ThreeVector& vertex,
+				   const ThreeVector& xkm, const ThreeVector& xkp,
+				   const ThreeVector& pkm, const ThreeVector& pkp)
+{
+  {  // K1.8 Track
+    TPolyLine *k18_step_x = new TPolyLine();
+    TPolyLine *k18_step_y = new TPolyLine();
+    Double_t xt = xkm.x(), yt = xkm.y();
+    Double_t ut = pkm.x()/pkm.z(), vt = pkm.y()/pkm.z();
+    k18_step_x->SetNextPoint(MinZ, xt+ut*MinZ);
+    k18_step_y->SetNextPoint(MinZ, yt+vt*MinZ);
+    k18_step_x->SetNextPoint(vertex.z(), xt+ut*vertex.z());
+    k18_step_y->SetNextPoint(vertex.z(), yt+vt*vertex.z());
+
+    k18_step_x->SetLineColor(kGreen+1);
+    k18_step_y->SetLineColor(kGreen+1);
+    k18_step_x->SetLineWidth(2);
+    k18_step_y->SetLineWidth(2);
+    m_K18XZInAFT_line.push_back(k18_step_x);
+    m_K18YZInAFT_line.push_back(k18_step_y);
+      
+    m_canvas->cd(2)->cd(1);
+    k18_step_x->Draw();
+    m_canvas->cd(2)->cd(2);
+    k18_step_y->Draw();      
+  }
+
+  {  // S-2S Track
+    for(const auto& s2s_step: m_s2s_step_mark){
+      Int_t nStep = s2s_step->Size();
+      TPolyLine *s2s_step_x = new TPolyLine();
+      TPolyLine *s2s_step_y = new TPolyLine();
+      for( Int_t i=0; i<nStep; i++ ){
+	Double_t x, y, z;
+	s2s_step->GetPoint(i, x, y, z);
+	z -= gzTarget;
+	if( vertex.z()<z && z<MaxZ ){
+	  s2s_step_x->SetNextPoint(z, x);
+	  s2s_step_y->SetNextPoint(z, y);
+	}
+      }
+      Double_t xt = xkp.x(), yt = xkp.y();
+      Double_t ut = pkp.x()/pkp.z(), vt = pkp.y()/pkp.z();
+      ThreeVector lpos(xt+ut*vertex.z(), yt+vt*vertex.z(), vertex.z());
+      ThreeVector gpos = gGeom.Local2GlobalPos(IdTarget, lpos);
+      s2s_step_x->SetNextPoint(gpos.z()-gzTarget, gpos.x());
+      s2s_step_y->SetNextPoint(gpos.z()-gzTarget, gpos.y());
+
+      auto color = s2s_step->GetMarkerColor();
+      s2s_step_x->SetLineColor(color);
+      s2s_step_y->SetLineColor(color);
+      s2s_step_x->SetLineWidth(2);
+      s2s_step_y->SetLineWidth(2);
+      m_S2sXZInAFT_line.push_back(s2s_step_x);
+      m_S2sYZInAFT_line.push_back(s2s_step_y);
+      
+      m_canvas->cd(2)->cd(1);
+      s2s_step_x->Draw();
+      m_canvas->cd(2)->cd(2);
+      s2s_step_y->Draw();      
+    }
+  }
+}
+
+//_____________________________________________________________________________
+void
 EventDisplay::DrawVertex(const ThreeVector& vertex)
 {
 #if Vertex
@@ -2729,6 +2796,10 @@ EventDisplay::EndOfEvent()
   del::DeleteObject(m_SdcInYZ_line);
   del::DeleteObject(m_SdcInXZInAFT_line);
   del::DeleteObject(m_SdcInYZInAFT_line);
+  del::DeleteObject(m_S2sXZInAFT_line);
+  del::DeleteObject(m_S2sYZInAFT_line);
+  del::DeleteObject(m_K18XZInAFT_line);
+  del::DeleteObject(m_K18YZInAFT_line);
   del::DeleteObject(m_BcInTrack);
   del::DeleteObject(m_BcOutTrack);
   del::DeleteObject(m_BcOutTrack2);
@@ -3010,13 +3081,10 @@ EventDisplay::SetCorrectTimeBFT(Double_t pos)
 
 //_____________________________________________________________________________
 void
-EventDisplay::FillAFT(Int_t plane, Int_t seg, Double_t de_high)
+EventDisplay::FillAFT(Int_t plane, Double_t posz, Double_t posx, Double_t de_high)
 {
-
-  double posx = gAftHelper.GetX( plane, seg );
-  double posz = gAftHelper.GetZ( plane, seg )-52.2;
-  if( plane%4 == 0 || plane%4 == 1 ) m_hist_aft_x->Fill(posz, posx, de_high);
-  if( plane%4 == 2 || plane%4 == 3 ) m_hist_aft_y->Fill(posz, posx, de_high);
+  if( plane%4 == 0 || plane%4 == 1 ) m_hist_aft_x->Fill(posz-zK18Target, posx, de_high);
+  if( plane%4 == 2 || plane%4 == 3 ) m_hist_aft_y->Fill(posz-zK18Target, posx, de_high);
   //m_canvas_hist2->cd(1);
   //gPad->Modified();
   //gPad->Update();

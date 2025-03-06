@@ -212,6 +212,10 @@ private:
   std::vector<TPolyLine*>    m_SdcInYZ_line;
   std::vector<TPolyLine*>    m_SdcInXZInAFT_line;
   std::vector<TPolyLine*>    m_SdcInYZInAFT_line;
+  std::vector<TPolyLine*>    m_S2sXZInAFT_line;
+  std::vector<TPolyLine*>    m_S2sYZInAFT_line;
+  std::vector<TPolyLine*>    m_K18XZInAFT_line;
+  std::vector<TPolyLine*>    m_K18YZInAFT_line;
   TPolyMarker               *m_HSMarkVertexXShs;
   TPolyMarker               *m_S2sMarkVertexXShs;
   TPolyMarker               *m_S2sMarkVertexX;
@@ -249,6 +253,9 @@ public:
   void DrawSdcOutLocalTrack(const DCLocalTrack *tp);
   void DrawSsdHit(Int_t lid, Int_t seg, Double_t de);
   void DrawLocalTrackInAft(const ThreeVector& vertex, const K18TrackD2U* tkm, const S2sTrack* tkp);
+  void DrawGlobalTrackInAft(const ThreeVector& vertex,
+			    const ThreeVector& xkm, const ThreeVector& xkp,
+			    const ThreeVector& pkm, const ThreeVector& pkp);
   void DrawVertex(const ThreeVector& vertex);
   void DrawS2sTrack(Int_t nStep, const std::vector<TVector3>& StepPoint,
 		    Double_t q);
@@ -267,7 +274,7 @@ public:
   void FillBFT(Int_t layer, Int_t seg, Int_t tdc);
   void SetCorrectTimeBFT(Double_t pos);
   void DrawBcInTrack(Double_t x0, Double_t u0);
-  void FillAFT(Int_t plane, Int_t seg, Double_t de_high);
+  void FillAFT(Int_t plane, Double_t posz, Double_t posx, Double_t de_high);
   void FillBH2(Int_t seg, Int_t tdc);
   void SetCorrectTimeBH2(Int_t seg, Double_t de);
   void SetCorrectTimeBcOut(Int_t layer, Double_t pos);

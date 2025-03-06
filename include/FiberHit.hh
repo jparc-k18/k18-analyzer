@@ -26,11 +26,13 @@ private:
 protected:
   Double_t m_position;
   Double_t m_dxdw;
+  Double_t m_z;
 
 public:
   Bool_t   Calculate();
   Double_t Position() const { return m_position; }
   Double_t dXdW() const { return m_dxdw; }
+  Double_t GetZ() const { return m_z; }
   Double_t TimeOverThreshold(Int_t i, Int_t j=0) const
     { return m_time_trailing.at(i).at(j) - m_time_leading.at(i).at(j); }
   Double_t TOT(Int_t i, Int_t j=0) const

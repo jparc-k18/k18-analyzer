@@ -85,6 +85,7 @@ FiberHit::Calculate()
   Int_t layer = gGeom.GetDetectorId(DetectorName()+"-"+PlaneName());
   m_position = gGeom.CalcWirePosition(layer, seg);
   m_dxdw     = gGeom.dXdW(layer);
+  m_z        = gGeom.GetLocalZ(layer);
 
   return true;
 
