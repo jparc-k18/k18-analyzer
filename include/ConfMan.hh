@@ -67,8 +67,9 @@ public:
                              const TString& key2);
 
 private:
-  TString FilePath(const TString& src) const;
+  TString FilePath(const TString& src);
   Bool_t  ShowResult(Bool_t s, const TString& name) const;
+  Bool_t  ResolveSymlink(const TString& path, TString& link) const;
 };
 
 //_____________________________________________________________________________

@@ -8,6 +8,8 @@
 #include <iterator>
 #include <sstream>
 #include <vector>
+#include <sys/stat.h>
+#include <limits.h>
 
 #include <TNamed.h>
 
@@ -162,9 +164,32 @@ ConfMan::Finalize()
 
 //_____________________________________________________________________________
 TString
-ConfMan::FilePath(const TString& src) const
+ConfMan::FilePath(const TString& src)
 {
-  std::ifstream tmp(src);
-  if(tmp.good()) return src;
-  else           return sConfDir + "/" + src;
+  TString path = src;
+  std::ifstream tmp(path);
+  if(!tmp.good()) path = sConfDir + "/" + src;
+
+  TString link;
+  if( ResolveSymlink(path, link) ){
+    m_buf.Chop();
+    m_buf += " -> " + link + "\n";
+  }
+  return path;
+}
+
+//_____________________________________________________________________________
+Bool_t
+ConfMan::ResolveSymlink(const TString& path, TString& link) const
+{
+  struct stat path_stat;
+  if(lstat(path.Data(), &path_stat)==0){
+    if(S_ISLNK(path_stat.st_mode)){
+      std::vector<char> buf(PATH_MAX, '\0');
+      ssize_t len = readlink(path.Data(), buf.data(), buf.size()-1);
+      link = std::string(buf.data(), len);
+      return true;
+    }
+  }
+  return false;  
 }
