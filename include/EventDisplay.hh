@@ -212,10 +212,12 @@ private:
   std::vector<TPolyLine*>    m_SdcInYZ_line;
   std::vector<TPolyLine*>    m_SdcInXZInAFT_line;
   std::vector<TPolyLine*>    m_SdcInYZInAFT_line;
-  std::vector<TPolyLine*>    m_S2sXZInAFT_line;
-  std::vector<TPolyLine*>    m_S2sYZInAFT_line;
   std::vector<TPolyLine*>    m_K18XZInAFT_line;
   std::vector<TPolyLine*>    m_K18YZInAFT_line;
+  std::vector<TPolyLine*>    m_S2sXZInAFT_line;
+  std::vector<TPolyLine*>    m_S2sYZInAFT_line;
+  std::vector<TPolyLine*>    m_MissMomXZInAFT_line;
+  std::vector<TPolyLine*>    m_MissMomYZInAFT_line;
   TPolyMarker               *m_HSMarkVertexXShs;
   TPolyMarker               *m_S2sMarkVertexXShs;
   TPolyMarker               *m_S2sMarkVertexX;
@@ -255,7 +257,8 @@ public:
   void DrawLocalTrackInAft(const ThreeVector& vertex, const K18TrackD2U* tkm, const S2sTrack* tkp);
   void DrawGlobalTrackInAft(const ThreeVector& vertex,
 			    const ThreeVector& xkm, const ThreeVector& xkp,
-			    const ThreeVector& pkm, const ThreeVector& pkp);
+			    const ThreeVector& pkm, const ThreeVector& pkp,
+			    const TVector3& missMom);
   void DrawVertex(const ThreeVector& vertex);
   void DrawS2sTrack(Int_t nStep, const std::vector<TVector3>& StepPoint,
 		    Double_t q);

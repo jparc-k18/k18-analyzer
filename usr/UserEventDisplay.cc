@@ -776,7 +776,7 @@ ProcessingNormal()
     hddaq::cout << "[Info] closedist = " << closedist << std::endl;
     hddaq::cout << "[Info] MissingMomentum = " << MissMom << std::endl;
     // gEvDisp.DrawLocalTrackInAft(vertex, tkm, tkp);
-    gEvDisp.DrawGlobalTrackInAft(vertex, xkm, xkp, pkm, pkp);
+    gEvDisp.DrawGlobalTrackInAft(vertex, xkm, xkp, pkm, pkp, LvRp.Vect());
     gEvDisp.DrawVertex(vertex);
     gEvDisp.DrawMissingMomentum(MissMom, vertex);
     if(true

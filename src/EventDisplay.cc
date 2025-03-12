@@ -2488,7 +2488,8 @@ EventDisplay::DrawLocalTrackInAft(const ThreeVector& vertex, const K18TrackD2U* 
 void
 EventDisplay::DrawGlobalTrackInAft(const ThreeVector& vertex,
 				   const ThreeVector& xkm, const ThreeVector& xkp,
-				   const ThreeVector& pkm, const ThreeVector& pkp)
+				   const ThreeVector& pkm, const ThreeVector& pkp,
+				   const TVector3& missMom)
 {
   {  // K1.8 Track
     TPolyLine *k18_step_x = new TPolyLine();
@@ -2548,6 +2549,32 @@ EventDisplay::DrawGlobalTrackInAft(const ThreeVector& vertex,
       s2s_step_y->Draw();      
     }
   }
+  
+  { // Missing Momentum
+      TPolyLine *missMom_line_x = new TPolyLine();
+      TPolyLine *missMom_line_y = new TPolyLine();
+      Double_t xt = vertex.x(), yt = vertex.y(), zt = vertex.z();
+      Double_t ut = missMom.x()/missMom.z(), vt = missMom.y()/missMom.z();
+      missMom_line_x->SetNextPoint(zt, xt);
+      missMom_line_y->SetNextPoint(zt, yt);
+      missMom_line_x->SetNextPoint(MaxZ, xt+ut*MaxZ);
+      missMom_line_y->SetNextPoint(MaxZ, yt+vt*MaxZ);
+
+      missMom_line_x->SetLineColor(kMagenta);
+      missMom_line_y->SetLineColor(kMagenta);
+      missMom_line_x->SetLineStyle(2);
+      missMom_line_y->SetLineStyle(2);
+      missMom_line_x->SetLineWidth(2);
+      missMom_line_y->SetLineWidth(2);
+      m_MissMomXZInAFT_line.push_back(missMom_line_x);
+      m_MissMomYZInAFT_line.push_back(missMom_line_y);
+      
+      m_canvas->cd(2)->cd(1);
+      missMom_line_x->Draw();
+      m_canvas->cd(2)->cd(2);
+      missMom_line_y->Draw();      
+  }
+  
 }
 
 //_____________________________________________________________________________
@@ -2796,10 +2823,12 @@ EventDisplay::EndOfEvent()
   del::DeleteObject(m_SdcInYZ_line);
   del::DeleteObject(m_SdcInXZInAFT_line);
   del::DeleteObject(m_SdcInYZInAFT_line);
-  del::DeleteObject(m_S2sXZInAFT_line);
-  del::DeleteObject(m_S2sYZInAFT_line);
   del::DeleteObject(m_K18XZInAFT_line);
   del::DeleteObject(m_K18YZInAFT_line);
+  del::DeleteObject(m_S2sXZInAFT_line);
+  del::DeleteObject(m_S2sYZInAFT_line);
+  del::DeleteObject(m_MissMomXZInAFT_line);
+  del::DeleteObject(m_MissMomYZInAFT_line);
   del::DeleteObject(m_BcInTrack);
   del::DeleteObject(m_BcOutTrack);
   del::DeleteObject(m_BcOutTrack2);
