@@ -30,9 +30,10 @@ namespace
 {
 using namespace root;
 using hddaq::unpacker::GUnpacker;
-const auto qnan = TMath::QuietNaN();
+const auto qnan       = TMath::QuietNaN();
 const auto& gUnpacker = GUnpacker::get_instance();
-const auto& gUser = UserParamMan::GetInstance();
+const auto& gUser     = UserParamMan::GetInstance();
+const auto& gHodo     = HodoParamMan::GetInstance();
 }
 
 //_____________________________________________________________________________
@@ -41,13 +42,14 @@ struct Event
   Int_t evnum;
 
   std::vector<std::vector<Double_t>> waveform; // [seg][nsample]
-  std::vector<Double_t>              pedestal;
   std::vector<Double_t>              max_adc;
-  std::vector<Double_t>              adc_all;
   std::vector<Double_t>              integral;
+  std::vector<Double_t>              integral_ped;
   std::vector<std::vector<Double_t>> leading;  // [seg][depth]
   std::vector<std::vector<Double_t>> trailing; // [seg][depth]
-
+  std::vector<Double_t>              tdc_first;
+  std::vector<Double_t>              dE;
+  std::vector<Double_t>              dE_q;
   void clear();
 };
 
@@ -58,12 +60,14 @@ Event::clear()
   evnum = 0;
 
   waveform.clear();
-  pedestal.clear();
   max_adc.clear();
-  adc_all.clear();
   integral.clear();
+  integral_ped.clear();
   leading.clear();
   trailing.clear();
+  tdc_first.clear();
+  dE.clear();
+  dE_q.clear();
 }
 
 //_____________________________________________________________________________
@@ -74,7 +78,7 @@ namespace root
   TTree *tree;
   enum eDetHid
     {
-      RayrawHid  = 100000,
+      RAYRAWHid  = 100000,
     };
 }
 
@@ -90,10 +94,11 @@ ProcessingBegin()
 Bool_t
 ProcessingNormal()
 {
-  static const auto MinRange = gUser.GetParameter("RangeRAYRAW", 0);
-  static const auto MaxRange = gUser.GetParameter("RangeRAYRAW", 1);
-  static const Double_t V_per_ch = 3.3/1024.; // [V]
-  static const Double_t T_per_ch = 13.33; // [ns]
+  static const auto MinRange    = gUser.GetParameter("RangeRAYRAW", 0);
+  static const auto MaxRange    = gUser.GetParameter("RangeRAYRAW", 1);
+  static const Int_t PedInitial = 500;
+  // static const Double_t V_per_ch = 3.3/1024.; // [V]
+  // static const Double_t T_per_ch = 13.33; // [ns]
 
   RawData rawData;
   rawData.DecodeHits();
@@ -104,12 +109,9 @@ ProcessingNormal()
   HF1(1, 0);
 
     {
-    // from Rawdata
     const auto& cont = rawData.GetHodoRawHC("RAYRAW");
     Int_t nh = cont.size();
-    Double_t true_hit = 0;
-    Double_t baseline[NumOfSegRayraw] = {qnan};
-    //    std::vector<std::vector<Int_t>> fadc_single;
+    // Double_t true_hit = 0;
 
     event.waveform.resize(nh);
     event.leading.resize(nh);
@@ -119,43 +121,49 @@ ProcessingNormal()
 
       HodoRawHit *hit = cont[i];
 
-      Int_t seg     = hit->SegmentId();
-      Int_t max_adc = 0;
-      // Int_t min_l   = 2450;
-      // Int_t max_l   = 2600;
-      // Int_t min_t   = 2400;
-      // Int_t max_t   = 2550;
+
+      Int_t cid  = hit->DetectorId();
+      Int_t plid = hit->PlaneId();
+      Int_t seg  = hit->SegmentId();
+
+      Double_t ped    = gHodo.GetP0(cid, plid, seg, 0); // for MaxADC (HodoParam p0 HighGain)
+      Double_t gain   = gHodo.GetP1(cid, plid, seg, 0); // for MaxADC (HodoParam p1 HighGain)
+      Double_t ped_q  = gHodo.GetP0(cid, plid, seg, 2); // for Integral (HodoParam p0 LowhGain)
+      Double_t gain_q = gHodo.GetP1(cid, plid, seg, 2); // for Integral (HodoParam p1 LowGain)
+
+      // if(seg == 0 && i%1000 == 0)
+      // 	std::cout << "Pedestal: " << ped << ", Gain: " << gain << std::endl;
+
+
+      Int_t max_adc       = -10;
+      Int_t integral      = -10;
+      Int_t integral_ped  = -10;
+      Int_t tdc_first     = -10;
       // Int_t leading_hit_in = 0;
       // Int_t trailing_hit_in = 0;
       // Int_t leading_hit_out = 0;
       // Int_t trailing_hit_out = 0;
-      baseline[seg] = gUser.GetParameter("PedRAYRAW", seg);
-      Double_t integral    = 0;
-      Double_t V_fadc      = qnan;
-      Double_t V_fadc_calc = qnan;
-      Double_t T_fadc      = qnan;
-      Double_t charge      = 0;
 
       Int_t nsample        = 0;
 
-      Int_t hid_wf         = RayrawHid + (seg)*1000 + 0; // Raw Waveform
-      Int_t hid_wf_vt      = RayrawHid + (seg)*1000 + 1; // Waveform in V-T
-      Int_t hid_wf_vt_calc = RayrawHid + (seg)*1000 + 2; // Waveform after remove baseline in V-T
-      Int_t hid_ped        = RayrawHid + (seg)*1000 + 3; // Pedestal (w/o signal)
-      Int_t hid_adc        = RayrawHid + (seg)*1000 + 4; // Max ADC
-      Int_t hid_adc_all    = RayrawHid + (seg)*1000 + 5; // All FADC
-      Int_t hid_integral   = RayrawHid + (seg)*1000 + 6; // Integral
-      Int_t hid_charge     = RayrawHid + (seg)*1000 + 7; // Integral in pC
-      Int_t hid_tdc_l      = RayrawHid + (seg)*1000 + 8; // TDC Leading
-      Int_t hid_tdc_t      = RayrawHid + (seg)*1000 + 9; // TDC Trailing
-      // Int_t hid_tot     = RayrawHid + (seg)*1000 + 6; // TOT
-      // Int_t hid_single  = RayrawHid + (seg)*1000 + 100 + event.evnum; // Waveform of single event
+      Int_t hid_wf           = RAYRAWHid + (seg+1)*1000 + 0; // Raw Waveform
+      Int_t hid_adc          = RAYRAWHid + (seg+1)*1000 + 1; // Max ADC
+      Int_t hid_integral     = RAYRAWHid + (seg+1)*1000 + 2; // Integral
+      Int_t hid_integral_ped = RAYRAWHid + (seg+1)*1000 + 3; // Integral of pedestal (before signal region)
+      Int_t hid_tdc_l        = RAYRAWHid + (seg+1)*1000 + 4; // TDC Leading
+      Int_t hid_tdc_t        = RAYRAWHid + (seg+1)*1000 + 5; // TDC Trailing
+      Int_t hid_tdc_first    = RAYRAWHid + (seg+1)*1000 + 6; // TDC first Leading
+      // Int_t hid_tot       = RAYRAWHid + (seg+1)*1000 + 7; // TOT
 
-      // TDC block
-      // Leading
+      Int_t hid_dE           = RAYRAWHid + (seg+1)*1000 + 10; // maxADC
+      Int_t hid_dE_q         = RAYRAWHid + (seg+1)*1000 + 11; // Integral
+
+      // TDC Leading
       for (const auto& tdc_l : hit->GetArrayTdcLeading() ) {
 	HF1(hid_tdc_l, tdc_l);
 	event.leading[seg].push_back(tdc_l);
+	if(tdc_l > tdc_first)
+	  tdc_first = tdc_l;
 
 	// if(tdc_l != 0 ){
 	//   if(min_l < tdc_l && tdc_l < max_l){
@@ -165,8 +173,10 @@ ProcessingNormal()
 	//   }
 	// }
       }
+      HF1(hid_tdc_first, tdc_first);
+      event.tdc_first.push_back(tdc_first);
 
-      // Trailing
+      // TDC Trailing
       for (const auto& tdc_t : hit->GetArrayTdcTrailing() ) {
 	HF1(hid_tdc_t, tdc_t);
 	event.trailing[seg].push_back(tdc_t);
@@ -182,62 +192,39 @@ ProcessingNormal()
 
       // ADC block
       for(const auto& fadc : hit->GetArrayAdc()){
-	V_fadc      = fadc*V_per_ch;
-	V_fadc_calc = (fadc - baseline[seg])*V_per_ch;
-	// T_fadc      = nsample*T_per_ch;
-
-	// Raw Waveform
 	HF2(hid_wf, nsample, fadc);
 	event.waveform[seg].push_back(fadc);
-
-	// Waveform in V-T
-	// HF2(hid_wf_vt, T_fadc, V_fadc);
-	HF2(hid_wf_vt, nsample, V_fadc);
-
-	// Waveform after remove baseline in V-T
-	// HF2(hid_wf_vt_calc, T_fadc, V_fadc_calc);
-	HF2(hid_wf_vt_calc, nsample, V_fadc_calc);
-
-	// All ADC
-	  HF1(hid_adc_all, fadc);
-	  event.adc_all.push_back(fadc);
-
-	// Pedestal (w/o signal)
-	  if(nsample < MinRange || MaxRange < nsample){
-	    HF1(hid_ped, fadc);
-	    event.pedestal.push_back(fadc);
-	  }
-
 	// Max ADC
 	if(MinRange <= nsample && nsample <= MaxRange){
-	  integral += fadc - baseline[seg];
-	  charge   += V_fadc_calc / 50 * T_per_ch*1000; // [pC]
+	  integral += fadc - PedInitial; // Reduce QDC value
 	  if (fadc > max_adc)
 	    max_adc = fadc;
 	}
+	if(nsample < MinRange){
+	  integral_ped += fadc - PedInitial; // Reduce QDC value
+	}
+	++nsample;
+      }
 
-	// // efficiency?
-	// if(28 < j && j < 32){
-	//   if(fadc > 522 && fadc > max_adc)
-	//     true_hit += 1;
-	// }
-	nsample++;
-      } // for ADC block
-
-      // Charge
-      HF1(hid_integral, integral);
-      event.integral.push_back(integral);
-
-      // Charge in pC
-      HF1(hid_charge, charge);
-
-      // Max ADC
       HF1(hid_adc, max_adc);
       event.max_adc.push_back(max_adc);
 
-    } // for nh
+      HF1(hid_integral, integral);
+      event.integral.push_back(integral);
 
-    //    std::cout << "Efficiency = " << true_hit/nh << std::endl;
+      HF1(hid_integral_ped, integral_ped);
+      event.integral_ped.push_back(integral_ped);
+
+
+      // Calculate dE using HodoParam
+      Double_t dE = ((Double_t)max_adc - ped) / (gain - ped);
+      HF1(hid_dE, dE);
+      event.dE.push_back(dE);
+      Double_t dE_q = ((Double_t)integral - ped_q) / (gain_q - ped_q);
+      HF1(hid_dE_q, dE_q);
+      event.dE_q.push_back(dE_q);
+
+    } // for nh
 
     return true;
   }
@@ -255,85 +242,61 @@ ProcessingEnd()
 Bool_t
 ConfMan::InitializeHistograms()
 {
-  const Int_t  NbinFADC_X     = 100;
-  const Int_t  NbinFADC_Y     = 1024;
-  const double MinFADC        = 0.;
-  const double MaxFADC        = 1024;
-  const double NbinTDC        = 10000;
-  const double MinTDC         = 0;
-  const double MaxTDC         = 10000;
-  // const double MinTime        = -20. * 1024;
-  // const double MaxTime        = 20. * 1024;
-  // const double MinPulseHeight = -1.5;
-  // const double MaxPulseHeight =  1.5;
-  // const double MaxEnergy      = 200.;
+  const Int_t    NbinFADC_X     = 500;
+  const Int_t    NbinFADC_Y     = 1024;
+
+  const Double_t MinIntegral    = 0;
+  const Double_t MaxIntegral    = 10000;
+  const Int_t    NbinIntegral   = (Int_t)(MaxIntegral - MinIntegral);
+
+  const Double_t MinTDC         = 0.;
+  const Double_t MaxTDC         = 4096.;
+  const Int_t    NbinTDC        = (Int_t)(MaxTDC - MinTDC);
+
+  const Double_t MindE         = -0.5;
+  const Double_t MaxdE         = 29.5;
+  const Int_t    NbindE        = (Int_t)(MaxdE - MindE) * 100;
 
   HB1( 1, "Status",  20,   0., 20.);
 
-  char buf[100];
+  for (Int_t seg=0; seg<NumOfSegRayraw; ++seg) {
 
-  for (Int_t seg=0; seg<NumOfSegRayraw; seg++) {
+    TString title0  = Form("RAYRAW seg%d - Raw Waveform",      seg);
+    TString title1  = Form("RAYRAW seg%d - Max ADC",           seg);
+    TString title2  = Form("RAYRAW seg%d - Integral",          seg);
+    TString title3  = Form("RAYRAW seg%d - Pedestal Integral", seg);
+    TString title4  = Form("RAYRAW seg%d - TDC Leading",       seg);
+    TString title5  = Form("RAYRAW seg%d - TDC Trailing",      seg);
+    TString title6  = Form("RAYRAW seg%d - TDC First",         seg);
+    TString title7  = Form("RAYRAW seg%d - TOT",               seg);
+    TString title10 = Form("RAYRAW seg%d - dE(ADC)",           seg);
+    TString title11 = Form("RAYRAW seg%d - dE(Integral)",      seg);
 
-    sprintf(buf, "RAYRAW - Raw Waveform (ch%d)", seg);
-    Int_t hid = RayrawHid + (seg)*1000 + 0;
-    HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, MaxFADC );
-
-    sprintf(buf, "RAYRAW - Waveform(V-T) (ch%d)", seg);
-    hid = RayrawHid + (seg)*1000 + 1;
-    HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, MinFADC, 3.3 );
-    // HB2( hid, buf, NbinFADC_X, 0, 13.33*NbinFADC_X, NbinFADC_Y, MinFADC, 3.3 );
-
-    sprintf(buf, "RAYRAW - Waveform after calc (V-T) (ch%d)", seg);
-    hid = RayrawHid + (seg)*1000 + 2;
-    HB2( hid, buf, NbinFADC_X, 0, NbinFADC_X, NbinFADC_Y, -1.65, 1.65 );
-    // HB2( hid, buf, NbinFADC_X, 0, 13.33*NbinFADC_X, NbinFADC_Y, -1.65, 1.65 );
-
-    sprintf(buf, "RAYRAW - Pedestal (ch%d)", seg);
-    hid = RayrawHid + (seg)*1000 + 3;
-    HB1( hid, buf, NbinFADC_Y, MinFADC, MaxFADC);
-
-    sprintf(buf, "RAYRAW - Max ADC (ch%d)", seg);
-    hid = RayrawHid + (seg)*1000 + 4;
-    HB1( hid, buf, NbinFADC_Y, MinFADC, MaxFADC);
-
-    sprintf(buf, "RAYRAW - ADC All (ch%d)", seg);
-    hid = RayrawHid + (seg)*1000 + 5;
-    HB1( hid, buf, NbinFADC_Y, MinFADC, MaxFADC);
-
-    sprintf(buf, "RAYRAW - Integral (ch%d)", seg);
-    hid = RayrawHid + (seg)*1000 + 6;
-    // HB1( hid, buf, 2100*100, -100, 2000);
-    HB1( hid, buf, 5000, -1000, 4000);
-
-    sprintf(buf, "RAYRAW - Charge (ch%d)", seg);
-    hid = RayrawHid + (seg)*1000 + 7;
-    // HB1( hid, buf, 10000, -100, 10000);
-    HB1( hid, buf, 5000, -1000, 4000);
-
-    sprintf(buf, "RAYRAW - TDC Leading (ch%d)", seg);
-    hid = RayrawHid + (seg)*1000 + 8;
-    HB1( hid, buf, NbinTDC, MinTDC,  MaxTDC);
-
-    sprintf(buf, "RAYRAW - TDC Trailing (ch%d)", seg);
-    hid = RayrawHid + (seg)*1000 + 9;
-    HB1( hid, buf, NbinTDC, MinTDC,  MaxTDC);
-
-    // sprintf(buf, "RAYRAW - TOT (ch%d)", seg);
-    // hid = RayrawHid + (seg)*1000 + 12;
-    // HB1( hid, buf, NbinTDC, MinTDC,  MaxTDC);
+    HB2( RAYRAWHid + (seg+1)*1000 + 0,  title0,  NbinFADC_X, 0., (Double_t)NbinFADC_X, NbinFADC_Y, 0., (Double_t)NbinFADC_Y );
+    HB1( RAYRAWHid + (seg+1)*1000 + 1,  title1,  NbinFADC_Y,   0.,          (Double_t)NbinFADC_Y );
+    HB1( RAYRAWHid + (seg+1)*1000 + 2,  title2,  NbinIntegral, MinIntegral, MaxIntegral );
+    HB1( RAYRAWHid + (seg+1)*1000 + 3,  title3,  NbinIntegral, MinIntegral, MaxIntegral );
+    HB1( RAYRAWHid + (seg+1)*1000 + 4,  title4,  NbinTDC,      MinTDC,      MaxTDC );
+    HB1( RAYRAWHid + (seg+1)*1000 + 5,  title5,  NbinTDC,      MinTDC,      MaxTDC );
+    HB1( RAYRAWHid + (seg+1)*1000 + 6,  title6,  NbinTDC,      MinTDC,      MaxTDC );
+    HB1( RAYRAWHid + (seg+1)*1000 + 7,  title7,  NbinTDC,      MinTDC,      MaxTDC );
+    HB1( RAYRAWHid + (seg+1)*1000 + 10, title10, NbindE,       MindE,       MaxdE );
+    HB1( RAYRAWHid + (seg+1)*1000 + 11, title11, NbindE,       MindE,       MaxdE );
 
   }
 
   //Tree
   HBTree( "tree", "tree" );
-  tree->Branch("evnum",       &event.evnum,     "evnum/I");
-  tree->Branch("waveform",    &event.waveform);
-  tree->Branch("pedestal",    &event.pedestal);
-  tree->Branch("max_adc",     &event.max_adc);
-  tree->Branch("adc_all",     &event.adc_all);
-  tree->Branch("integral",    &event.integral);
-  tree->Branch("leading",     &event.leading);
-  tree->Branch("trailing",    &event.trailing);
+  tree->Branch("evnum",          &event.evnum,     "evnum/I");
+  tree->Branch("waveform",       &event.waveform);
+  tree->Branch("max_adc",        &event.max_adc);
+  tree->Branch("integral",       &event.integral);
+  tree->Branch("integral_ped",   &event.integral_ped);
+  tree->Branch("leading",        &event.leading);
+  tree->Branch("trailing",       &event.trailing);
+  tree->Branch("tdc_first",      &event.tdc_first);
+  tree->Branch("dE(MaxADC)",     &event.dE);
+  tree->Branch("dE(Integral)",   &event.dE_q);
 
   HPrint();
   return true;

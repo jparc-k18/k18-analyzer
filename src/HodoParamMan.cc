@@ -217,7 +217,7 @@ HodoParamMan::GetDeLowGain(Int_t cid, Int_t plid, Int_t seg,
 //   return p0;
 // }
 
-// //_____________________________________________________________________________
+//_____________________________________________________________________________
 // Double_t
 // HodoParamMan::GetP1(Int_t cid, Int_t plid, Int_t seg, Int_t ud) const
 // {
@@ -226,6 +226,26 @@ HodoParamMan::GetDeLowGain(Int_t cid, Int_t plid, Int_t seg,
 //   Double_t p1 = map->Gain();
 //   return p1;
 // }
+
+//_____________________________________________________________________________
+Double_t
+HodoParamMan::GetP0(Int_t cid, Int_t plid, Int_t seg, Int_t ud) const
+{
+  HodoAParam* map = GetAHmap(cid, plid, seg, ud);
+  if(!map) return -1;
+  Double_t p0 = map->Pedestal();
+  return p0;
+}
+
+//_____________________________________________________________________________
+Double_t
+HodoParamMan::GetP1(Int_t cid, Int_t plid, Int_t seg, Int_t ud) const
+{
+  HodoAParam* map = GetAHmap(cid, plid, seg, ud);
+  if(!map) return -1;
+  Double_t p1 = map->Gain();
+  return p1;
+}
 
 //_____________________________________________________________________________
 // Double_t
