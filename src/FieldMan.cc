@@ -15,6 +15,9 @@ namespace
 {
 const auto& gConf = ConfMan::GetInstance();
 const auto& valueNMR  = ConfMan::Get<Double_t>("FLDNMR");
+//const auto& Q1scale  = ConfMan::Get<Double_t>("Q1SCALE");
+//const auto& Q2scale  = ConfMan::Get<Double_t>("Q2SCALE");
+//const auto& D1scale  = ConfMan::Get<Double_t>("D1SCALE");
 const auto& valueCalc = ConfMan::Get<Double_t>("FLDCALC");
 const auto& valueHSHall = ConfMan::Get<Double_t>("HSFLDHALL");
 const auto& valueHSCalc = ConfMan::Get<Double_t>("HSFLDCALC");

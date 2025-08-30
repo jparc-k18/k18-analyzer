@@ -11,7 +11,8 @@
 
 #include <std_ostream.hh>
 
-//#include "ConfMan.hh"
+#include "ConfMan.hh"
+#include "DCGeomMan.hh"
 #include "FuncName.hh"
 
 #define DebugDisp 0
@@ -21,12 +22,18 @@
 #include <TH2.h>
 #endif
 
-//namespace
-//{
-//const auto& gConf = ConfMan::GetInstance();
+namespace
+{
+  const auto& gConf = ConfMan::GetInstance();
 //const auto& valueNMR  = ConfMan::Get<Double_t>("FLDNMR");
 //const auto& valueCalc = ConfMan::Get<Double_t>("FLDCALC");
-//}
+  const auto& valQ1scale = ConfMan::Get<Double_t>("Q1SCALE");
+  const auto& valQ2scale = ConfMan::Get<Double_t>("Q2SCALE");
+  const auto& valD1scale = ConfMan::Get<Double_t>("D1SCALE");
+  const auto& Q1flag = ConfMan::Get<TString>("Q1SCALE");
+  const auto& Q2flag = ConfMan::Get<TString>("Q2SCALE");
+  const auto& D1flag = ConfMan::Get<TString>("D1SCALE");
+}
 
 //_____________________________________________________________________________
 S2sFieldMap::S2sFieldMap(const TString& file_name)
@@ -45,7 +52,6 @@ S2sFieldMap::S2sFieldMap(const TString& file_name)
 {
 }
 
-//_____________________________________________________________________________
 S2sFieldMap::S2sFieldMap(const TString& file_name, const Double_t measure, const Double_t calc)
   : m_is_ready(false),
     m_file_name(file_name),
@@ -63,6 +69,8 @@ S2sFieldMap::S2sFieldMap(const TString& file_name, const Double_t measure, const
     valueCalc(calc)
 {
 }
+
+//_____________________________________________________________________________
 
 
 //_____________________________________________________________________________
@@ -116,7 +124,22 @@ S2sFieldMap::Initialize()
                 << " -> skip reading fieldmap" << std::endl;
     return true;
   }
+
   const Double_t factor = valueMeasure/valueCalc;
+  Double_t Q1scale;
+  Double_t Q2scale;
+  Double_t D1scale;
+  if(Q1flag.Length()==0) Q1scale = 1.0;
+  else Q1scale = valQ1scale;
+  if(Q2flag.Length()==0) Q2scale = 1.0;
+  else Q2scale = valQ2scale;
+  if(D1flag.Length()==0) D1scale = 1.0;
+  else D1scale = valD1scale;
+  
+
+  //const auto& gGeom = DCGeomMan::GetInstance();
+  const auto& Q1Q2Boundary = DCGeomMan::LocalZ("VP2"); //VP2
+  const auto& Q2D1Boundary = DCGeomMan::LocalZ("VP4"); //VP4
 
   Double_t x, y, z, bx, by, bz;
 
@@ -130,6 +153,7 @@ S2sFieldMap::Initialize()
 #endif
 
   Int_t line = 0;
+  Double_t _factor;
   while(ifs.good()){
     if(line++%1000000==0)
       hddaq::cout << "." << std::flush;
@@ -138,9 +162,16 @@ S2sFieldMap::Initialize()
     Int_t iy = Int_t((y-Y0+0.1*dY)/dY);
     Int_t iz = Int_t((z-Z0+0.1*dZ)/dZ);
     if(ix>=0 && ix<Nx && iy>=0 && iy<Ny && iz>=0 && iz<Nz){
-      B[ix][iy][iz].x = bx*factor;
-      B[ix][iy][iz].y = by*factor;
-      B[ix][iy][iz].z = bz*factor;
+      if(z*10. < Q1Q2Boundary){
+        _factor = factor*Q1scale;}
+      else if(z*10. >=Q1Q2Boundary &&z*10. <Q2D1Boundary){
+        _factor = factor*Q2scale;}
+      else{
+        _factor = factor*D1scale;}
+
+      B[ix][iy][iz].x = bx*_factor;
+      B[ix][iy][iz].y = by*_factor;
+      B[ix][iy][iz].z = bz*_factor;
 #if DebugDisp
       if(TMath::Abs(y) < 1.) h1->Fill(z, x, by);
 #endif
