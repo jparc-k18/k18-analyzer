@@ -29,7 +29,11 @@ const Int_t NumOfSegWC    = 12;
 const Int_t NumOfSegSAC3  = 2;
 const Int_t NumOfSegSFV   = 6;
 
-// AFT
+// RC
+const Int_t DetIdRC      = 111;
+const Int_t NumOfPlaneRC = 10;
+const Int_t NumOfSegRC  = 16;
+
 const Int_t DetIdAFT      = 112;
 const Int_t NumOfPlaneAFT = 36;
 const Int_t NumOfSegAFTX  = 32;
@@ -48,6 +52,7 @@ const std::vector<int> NumOfSegAFTarr = { 32, 32, 16, 16,
 
 //const Int_t NumOfSegAFT[4]    = {NumOfSegAFTX, NumOfSegAFTX, NumOfSegAFTY, NumOfSegAFTY};
 
+
 // VMEEASIROC
 const Int_t DetIdVMEASIROC = 116;
 const Int_t NumOfPlaneVMEEASIROC = 96;
@@ -56,6 +61,7 @@ const Int_t NumOfSegVMEEASIROC = 64;
 // Misc _______________________________________________________________
 const Int_t DetIdTrig       = 21;
 const Int_t DetIdScaler     = 22;
+const Int_t DetIdHBXTrig    = 23;
 const Int_t DetIdMsT        = 25;
 const Int_t DetIdMtx        = 26;
 const Int_t DetIdVmeRm      = 81;
@@ -157,6 +163,8 @@ const Int_t NumOfSegVmeCalib   =  32;
 // const Int_t DetIdSDC5 = 109;
 // const Int_t DetIdBFT  = 110;
 
+const Int_t DetIdTOF  = 7;
+
 const Int_t PlMinBcIn        =   1;
 const Int_t PlMaxBcIn        =  12;
 const Int_t PlMinBcOut       = 113;
@@ -254,5 +262,56 @@ const Int_t NumOfSegE72KVC   =  4;
 const Int_t NumOfSegE42BH2   =  8;
 const Int_t NumOfSegT1       =  1;
 const Int_t NumOfSegT2       =  1;
+
+
+
+//For Ge
+const Int_t DetIdGe       = 27;
+const Int_t DetIdBGO      = 114;
+const Int_t DetIdHRTDC    = 115;
+const Int_t NumOfSegGe    = 16;
+const Int_t NumOfSegBGO   = 48;
+const Int_t NumOfChHRTDC    = 16;
+
+//Data Histgram types//
+
+const Int_t DataIdAdc = 0;
+const Int_t DataIdAdcwtfa = 1;
+const Int_t DataIdAdcwtfacut = 2;
+const Int_t DataIdAdcvstfa = 3;
+const Int_t DataIdAdcwcrm = 4;
+const Int_t DataIdAdcwcrmcut = 5;
+const Int_t DataIdAdcvscrm = 6;
+const Int_t DataIdAdcwbgocut = 7;
+const Int_t DataIdAdcvsreset = 8;
+const Int_t DataIdAdcaftercalib = 9;
+const Int_t DataIdAdcwbgotfacut = 10;
+const Int_t DataIdAdcwbgocrmcut = 11;
+
+const Int_t DataIdTfa = 0;
+const Int_t DataIdCrm = 1;
+const Int_t DataIdReset = 2;
+const Int_t DataIdBgo = 3;
+
+//correspondence between Ge and BGO
+
+const std::vector<std::vector<Int_t>> BtoG ={
+  {10,11,0,1},//SL1-1
+  {1,2,3,4},//SL1-2
+  {4,5,6,7},//SL1-3
+  {7,8,9,10},//SL1-4
+  {13,14,15,16},//SL2-1
+  {16,17,18,19},//SL2-2
+  {19,20,21,22},//SL2-3
+  {12,13,22,23},//SL2-4
+  {34,35,24,25},//SL3-1
+  {25,26,27,28},//SL3-2
+  {28,29,30,31},//SL3-3
+  {32,33,34,35},//SL3-4
+  {46,47,36,37},//SL4-1
+  {37,38,39,40},//SL4-2
+  {40,41,42,43},//SL4-3
+  {43,44,45,46}//SL4-4
+};
 
 #endif

@@ -11,6 +11,7 @@
 namespace utility
 {
 UInt_t     EBDataSize( void );
+UInt_t     UnixTime( void );
 TTimeStamp TimeStamp( void );
 }
 

@@ -30,10 +30,10 @@
 
 #define HodoCut    0 // with BH1/BH2
 #define TIME_CUT   1 // in cluster analysis
-#define DE_CUT     1 // in cluster analysis for aft
+#define DE_CUT     1 // in cluster analysis for rc
 #define FHitBranch 0 // make FiberHit branches (becomes heavy)
-#define RawHitAFTBranch 0 //make AFT RawHit branches (becomes heavy)
-#define ClusterHitAFTBranch 1 //make AFTCluster branches
+#define RawHitRCBranch 0 //make RC RawHit branches (becomes heavy)
+#define ClusterHitRCBranch 0 //make RCCluster branches
 
 namespace
 {
@@ -80,33 +80,33 @@ struct Event
   Double_t bft_clpos[NumOfSegBFT];
   Double_t bft_clseg[NumOfSegBFT];
 
-  // AFT raw
-  Int_t    aft_nhits[NumOfPlaneAFT];
-  Int_t    aft_hitpat[NumOfPlaneAFT][NumOfSegAFT];
-  Double_t aft_tdc[NumOfPlaneAFT][NumOfSegAFT][kUorD][MaxDepth];
-  Double_t aft_adc_high[NumOfPlaneAFT][NumOfSegAFT][kUorD];
-  Double_t aft_adc_low[NumOfPlaneAFT][NumOfSegAFT][kUorD];
-  Double_t aft_ltime[NumOfPlaneAFT][NumOfSegAFT][kUorD][MaxDepth];
-  Double_t aft_ttime[NumOfPlaneAFT][NumOfSegAFT][kUorD][MaxDepth];
-  Double_t aft_tot[NumOfPlaneAFT][NumOfSegAFT][kUorD][MaxDepth];
+  // RC raw
+  Int_t    rc_nhits[NumOfPlaneRC];
+  Int_t    rc_hitpat[NumOfPlaneRC][NumOfSegRC];
+  Double_t rc_tdc[NumOfPlaneRC][NumOfSegRC][kUorD][MaxDepth];
+  Double_t rc_adc_high[NumOfPlaneRC][NumOfSegRC][kUorD];
+  Double_t rc_adc_low[NumOfPlaneRC][NumOfSegRC][kUorD];
+  Double_t rc_ltime[NumOfPlaneRC][NumOfSegRC][kUorD][MaxDepth];
+  Double_t rc_ttime[NumOfPlaneRC][NumOfSegRC][kUorD][MaxDepth];
+  Double_t rc_tot[NumOfPlaneRC][NumOfSegRC][kUorD][MaxDepth];
 
-  // AFT normalized
-  Double_t aft_mt[NumOfPlaneAFT][NumOfSegAFT][MaxDepth];
-  Double_t aft_cmt[NumOfPlaneAFT][NumOfSegAFT][MaxDepth];
-  Double_t aft_mtot[NumOfPlaneAFT][NumOfSegAFT][MaxDepth];
-  Double_t aft_de_high[NumOfPlaneAFT][NumOfSegAFT];
-  Double_t aft_de_low[NumOfPlaneAFT][NumOfSegAFT];
+  // RC normalized
+  Double_t rc_mt[NumOfPlaneRC][NumOfSegRC][MaxDepth];
+  Double_t rc_cmt[NumOfPlaneRC][NumOfSegRC][MaxDepth];
+  Double_t rc_mtot[NumOfPlaneRC][NumOfSegRC][MaxDepth];
+  Double_t rc_de_high[NumOfPlaneRC][NumOfSegRC];
+  Double_t rc_de_low[NumOfPlaneRC][NumOfSegRC];
 
-  //AFT cluster
-  Int_t    aft_ncl;
-  Double_t aft_desum;
-  Int_t    aft_clsize[MaxCluster];
-  Double_t aft_clseg[MaxCluster];
-  Double_t aft_cltot[MaxCluster];
-  Double_t aft_clde[MaxCluster];
-  Double_t aft_cltime[MaxCluster];
-  Int_t    aft_clplane[MaxCluster];
-  Double_t aft_clpos[MaxCluster];
+  //RC cluster
+  Int_t    rc_ncl;
+  Double_t rc_desum;
+  Int_t    rc_clsize[MaxCluster];
+  Double_t rc_clseg[MaxCluster];
+  Double_t rc_cltot[MaxCluster];
+  Double_t rc_clde[MaxCluster];
+  Double_t rc_cltime[MaxCluster];
+  Int_t    rc_clplane[MaxCluster];
+  Double_t rc_clpos[MaxCluster];
 
   void clear();
 };
@@ -156,42 +156,42 @@ Event::clear()
     bft_clseg[it]  = qnan;
   }
 
-  //aft raw
-  for(Int_t p=0; p<NumOfPlaneAFT; p++){
-    aft_nhits[p] = 0;
-    for(Int_t seg=0; seg<NumOfSegAFT; seg++){
-      aft_hitpat[p][seg] = -1;
+  //rc raw
+  for(Int_t p=0; p<NumOfPlaneRC; p++){
+    rc_nhits[p] = 0;
+    for(Int_t seg=0; seg<NumOfSegRC; seg++){
+      rc_hitpat[p][seg] = -1;
       for(Int_t ud=0; ud<kUorD; ud++){
-        aft_adc_high[p][seg][ud] = qnan;
-        aft_adc_low[p][seg][ud] = qnan;
+        rc_adc_high[p][seg][ud] = qnan;
+        rc_adc_low[p][seg][ud] = qnan;
         for(Int_t i=0; i<MaxDepth; i++){
-          aft_tdc[p][seg][ud][i] = qnan;
-          aft_ltime[p][seg][ud][i] = qnan;
-          aft_ttime[p][seg][ud][i] = qnan;
-          aft_tot[p][seg][ud][i] = qnan;
+          rc_tdc[p][seg][ud][i] = qnan;
+          rc_ltime[p][seg][ud][i] = qnan;
+          rc_ttime[p][seg][ud][i] = qnan;
+          rc_tot[p][seg][ud][i] = qnan;
         }
       }
-      aft_de_high[p][seg] = qnan;
-      aft_de_low[p][seg] = qnan;
+      rc_de_high[p][seg] = qnan;
+      rc_de_low[p][seg] = qnan;
       for(Int_t i=0; i<MaxDepth; i++){
-        aft_mt[p][seg][i] = qnan;
-        aft_cmt[p][seg][i] = qnan;
-        aft_mtot[p][seg][i] = qnan;
+        rc_mt[p][seg][i] = qnan;
+        rc_cmt[p][seg][i] = qnan;
+        rc_mtot[p][seg][i] = qnan;
       }
     }
   }
 
-  //aft cluster
-  aft_ncl   = 0;
-  aft_desum = qnan;
+  //rc cluster
+  rc_ncl   = 0;
+  rc_desum = qnan;
   for(Int_t it=0; it<MaxCluster; it++){
-	aft_clsize[it]  = 0;
-	aft_clseg[it]   = qnan;
-	aft_cltot[it]   = qnan;
-	aft_clde[it]    = qnan;
-	aft_cltime[it]  = qnan;
-	aft_clplane[it] = qnan;
-	aft_clpos[it]   = qnan;
+	rc_clsize[it]  = 0;
+	rc_clseg[it]   = qnan;
+	rc_cltot[it]   = qnan;
+	rc_clde[it]    = qnan;
+	rc_cltime[it]  = qnan;
+	rc_clplane[it] = qnan;
+	rc_clpos[it]   = qnan;
   }
 }
 
@@ -204,7 +204,7 @@ TTree *tree;
 enum eDetHid
 {
   BFTHid  =  10000,
-  AFTHid  = 100000,
+  RCHid  = 100000,
 };
 }
 
@@ -233,12 +233,12 @@ ProcessingNormal()
 #if TIME_CUT
   static const Double_t MinTimeBFT = gUser.GetParameter("TimeBFT", 0);
   static const Double_t MaxTimeBFT = gUser.GetParameter("TimeBFT", 1);
-  static const Double_t MinTimeAFT = gUser.GetParameter("TimeAFT", 0);
-  static const Double_t MaxTimeAFT = gUser.GetParameter("TimeAFT", 1);
+  static const Double_t MinTimeRC = gUser.GetParameter("TimeRC", 0);
+  static const Double_t MaxTimeRC = gUser.GetParameter("TimeRC", 1);
 #endif
 #if DE_CUT
-  static const Double_t MinDeAFT   = gUser.GetParameter("DeAFT", 0);
-  static const Double_t MaxDeAFT   = gUser.GetParameter("DeAFT", 1);
+  static const Double_t MinDeRC   = gUser.GetParameter("DeRC", 0);
+  static const Double_t MaxDeRC   = gUser.GetParameter("DeRC", 1);
 #endif
 
   RawData rawData;
@@ -246,7 +246,7 @@ ProcessingNormal()
   rawData.DecodeHits("BH1");
   rawData.DecodeHits("BH2");
   rawData.DecodeHits("BFT");
-  rawData.DecodeHits("AFT");
+  rawData.DecodeHits("RC");
   HodoAnalyzer hodoAna(rawData);
 
   event.evnum = gUnpacker.get_event_number();
@@ -443,94 +443,99 @@ ProcessingNormal()
     }
   }
 
-  ////////// AFT
-  for(const auto& hit: rawData.GetHodoRawHC("AFT")){
+  ////////// RC
+  for(const auto& hit: rawData.GetHodoRawHC("RC")){
     // hit->Print();
     Int_t plane = hit->PlaneId();
     Int_t seg = hit->SegmentId();
     for(Int_t ud=0; ud<kUorD; ++ud){
       auto adc_high = hit->GetAdcHigh(ud);
       auto adc_low = hit->GetAdcLow(ud);
-      event.aft_adc_high[plane][seg][ud] = adc_high;
-      event.aft_adc_low[plane][seg][ud] = adc_low;
-      HF1(AFTHid+plane*1000+7+ud, adc_high);
-      HF1(AFTHid+plane*1000+9+ud, adc_low);
-      HF2(AFTHid+plane*1000+15+ud, seg, adc_high);
-      HF2(AFTHid+plane*1000+17+ud, seg, adc_low);
+      event.rc_adc_high[plane][seg][ud] = adc_high;
+      event.rc_adc_low[plane][seg][ud] = adc_low;
+      HF1(RCHid+plane*1000+7+ud, adc_high);
+      HF1(RCHid+plane*1000+9+ud, adc_low);
+      HF2(RCHid+plane*1000+15+ud, seg, adc_high);
+      HF2(RCHid+plane*1000+17+ud, seg, adc_low);
       for(Int_t i=0, n=hit->GetSizeTdcLeading(ud); i<n; ++i){
         auto tdc = hit->GetTdc(ud, i);
-        event.aft_tdc[plane][seg][ud][i] = tdc;
-        HF1(AFTHid+plane*1000+3+ud, tdc);
-        HF2(AFTHid+plane*1000+11+ud, seg, tdc);
-        // HF1(AFTHid+plane*1000+seg+100+ud*100, tdc);
+	auto tra = hit->GetTdcTrailing(ud, i);
+        event.rc_tdc[plane][seg][ud][i] = tdc;
+        HF1(RCHid+plane*1000+3+ud, tdc);
+        HF2(RCHid+plane*1000+11+ud, seg, tdc);	
+
+        HF2(RCHid+plane*1000+100+13+ud, seg, tra);
+	HF2(RCHid+plane*1000+100+15+ud, seg, tdc-tra);	
+        // HF1(RCHid+plane*1000+seg+100+ud*100, tdc);
       }
     }
   }
-  hodoAna.DecodeHits<FiberHit>("AFT");
-  for(Int_t i=0, n=hodoAna.GetNHits("AFT"); i<n; ++i){
-    const auto& hit = hodoAna.GetHit<FiberHit>("AFT", i);
+  hodoAna.DecodeHits<FiberHit>("RC");
+  for(Int_t i=0, n=hodoAna.GetNHits("RC"); i<n; ++i){
+    const auto& hit = hodoAna.GetHit<FiberHit>("RC", i);
     // hit->Print();
     // const auto& rhit = hit->GetRawHit();
     // rhit->Print();
     Int_t plane = hit->PlaneId();
     Int_t seg = hit->SegmentId();
-    event.aft_hitpat[plane][event.aft_nhits[plane]++] = seg;
-    //HF1(AFTHid+plane*1000+2, seg);
+    event.rc_hitpat[plane][event.rc_nhits[plane]++] = seg;
+    //HF1(RCHid+plane*1000+2, seg);
     Int_t m = hit->GetEntries();
     for(Int_t j=0; j<m; ++j){
       auto mt = hit->MeanTime(j);
       auto cmt = hit->CMeanTime(j);
       auto mtot = hit->MeanTOT(j);
-      event.aft_mt[plane][seg][j] = mt;
-      event.aft_cmt[plane][seg][j] = cmt;
-      event.aft_mtot[plane][seg][j] = mtot;
-      HF1(AFTHid+plane*1000+21, mt);
-      HF1(AFTHid+plane*1000+22, cmt);
-      HF1(AFTHid+plane*1000+23, mtot);
-      HF2(AFTHid+plane*1000+31, seg, mt);
-      HF2(AFTHid+plane*1000+32, seg, cmt);
-      HF2(AFTHid+plane*1000+33, seg, mtot);
+      event.rc_mt[plane][seg][j] = mt;
+      event.rc_cmt[plane][seg][j] = cmt;
+      event.rc_mtot[plane][seg][j] = mtot;
+      HF1(RCHid+plane*1000+21, mt);
+      HF1(RCHid+plane*1000+22, cmt);
+      HF1(RCHid+plane*1000+23, mtot);
+      HF2(RCHid+plane*1000+31, seg, mt);
+      HF2(RCHid+plane*1000+32, seg, cmt);
+      HF2(RCHid+plane*1000+33, seg, mtot);
       for(Int_t ud=0; ud<kUorD; ++ud){
         auto tot = hit->TOT(ud, j);
 	auto ltime = hit->GetTimeLeading(ud, j);
 	auto ttime = hit->GetTimeTrailing(ud, j);
-	event.aft_tot[plane][seg][ud][j]   = tot;
-	event.aft_ltime[plane][seg][ud][j] = ltime;
-	event.aft_ttime[plane][seg][ud][j] = ttime;
-        HF1(AFTHid+plane*1000+5+ud, tot);
-        HF2(AFTHid+plane*1000+13+ud, seg, tot);
-	HF2(AFTHid+plane*1000+58+ud, seg, ltime);
-	HF1(AFTHid+plane*1000+60+ud, ltime);
-        // HF1(AFTHid+plane*1000+seg+300+ud*100, tot);
+	event.rc_tot[plane][seg][ud][j]   = tot;
+	event.rc_ltime[plane][seg][ud][j] = ltime;
+	event.rc_ttime[plane][seg][ud][j] = ttime;
+        HF1(RCHid+plane*1000+5+ud, tot);
+        HF2(RCHid+plane*1000+13+ud, seg, tot);
+	HF2(RCHid+plane*1000+56+ud, seg, ttime);
+	HF2(RCHid+plane*1000+58+ud, seg, ltime);
+	HF1(RCHid+plane*1000+60+ud, ltime);
+        // HF1(RCHid+plane*1000+seg+300+ud*100, tot);
       }
     }
     auto de_high = hit->DeltaEHighGain();
     auto de_low = hit->DeltaELowGain();
-    event.aft_de_high[plane][seg] = de_high;
-    event.aft_de_low[plane][seg] = de_low;
-    HF1(AFTHid+plane*1000+24, de_high);
-    HF1(AFTHid+plane*1000+25, de_low);
-    HF2(AFTHid+plane*1000+34, seg, de_high);
-    HF2(AFTHid+plane*1000+35, seg, de_low);
+    event.rc_de_high[plane][seg] = de_high;
+    event.rc_de_low[plane][seg] = de_low;
+    HF1(RCHid+plane*1000+24, de_high);
+    HF1(RCHid+plane*1000+25, de_low);
+    HF2(RCHid+plane*1000+34, seg, de_high);
+    HF2(RCHid+plane*1000+35, seg, de_low);
   }
-  for(Int_t plane=0; plane<NumOfPlaneAFT; ++plane){
-    //HF1(AFTHid+plane*1000+1, event.aft_nhits[plane]);
+  for(Int_t plane=0; plane<NumOfPlaneRC; ++plane){
+    //HF1(RCHid+plane*1000+1, event.rc_nhits[plane]);
   }
 
-  //AFT cluster
+  //RC cluster
 #if TIME_CUT
-  hodoAna.TimeCut("AFT", MinTimeAFT, MaxTimeAFT);
+  hodoAna.TimeCut("RC", MinTimeRC, MaxTimeRC);
 #endif
 #if DE_CUT
-  hodoAna.DeCut("AFT", MinDeAFT, MaxDeAFT);
+  hodoAna.DeCut("RC", MinDeRC, MaxDeRC);
 #endif
   {
-    int nclaft = hodoAna.GetNClusters("AFT");
-    event.aft_ncl = nclaft;
+    int nclrc = hodoAna.GetNClusters("RC");
+    event.rc_ncl = nclrc;
     double desum = 0;
-    if (nclaft > MaxCluster) nclaft = MaxCluster;
-    for(Int_t i=0; i<nclaft; ++i){
-      const auto& cl = hodoAna.GetCluster("AFT", i);
+    if (nclrc > MaxCluster) nclrc = MaxCluster;
+    for(Int_t i=0; i<nclrc; ++i){
+      const auto& cl = hodoAna.GetCluster("RC", i);
       if(!cl) continue;
       Int_t    plane  = cl->PlaneId();
       Double_t clsize = cl->ClusterSize();
@@ -540,69 +545,69 @@ ProcessingNormal()
       Double_t seg    = cl->MeanSeg();
       Double_t de     = cl->DeltaE();
       desum = desum + de;
-      event.aft_clsize[i]  = clsize;
-      event.aft_clseg[i]   = seg;
-      event.aft_cltot[i]   = tot;
-      event.aft_clde[i]    = de;
-      event.aft_cltime[i]  = time;
-      event.aft_clplane[i] = plane;
-      event.aft_clpos[i]   = pos;
-      HF1(AFTHid + 102, clsize);
-      HF1(AFTHid + 103, time);
-      HF1(AFTHid + 104, tot);
-      HF2(AFTHid + 105, time, tot);
-      HF1(AFTHid + 106, seg);
+      event.rc_clsize[i]  = clsize;
+      event.rc_clseg[i]   = seg;
+      event.rc_cltot[i]   = tot;
+      event.rc_clde[i]    = de;
+      event.rc_cltime[i]  = time;
+      event.rc_clplane[i] = plane;
+      event.rc_clpos[i]   = pos;
+      HF1(RCHid + 102, clsize);
+      HF1(RCHid + 103, time);
+      HF1(RCHid + 104, tot);
+      HF2(RCHid + 105, time, tot);
+      HF1(RCHid + 106, seg);
     }
-    HF1(AFTHid + 101, nclaft);
-    HF1(AFTHid + 107, desum);
-    event.aft_desum = desum;
+    HF1(RCHid + 101, nclrc);
+    HF1(RCHid + 107, desum);
+    event.rc_desum = desum;
   }
 
 
-  //aft_analysis
-  int multiplicity_pair[18] = { 0 };
-  for(int ud=0; ud<kUorD; ud++){
-    for(int plane=0; plane<NumOfPlaneAFT; plane++){
-      std::vector<std::pair<int,int>> adc_seg_pair;
-      int multiplicity = 0;
-      for(int s=0; s<NumOfSegAFTarr.at(plane); s++){
-	//--------------------------------------------------------
-	for(int depth=0; depth<MaxDepth; depth++){
-	  double ltime = event.aft_ltime[plane][s][ud][depth];
-	  double adc   = event.aft_adc_high[plane][s][ud];
-	  double tot   = event.aft_tot[plane][s][ud][depth];
-	  double mt    = event.aft_mt[plane][s][depth];
-	  double de_high = event.aft_de_high[plane][s];
-	  bool Timecut = ( MinTimeAFT<ltime && ltime<MaxTimeAFT);
-	  bool MeanTimecut = ( MinTimeAFT<mt && mt<MaxTimeAFT);
-	  bool Decut   = ( 0.2<de_high );
-	  if( Timecut )  HF2(AFTHid+plane*1000+62+ud, adc, tot);
-	  if (MeanTimecut ) HF2(AFTHid+plane*1000+64+ud, de_high, mt);
-	  if( MeanTimecut && Decut){
-	    multiplicity++;
-	    HF1(AFTHid+plane*1000+2, s);
-	  }
-	}
-	//--------------------------------------------------------
-	if(std::isfinite(event.aft_tdc[plane][s][ud][0])){
-	  double adc = event.aft_adc_high[plane][s][ud];
-	  if(1000<adc) adc_seg_pair.push_back( {adc, s} );
-	}
-      }//for seg
-      if(ud==0) multiplicity_pair[plane/2] += multiplicity;
-      if( ((plane%2)==1) && (ud==0) )  HF1(AFTHid+(plane/2)*1000+1, multiplicity_pair[plane/2]);
-      if(!adc_seg_pair.empty()){
-	std::sort(adc_seg_pair.rbegin(), adc_seg_pair.rend());
-	int adcmax = adc_seg_pair.at(0).first;
-	int adcmax_seg = adc_seg_pair.at(0).second;
-	int tdc_adcmax_seg = event.aft_tdc[plane][adcmax_seg][ud][0];
-	HF2(AFTHid+plane*1000+50+ud, adcmax_seg, tdc_adcmax_seg);
-	HF1(AFTHid+plane*1000+52+ud, adcmax_seg);
-	HF2(AFTHid+plane*1000+54+ud, adcmax_seg, adcmax);
-	HF1(AFTHid+plane*1000+56+ud, adcmax);
-      }
-    }//for plane
-  }//for ud
+  //rc_analysis
+  // int multiplicity_pair[18] = { 0 };
+  // for(int ud=0; ud<kUorD; ud++){
+  //   for(int plane=0; plane<NumOfPlaneRC; plane++){
+  //     std::vector<std::pair<int,int>> adc_seg_pair;
+  //     int multiplicity = 0;
+  //     for(int s=0; s<NumOfSegRCarr.at(plane); s++){
+  // 	//--------------------------------------------------------
+  // 	for(int depth=0; depth<MaxDepth; depth++){
+  // 	  double ltime = event.rc_ltime[plane][s][ud][depth];
+  // 	  double adc   = event.rc_adc_high[plane][s][ud];
+  // 	  double tot   = event.rc_tot[plane][s][ud][depth];
+  // 	  double mt    = event.rc_mt[plane][s][depth];
+  // 	  double de_high = event.rc_de_high[plane][s];
+  // 	  bool Timecut = ( MinTimeRC<ltime && ltime<MaxTimeRC);
+  // 	  bool MeanTimecut = ( MinTimeRC<mt && mt<MaxTimeRC);
+  // 	  bool Decut   = ( 0.2<de_high );
+  // 	  if( Timecut )  HF2(RCHid+plane*1000+62+ud, adc, tot);
+  // 	  if (MeanTimecut ) HF2(RCHid+plane*1000+64+ud, de_high, mt);
+  // 	  if( MeanTimecut && Decut){
+  // 	    multiplicity++;
+  // 	    HF1(RCHid+plane*1000+2, s);
+  // 	  }
+  // 	}
+  // 	//--------------------------------------------------------
+  // 	if(std::isfinite(event.rc_tdc[plane][s][ud][0])){
+  // 	  double adc = event.rc_adc_high[plane][s][ud];
+  // 	  if(1000<adc) adc_seg_pair.push_back( {adc, s} );
+  // 	}
+  //     }//for seg
+  //     if(ud==0) multiplicity_pair[plane/2] += multiplicity;
+  //     if( ((plane%2)==1) && (ud==0) )  HF1(RCHid+(plane/2)*1000+1, multiplicity_pair[plane/2]);
+  //     if(!adc_seg_pair.empty()){
+  // 	std::sort(adc_seg_pair.rbegin(), adc_seg_pair.rend());
+  // 	int adcmax = adc_seg_pair.at(0).first;
+  // 	int adcmax_seg = adc_seg_pair.at(0).second;
+  // 	int tdc_adcmax_seg = event.rc_tdc[plane][adcmax_seg][ud][0];
+  // 	HF2(RCHid+plane*1000+50+ud, adcmax_seg, tdc_adcmax_seg);
+  // 	HF1(RCHid+plane*1000+52+ud, adcmax_seg);
+  // 	HF2(RCHid+plane*1000+54+ud, adcmax_seg, adcmax);
+  // 	HF1(RCHid+plane*1000+56+ud, adcmax);
+  //     }
+  //   }//for plane
+  // }//for ud
 
   return true;
 }
@@ -695,65 +700,71 @@ ConfMan::InitializeHistograms()
   HB1(BFTHid +106, "BFT Cluster Position",
       NumOfSegBFT, -0.5*(Double_t)NumOfSegBFT, 0.5*(Double_t)NumOfSegBFT);
 
-  //AFT
-  for(Int_t plane=0; plane<NumOfPlaneAFT; ++plane){
-    HB1(AFTHid+plane*1000+1, Form("AFT Nhits Plane#%d", plane), NumOfSegAFT, 0., NumOfSegAFT);
-    HB1(AFTHid+plane*1000+2, Form("AFT Hitpat Plane#%d", plane), NumOfSegAFT, 0., NumOfSegAFT);
-    HB1(AFTHid+plane*1000+21, Form("AFT MeanTime Plane#%d", plane), NbinTime, MinTime, MaxTime);
-    HB1(AFTHid+plane*1000+22, Form("AFT CMeanTime Plane#%d", plane), NbinTime, MinTime, MaxTime);
-    HB1(AFTHid+plane*1000+23, Form("AFT MeanTot Plane#%d", plane), NbinTot, MinTot, MaxTot);
-    HB1(AFTHid+plane*1000+24, Form("AFT DeltaE HighGain Plane#%d", plane), NbinDe, MinDe, MaxDe);
-    HB1(AFTHid+plane*1000+25, Form("AFT DeltaE LowGain Plane#%d", plane), NbinDe, MinDe, MaxDe);
-    HB2(AFTHid+plane*1000+31, Form("AFT MeanTime Plane#%d", plane),
-        NumOfSegAFT, 0., NumOfSegAFT, NbinTime, MinTime, MaxTime);
-    HB2(AFTHid+plane*1000+32, Form("AFT CMeanTime Plane#%d", plane),
-        NumOfSegAFT, 0., NumOfSegAFT, NbinTime, MinTime, MaxTime);
-    HB2(AFTHid+plane*1000+33, Form("AFT MeanTot Plane#%d", plane),
-        NumOfSegAFT, 0., NumOfSegAFT, NbinTot, MinTot, MaxTot);
-    HB2(AFTHid+plane*1000+34, Form("AFT DeltaE HighGain Plane#%d", plane),
-        NumOfSegAFT, 0., NumOfSegAFT, NbinDe, MinDe, MaxDe);
-    HB2(AFTHid+plane*1000+35, Form("AFT DeltaE LowGain Plane#%d", plane),
-        NumOfSegAFT, 0., NumOfSegAFT, NbinDe, MinDe, MaxDe);
+  //RC
+  for(Int_t plane=0; plane<NumOfPlaneRC; ++plane){
+    HB1(RCHid+plane*1000+1, Form("RC Nhits Plane#%d", plane), NumOfSegRC, 0., NumOfSegRC);
+    HB1(RCHid+plane*1000+2, Form("RC Hitpat Plane#%d", plane), NumOfSegRC, 0., NumOfSegRC);
+    HB1(RCHid+plane*1000+21, Form("RC MeanTime Plane#%d", plane), NbinTime, MinTime, MaxTime);
+    HB1(RCHid+plane*1000+22, Form("RC CMeanTime Plane#%d", plane), NbinTime, MinTime, MaxTime);
+    HB1(RCHid+plane*1000+23, Form("RC MeanTot Plane#%d", plane), NbinTot, MinTot, MaxTot);
+    HB1(RCHid+plane*1000+24, Form("RC DeltaE HighGain Plane#%d", plane), NbinDe, MinDe, MaxDe);
+    HB1(RCHid+plane*1000+25, Form("RC DeltaE LowGain Plane#%d", plane), NbinDe, MinDe, MaxDe);
+    HB2(RCHid+plane*1000+31, Form("RC MeanTime Plane#%d", plane),
+        NumOfSegRC, 0., NumOfSegRC, NbinTime, MinTime, MaxTime);
+    HB2(RCHid+plane*1000+32, Form("RC CMeanTime Plane#%d", plane),
+        NumOfSegRC, 0., NumOfSegRC, NbinTime, MinTime, MaxTime);
+    HB2(RCHid+plane*1000+33, Form("RC MeanTot Plane#%d", plane),
+        NumOfSegRC, 0., NumOfSegRC, NbinTot, MinTot, MaxTot);
+    HB2(RCHid+plane*1000+34, Form("RC DeltaE HighGain Plane#%d", plane),
+        NumOfSegRC, 0., NumOfSegRC, NbinDe, MinDe, MaxDe);
+    HB2(RCHid+plane*1000+35, Form("RC DeltaE LowGain Plane#%d", plane),
+        NumOfSegRC, 0., NumOfSegRC, NbinDe, MinDe, MaxDe);
     for(Int_t ud=0; ud<kUorD; ++ud){
       const Char_t* s = (ud == kU) ? "U" : "D";
-      HB1(AFTHid+plane*1000+3+ud, Form("AFT Tdc %s Plane#%d", s, plane), NbinTdc, MinTdc, MaxTdc);
-      HB1(AFTHid+plane*1000+5+ud, Form("AFT Tot %s Plane#%d", s, plane), NbinTdc, MinTdc, MaxTdc);
-      HB1(AFTHid+plane*1000+7+ud, Form("AFT AdcHigh %s Plane#%d", s, plane), NbinAdc, MinAdc, MaxAdc);
-      HB1(AFTHid+plane*1000+9+ud, Form("AFT AdcLow %s Plane#%d", s, plane), NbinAdc, MinAdc, MaxAdc);
-      HB2(AFTHid+plane*1000+11+ud, Form("AFT Tdc %s%%Seg Plane#%d", s, plane),
-          NumOfSegAFT, 0., NumOfSegAFT, NbinTdc, MinTdc, MaxTdc);
-      HB2(AFTHid+plane*1000+13+ud, Form("AFT Tot %s%%Seg Plane#%d", s, plane),
-          NumOfSegAFT, 0., NumOfSegAFT, NbinTot, MinTot, MaxTot);
-      HB2(AFTHid+plane*1000+15+ud, Form("AFT AdcHigh %s%%Seg Plane#%d", s, plane),
-          NumOfSegAFT, 0., NumOfSegAFT, NbinAdc, MinAdc, MaxAdc);
-      HB2(AFTHid+plane*1000+17+ud, Form("AFT AdcLow %s%%Seg Plane#%d", s, plane),
-          NumOfSegAFT, 0., NumOfSegAFT, NbinAdc, MinAdc, MaxAdc);
+      HB1(RCHid+plane*1000+3+ud, Form("RC Tdc %s Plane#%d", s, plane), NbinTdc, MinTdc, MaxTdc);
+      HB1(RCHid+plane*1000+5+ud, Form("RC Tot %s Plane#%d", s, plane), NbinTdc, MinTdc, MaxTdc);
+      HB1(RCHid+plane*1000+7+ud, Form("RC AdcHigh %s Plane#%d", s, plane), NbinAdc, MinAdc, MaxAdc);
+      HB1(RCHid+plane*1000+9+ud, Form("RC AdcLow %s Plane#%d", s, plane), NbinAdc, MinAdc, MaxAdc);
+      HB2(RCHid+plane*1000+11+ud, Form("RC Tdc %s%%Seg Plane#%d", s, plane),
+          NumOfSegRC, 0., NumOfSegRC, NbinTdc, MinTdc, MaxTdc);
+      HB2(RCHid+plane*1000+100+13+ud, Form("RC Tra %s%%Seg Plane#%d", s, plane),
+          NumOfSegRC, 0., NumOfSegRC, NbinTdc, MinTdc, MaxTdc);
+      HB2(RCHid+plane*1000+100+15+ud, Form("RC Tot %s%%Seg Plane#%d", s, plane),
+          NumOfSegRC, 0., NumOfSegRC, NbinAdc, MinAdc, MaxAdc);
 
-      HB2(AFTHid+plane*1000+50+ud, Form("AFT Tdc w/maxadc %s%%Seg Plane#%d", s, plane),
-          NumOfSegAFTarr.at(plane), 0., NumOfSegAFTarr.at(plane), NbinTdc, MinTdc, MaxTdc);
-      HB1(AFTHid+plane*1000+52+ud, Form("AFT HitPat %s Plane#%d", s, plane), NumOfSegAFTarr.at(plane), 0, NumOfSegAFTarr.at(plane));
-      HB2(AFTHid+plane*1000+54+ud, Form("AFT AdcHigh w/maxadc %s%%Seg Plane#%d", s, plane),
-          NumOfSegAFTarr.at(plane), 0., NumOfSegAFTarr.at(plane), NbinAdc, MinAdc, MaxAdc);
-      HB1(AFTHid+plane*1000+56+ud, Form("AFT AdcHigh w/maxadc %s Plane#%d", s, plane), NbinAdc, 0, NbinAdc);
-      HB2(AFTHid+plane*1000+58+ud, Form("AFT Time %s%%Seg Plane#%d", s, plane),
-          NumOfSegAFTarr.at(plane), 0., NumOfSegAFTarr.at(plane), NbinTime, MinTime, MaxTime);
-      HB1(AFTHid+plane*1000+60+ud, Form("AFT Time %s Plane#%d", s, plane), NbinTime, MinTime, MaxTime);
-      HB2(AFTHid+plane*1000+62+ud, Form("AFT adc:tot w/timecut %s%%Plane#%d", s, plane),
+      HB2(RCHid+plane*1000+15+ud, Form("RC Adchigh %s%%Seg Plane#%d", s, plane),
+          NumOfSegRC, 0., NumOfSegRC, NbinAdc, MinAdc, MaxAdc);
+      HB2(RCHid+plane*1000+17+ud, Form("RC AdcLow %s%%Seg Plane#%d", s, plane),
+          NumOfSegRC, 0., NumOfSegRC, NbinAdc, MinAdc, MaxAdc);
+
+      // HB2(RCHid+plane*1000+50+ud, Form("RC Tdc w/maxadc %s%%Seg Plane#%d", s, plane),
+      //     NumOfSegRCarr.at(plane), 0., NumOfSegRCarr.at(plane), NbinTdc, MinTdc, MaxTdc);
+      // HB1(RCHid+plane*1000+52+ud, Form("RC HitPat %s Plane#%d", s, plane), NumOfSegRCarr.at(plane), 0, NumOfSegRCarr.at(plane));
+      // HB2(RCHid+plane*1000+54+ud, Form("RC AdcHigh w/maxadc %s%%Seg Plane#%d", s, plane),
+      //     NumOfSegRCarr.at(plane), 0., NumOfSegRCarr.at(plane), NbinAdc, MinAdc, MaxAdc);
+      HB2(RCHid+plane*1000+13+ud, Form("RC Time TOT %s%%Seg Plane#%d", s, plane),
+	  NumOfSegRC, 0., NumOfSegRC, NbinTime, MinTime, MaxTime);
+      HB2(RCHid+plane*1000+56+ud, Form("RC Time Trailing %s%%Seg Plane#%d", s, plane),
+	  NumOfSegRC, 0., NumOfSegRC, NbinTime, MinTime, MaxTime);
+      HB2(RCHid+plane*1000+58+ud, Form("RC Time Leading %s%%Seg Plane#%d", s, plane),
+	  NumOfSegRC, 0., NumOfSegRC, NbinTime, MinTime, MaxTime);
+      HB1(RCHid+plane*1000+60+ud, Form("RC Time %s Plane#%d", s, plane), NbinTime, MinTime, MaxTime);
+      HB2(RCHid+plane*1000+62+ud, Form("RC adc:tot w/timecut %s%%Plane#%d", s, plane),
           NbinAdc, MinAdc, MaxAdc, 200, 0, 200);
-      HB2(AFTHid+plane*1000+64+ud, Form("AFT de_high:time  %s%%Plane#%d", s, plane),
+      HB2(RCHid+plane*1000+64+ud, Form("RC de_high:time  %s%%Plane#%d", s, plane),
 		  NbinDe, MinDe, MaxDe, NbinTime, MinTime, MaxTime);
     }
   }
 
-  HB1(AFTHid +101, "AFT NCluster", 100, 0, 100);
-  HB1(AFTHid +102, "AFT Cluster Size", 5, 0, 5);
-  HB1(AFTHid +103, "AFT CTime (Cluster)", 100., -20., 30.);
-  HB1(AFTHid +104, "AFT Tot (Cluster)", NbinTot, MinTot, MaxTot);
-  HB2(AFTHid +105, "AFT CTime%Tot (Cluster)",
+  HB1(RCHid +101, "RC NCluster", 100, 0, 100);
+  HB1(RCHid +102, "RC Cluster Size", 5, 0, 5);
+  HB1(RCHid +103, "RC CTime (Cluster)", 100., -20., 30.);
+  HB1(RCHid +104, "RC Tot (Cluster)", NbinTot, MinTot, MaxTot);
+  HB2(RCHid +105, "RC CTime%Tot (Cluster)",
       NbinTot, MinTot, MaxTot, NbinTime, MinTime, MaxTime);
-  HB1(AFTHid +106, "AFT Cluster Position",
-      NumOfSegAFT, -0.5*(Double_t)NumOfSegAFT, 0.5*(Double_t)NumOfSegAFT);
-  HB1(AFTHid +107, "AFT DeltaE Sum(Cluster)", 800, 0, 80);
+  HB1(RCHid +106, "RC Cluster Position",
+      NumOfSegRC, -0.5*(Double_t)NumOfSegRC, 0.5*(Double_t)NumOfSegRC);
+  HB1(RCHid +107, "RC DeltaE Sum(Cluster)", 800, 0, 80);
 
 
   //Tree
@@ -799,49 +810,49 @@ ConfMan::InitializeHistograms()
   tree->Branch("bft_clpos",      event.bft_clpos,        "bft_clpos[bft_ncl]/D");
   tree->Branch("bft_clseg",      event.bft_clseg,        "bft_clseg[bft_ncl]/D");
 
-  //AFT
-#if RawHitAFTBranch
-  tree->Branch("aft_nhits", event.aft_nhits, Form("aft_nhits[%d]/I", NumOfPlaneAFT));
-  tree->Branch("aft_hitpat", event.aft_hitpat,
-               Form("aft_hitpat[%d][%d]/I", NumOfPlaneAFT, NumOfSegAFT));
-  tree->Branch("aft_adc_high", event.aft_adc_high,
-               Form("aft_adc_high[%d][%d][%d]/D", NumOfPlaneAFT, NumOfSegAFT, kUorD));
-  tree->Branch("aft_adc_low", event.aft_adc_low,
-               Form("aft_adc_low[%d][%d][%d]/D", NumOfPlaneAFT, NumOfSegAFT, kUorD));
-  tree->Branch("aft_tdc", event.aft_tdc,
-               Form("aft_tdc[%d][%d][%d][%d]/D",
-                    NumOfPlaneAFT, NumOfSegAFT, kUorD, MaxDepth));
-  tree->Branch("aft_mt", event.aft_mt,
-               Form("aft_mt[%d][%d][%d]/D", NumOfPlaneAFT, NumOfSegAFT, MaxDepth));
-  tree->Branch("aft_cmt", event.aft_cmt,
-               Form("aft_cmt[%d][%d][%d]/D", NumOfPlaneAFT, NumOfSegAFT, MaxDepth));
-  tree->Branch("aft_mtot", event.aft_mtot,
-               Form("aft_mtot[%d][%d][%d]/D", NumOfPlaneAFT, NumOfSegAFT, MaxDepth));
-  tree->Branch("aft_de_high", event.aft_de_high,
-               Form("aft_de_high[%d][%d]/D", NumOfPlaneAFT, NumOfSegAFT));
-  tree->Branch("aft_de_low", event.aft_de_low,
-               Form("aft_de_low[%d][%d]/D", NumOfPlaneAFT, NumOfSegAFT));
-  tree->Branch("aft_ltime", event.aft_ltime,
-               Form("aft_ltime[%d][%d][%d][%d]/D",
-                    NumOfPlaneAFT, NumOfSegAFT, kUorD, MaxDepth));
-  tree->Branch("aft_ttime", event.aft_ttime,
-               Form("aft_ttime[%d][%d][%d][%d]/D",
-                    NumOfPlaneAFT, NumOfSegAFT, kUorD, MaxDepth));
-  tree->Branch("aft_tot", event.aft_tot,
-               Form("aft_tot[%d][%d][%d][%d]/D",
-                    NumOfPlaneAFT, NumOfSegAFT, kUorD, MaxDepth));
+  //RC
+#if RawHitRCBranch
+  tree->Branch("rc_nhits", event.rc_nhits, Form("rc_nhits[%d]/I", NumOfPlaneRC));
+  tree->Branch("rc_hitpat", event.rc_hitpat,
+               Form("rc_hitpat[%d][%d]/I", NumOfPlaneRC, NumOfSegRC));
+  tree->Branch("rc_adc_high", event.rc_adc_high,
+               Form("rc_adc_high[%d][%d][%d]/D", NumOfPlaneRC, NumOfSegRC, kUorD));
+  tree->Branch("rc_adc_low", event.rc_adc_low,
+               Form("rc_adc_low[%d][%d][%d]/D", NumOfPlaneRC, NumOfSegRC, kUorD));
+  tree->Branch("rc_tdc", event.rc_tdc,
+               Form("rc_tdc[%d][%d][%d][%d]/D",
+                    NumOfPlaneRC, NumOfSegRC, kUorD, MaxDepth));
+  tree->Branch("rc_mt", event.rc_mt,
+               Form("rc_mt[%d][%d][%d]/D", NumOfPlaneRC, NumOfSegRC, MaxDepth));
+  tree->Branch("rc_cmt", event.rc_cmt,
+               Form("rc_cmt[%d][%d][%d]/D", NumOfPlaneRC, NumOfSegRC, MaxDepth));
+  tree->Branch("rc_mtot", event.rc_mtot,
+               Form("rc_mtot[%d][%d][%d]/D", NumOfPlaneRC, NumOfSegRC, MaxDepth));
+  tree->Branch("rc_de_high", event.rc_de_high,
+               Form("rc_de_high[%d][%d]/D", NumOfPlaneRC, NumOfSegRC));
+  tree->Branch("rc_de_low", event.rc_de_low,
+               Form("rc_de_low[%d][%d]/D", NumOfPlaneRC, NumOfSegRC));
+  tree->Branch("rc_ltime", event.rc_ltime,
+               Form("rc_ltime[%d][%d][%d][%d]/D",
+                    NumOfPlaneRC, NumOfSegRC, kUorD, MaxDepth));
+  tree->Branch("rc_ttime", event.rc_ttime,
+               Form("rc_ttime[%d][%d][%d][%d]/D",
+                    NumOfPlaneRC, NumOfSegRC, kUorD, MaxDepth));
+  tree->Branch("rc_tot", event.rc_tot,
+               Form("rc_tot[%d][%d][%d][%d]/D",
+                    NumOfPlaneRC, NumOfSegRC, kUorD, MaxDepth));
 #endif
 
-#if ClusterHitAFTBranch
-  tree->Branch("aft_ncl",       &event.aft_ncl,          "aft_ncl/I");
-  tree->Branch("aft_desum",     &event.aft_desum,        "aft_desum/D");
-  tree->Branch("aft_clsize",     event.aft_clsize,       "aft_clsize[aft_ncl]/I");
-  tree->Branch("aft_cltime",     event.aft_cltime,       "aft_ctime[aft_ncl]/D");
-  tree->Branch("aft_cltot",      event.aft_cltot,        "aft_ctot[aft_ncl]/D");
-  tree->Branch("aft_clseg",      event.aft_clseg,        "aft_clseg[aft_ncl]/D");
-  tree->Branch("aft_clde",       event.aft_clde,         "aft_clde[aft_ncl]/D");
-  tree->Branch("aft_clplane",    event.aft_clplane,      "aft_clplane[aft_ncl]/I");
-  tree->Branch("aft_clpos",      event.aft_clpos,        "aft_clpos[aft_ncl]/D");
+#if ClusterHitRCBranch
+  tree->Branch("rc_ncl",       &event.rc_ncl,          "rc_ncl/I");
+  tree->Branch("rc_desum",     &event.rc_desum,        "rc_desum/D");
+  tree->Branch("rc_clsize",     event.rc_clsize,       "rc_clsize[rc_ncl]/I");
+  tree->Branch("rc_cltime",     event.rc_cltime,       "rc_ctime[rc_ncl]/D");
+  tree->Branch("rc_cltot",      event.rc_cltot,        "rc_ctot[rc_ncl]/D");
+  tree->Branch("rc_clseg",      event.rc_clseg,        "rc_clseg[rc_ncl]/D");
+  tree->Branch("rc_clde",       event.rc_clde,         "rc_clde[rc_ncl]/D");
+  tree->Branch("rc_clplane",    event.rc_clplane,      "rc_clplane[rc_ncl]/I");
+  tree->Branch("rc_clpos",      event.rc_clpos,        "rc_clpos[rc_ncl]/D");
 #endif
 
   // HPrint();
