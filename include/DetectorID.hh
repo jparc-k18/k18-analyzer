@@ -48,6 +48,8 @@ const std::vector<int> NumOfSegAFTarr = { 32, 32, 16, 16,
 					  32, 32, 16, 16,
 					  32, 32, 16, 16,
 					  32, 32, 16, 16 };
+
+
 //const Int_t NumOfSegAFT[4]    = {NumOfSegAFTX, NumOfSegAFTX, NumOfSegAFTY, NumOfSegAFTY};
 
 //const Int_t NumOfSegAFT[4]    = {NumOfSegAFTX, NumOfSegAFTX, NumOfSegAFTY, NumOfSegAFTY};
@@ -269,8 +271,8 @@ const Int_t NumOfSegT2       =  1;
 const Int_t DetIdGe       = 27;
 const Int_t DetIdBGO      = 114;
 const Int_t DetIdHRTDC    = 115;
-const Int_t NumOfSegGe    = 16;
-const Int_t NumOfSegBGO   = 48;
+const Int_t NumOfSegGe    = 23;
+const Int_t NumOfSegBGO   = 78;
 const Int_t NumOfChHRTDC    = 16;
 
 //Data Histgram types//
@@ -278,15 +280,16 @@ const Int_t NumOfChHRTDC    = 16;
 const Int_t DataIdAdc = 0;
 const Int_t DataIdAdcwtfa = 1;
 const Int_t DataIdAdcwtfacut = 2;
-const Int_t DataIdAdcvstfa = 3;
-const Int_t DataIdAdcwcrm = 4;
-const Int_t DataIdAdcwcrmcut = 5;
-const Int_t DataIdAdcvscrm = 6;
-const Int_t DataIdAdcwbgocut = 7;
-const Int_t DataIdAdcvsreset = 8;
-const Int_t DataIdAdcaftercalib = 9;
-const Int_t DataIdAdcwbgotfacut = 10;
-const Int_t DataIdAdcwbgocrmcut = 11;
+const Int_t DataIdAdcwbgocut = 3;
+const Int_t DataIdAdcwresetcut = 4;
+const Int_t DataIdAdcwbgotfaresetcut = 5;
+
+//Flag id
+const Int_t FlagIdKBeamTOF = 1000;
+const Int_t FlagIdLSOxGe = 2000;
+const Int_t FlagIdGeself = 3000;
+const Int_t FlagIdLSOxGexSpillOn = 4000;
+const Int_t FlagIdLSOxGexSpillOff = 5000;
 
 const Int_t DataIdTfa = 0;
 const Int_t DataIdCrm = 1;
@@ -311,7 +314,14 @@ const std::vector<std::vector<Int_t>> BtoG ={
   {46,47,36,37},//SL4-1
   {37,38,39,40},//SL4-2
   {40,41,42,43},//SL4-3
-  {43,44,45,46}//SL4-4
+  {43,44,45,46},//SL4-4
+  {58,59,48,49},//SL5-1
+  {49,50,51,52},//SL5-2
+  {52,53,54,55},//SL5-3
+  {55,56,57,58},//SL5-4
+  {60,61,62,63,64,65},//SL6
+  {66,67,68,69,70,71},//SL7
+  {72,73,74,75,76,77}//SL7
 };
 
 #endif
