@@ -32,7 +32,7 @@
 #define TIME_CUT   1 // in cluster analysis
 #define DE_CUT     1 // in cluster analysis for rc
 #define FHitBranch 0 // make FiberHit branches (becomes heavy)
-#define RawHitRCBranch 0 //make RC RawHit branches (becomes heavy)
+#define RawHitRCBranch 1 //make RC RawHit branches (becomes heavy)
 #define ClusterHitRCBranch 0 //make RCCluster branches
 
 namespace
@@ -448,6 +448,7 @@ ProcessingNormal()
     // hit->Print();
     Int_t plane = hit->PlaneId();
     Int_t seg = hit->SegmentId();
+    Bool_t isTDC = kFALSE;
     for(Int_t ud=0; ud<kUorD; ++ud){
       auto adc_high = hit->GetAdcHigh(ud);
       auto adc_low = hit->GetAdcLow(ud);
@@ -459,14 +460,20 @@ ProcessingNormal()
       HF2(RCHid+plane*1000+17+ud, seg, adc_low);
       for(Int_t i=0, n=hit->GetSizeTdcLeading(ud); i<n; ++i){
         auto tdc = hit->GetTdc(ud, i);
+	isTDC = kTRUE;
 	auto tra = hit->GetTdcTrailing(ud, i);
         event.rc_tdc[plane][seg][ud][i] = tdc;
         HF1(RCHid+plane*1000+3+ud, tdc);
-        HF2(RCHid+plane*1000+11+ud, seg, tdc);	
+        HF2(RCHid+plane*1000+11+ud, seg, tdc);
+	HF2(RCHid+plane*1000+5+ud, seg, n);
 
         HF2(RCHid+plane*1000+100+13+ud, seg, tra);
 	HF2(RCHid+plane*1000+100+15+ud, seg, tdc-tra);	
         // HF1(RCHid+plane*1000+seg+100+ud*100, tdc);
+      }
+      if (isTDC){
+	HF2(RCHid+plane*1000+81+ud, seg, adc_high);
+	HF2(RCHid+plane*1000+83+ud, seg, adc_low);
       }
     }
   }
@@ -501,7 +508,7 @@ ProcessingNormal()
 	event.rc_tot[plane][seg][ud][j]   = tot;
 	event.rc_ltime[plane][seg][ud][j] = ltime;
 	event.rc_ttime[plane][seg][ud][j] = ttime;
-        HF1(RCHid+plane*1000+5+ud, tot);
+        // HF1(RCHid+plane*1000+5+ud, tot);
         HF2(RCHid+plane*1000+13+ud, seg, tot);
 	HF2(RCHid+plane*1000+56+ud, seg, ttime);
 	HF2(RCHid+plane*1000+58+ud, seg, ltime);
@@ -722,7 +729,9 @@ ConfMan::InitializeHistograms()
     for(Int_t ud=0; ud<kUorD; ++ud){
       const Char_t* s = (ud == kU) ? "U" : "D";
       HB1(RCHid+plane*1000+3+ud, Form("RC Tdc %s Plane#%d", s, plane), NbinTdc, MinTdc, MaxTdc);
-      HB1(RCHid+plane*1000+5+ud, Form("RC Tot %s Plane#%d", s, plane), NbinTdc, MinTdc, MaxTdc);
+      // HB1(RCHid+plane*1000+5+ud, Form("RC Tot %s Plane#%d", s, plane), NbinTdc, MinTdc, MaxTdc);
+      HB2(RCHid+plane*1000+5+ud, Form("RC DepthTdc %s Plane#%d", s, plane),
+	  NumOfSegRC, 0, NumOfSegRC, 16, 0, 16);
       HB1(RCHid+plane*1000+7+ud, Form("RC AdcHigh %s Plane#%d", s, plane), NbinAdc, MinAdc, MaxAdc);
       HB1(RCHid+plane*1000+9+ud, Form("RC AdcLow %s Plane#%d", s, plane), NbinAdc, MinAdc, MaxAdc);
       HB2(RCHid+plane*1000+11+ud, Form("RC Tdc %s%%Seg Plane#%d", s, plane),
@@ -730,12 +739,16 @@ ConfMan::InitializeHistograms()
       HB2(RCHid+plane*1000+100+13+ud, Form("RC Tra %s%%Seg Plane#%d", s, plane),
           NumOfSegRC, 0., NumOfSegRC, NbinTdc, MinTdc, MaxTdc);
       HB2(RCHid+plane*1000+100+15+ud, Form("RC Tot %s%%Seg Plane#%d", s, plane),
-          NumOfSegRC, 0., NumOfSegRC, NbinAdc, MinAdc, MaxAdc);
+          NumOfSegRC, 0., NumOfSegRC, 200, 0, 200);
 
       HB2(RCHid+plane*1000+15+ud, Form("RC Adchigh %s%%Seg Plane#%d", s, plane),
           NumOfSegRC, 0., NumOfSegRC, NbinAdc, MinAdc, MaxAdc);
       HB2(RCHid+plane*1000+17+ud, Form("RC AdcLow %s%%Seg Plane#%d", s, plane),
           NumOfSegRC, 0., NumOfSegRC, NbinAdc, MinAdc, MaxAdc);
+      HB2(RCHid+plane*1000+81+ud, Form("RC AdcHigh w/ TDC %s%%Seg Plane%d", s, plane),
+	  NumOfSegRC, 0., NumOfSegRC, NbinAdc, MinAdc, MaxAdc);
+      HB2(RCHid+plane*1000+83+ud, Form("RC AdcLow w/ TDC %s%%Seg Plane%d", s, plane),
+	  NumOfSegRC, 0., NumOfSegRC, NbinAdc, MinAdc, MaxAdc);
 
       // HB2(RCHid+plane*1000+50+ud, Form("RC Tdc w/maxadc %s%%Seg Plane#%d", s, plane),
       //     NumOfSegRCarr.at(plane), 0., NumOfSegRCarr.at(plane), NbinTdc, MinTdc, MaxTdc);
