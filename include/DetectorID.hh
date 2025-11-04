@@ -26,7 +26,7 @@ const Int_t NumOfSegHTOF  = 34;
 const Int_t NumOfSegBVH   =  4;
 const Int_t NumOfSegAC1   = 30;
 const Int_t NumOfSegWC    = 12;
-const Int_t NumOfSegSAC3  = 2;
+const Int_t NumOfSegSAC  = 1;
 const Int_t NumOfSegSFV   = 6;
 
 // RC
