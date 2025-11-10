@@ -94,7 +94,7 @@ struct Event
   //Ge Scaler
   int scaler1[NumOfSegScaler];
   int scaler2[NumOfSegScaler];
-
+  
   void clear();
 };
 
@@ -202,7 +202,7 @@ Dst::clear()
   evnum     = 0;
   spill     = 0;
   HBXtrignhits = 0;
-  trignhits = 0;
+  trignhits = 0;  
   nhGeTfa   = 0;
   nhGeCrm   = 0;
   nhBgo     = 0;
@@ -247,7 +247,7 @@ namespace root
   TH1   *h[MaxHist];
   TTree *tree;
   TTree *hbx;
-
+  
   enum eDetHid{
     GeHidraw    = 100000,
     GeHidcalib    = 200000,
@@ -277,22 +277,22 @@ ProcessingNormal()
   static const double MaxCRMCUT = gUser.GetParameter("CCut", 1);
 
   static const int MinBGOCUT = gUser.GetParameter("BCut", 0);
-  static const int MaxBGOCUT = gUser.GetParameter("BCut", 1);
+  static const int MaxBGOCUT = gUser.GetParameter("BCut", 1); 
 
   static const int MinRESETCUT = gUser.GetParameter("RCut", 0);
-  static const int MaxRESETCUT = gUser.GetParameter("RCut", 1);
+  static const int MaxRESETCUT = gUser.GetParameter("RCut", 1); 
 
   static double Calib_slo[NumOfSegGe] = {0};
   static double Calib_int[NumOfSegGe] = {0};
-
-
+  
+  
   for(int i=0; i<NumOfSegGe; i++){
     Calib_slo[i] = gUser.GetParameter(Form("CALIB_%d",i), 0);
     Calib_int[i] = gUser.GetParameter(Form("CALIB_%d",i), 1);
   }
 
   //flag condition
-
+  
   struct flagsel {
     std::function<bool(std::vector<bool> &)> condition;
     std::function<void(Int_t,int,double,double)> action;
@@ -313,24 +313,24 @@ ProcessingNormal()
      [](Int_t type, int seg, double adc, double calib){
        HF1(GeHidraw + FlagIdLSOxGe + type*100 + seg, adc);
        HF1(GeHidcalib + FlagIdLSOxGe + type*100 + seg, calib);}},
-
+    
     {[](std::vector<bool> &v){return  v[kTrigFPS];},
      [](Int_t type, int seg, double adc, double calib){
        HF1(GeHidraw + FlagIdGeself + type*100 + seg, adc);
        HF1(GeHidcalib + FlagIdGeself + type*100 + seg, calib);}},
-
+    
     {[](std::vector<bool> &v){return  v[kTrigEPS] && v[kL1SpillOn];},
      [](Int_t type, int seg, double adc, double calib){
        HF1(GeHidraw + FlagIdLSOxGexSpillOn + type*100 + seg, adc);
        HF1(GeHidcalib + FlagIdLSOxGexSpillOn + type*100 + seg, calib);}},
-
+    
     {[](std::vector<bool> &v){return  v[kTrigEPS] && v[kL1SpillOff];},
      [](Int_t type, int seg, double adc, double calib){
        HF1(GeHidraw + FlagIdLSOxGexSpillOff + type*100 + seg, adc);
        HF1(GeHidcalib + FlagIdLSOxGexSpillOff + type*100 + seg, calib);}}
   };
 
-
+  
   RawData rawData;
 
   //  gRM.Decode();
@@ -343,27 +343,10 @@ ProcessingNormal()
   // std::cout << "evnum: " << event.evnum << std::endl;
   // std::cout << "spill num: " << event.spill << std::endl;
 
-  rawData.DecodeHits("TFlag");
   rawData.DecodeHits("HBXTFlag");
-  std::bitset<NumOfSegTrig> trigger_flag;
+  rawData.DecodeHits("TFlag");
   std::bitset<NumOfSegTrig> HBXtrigger_flag;
-
-  std::vector<bool> tflag(NTriggerFlag,false);
-
-  for(const auto& hit: rawData.GetHodoRawHitContainer("TFlag")){
-    Int_t seg = hit->SegmentId();
-    Int_t tdc = hit->GetTdc();
-    if( tdc>0 ){
-      event.trigpat[trigger_flag.count()] = seg;
-      event.trigflag[seg] = tdc;
-      dst.trigpat[trigger_flag.count()] = seg;
-      dst.trigflag[seg] = tdc;
-      trigger_flag.set(seg);
-      HF1(10, seg-1);
-      HF1(10+seg, tdc);
-      tflag[seg] = true;
-    }
-  }
+  std::bitset<NumOfSegTrig> trigger_flag;
 
   for(const auto& hit: rawData.GetHodoRawHitContainer("HBXTFlag")){
     Int_t seg = hit->SegmentId();
@@ -374,17 +357,34 @@ ProcessingNormal()
       dst.HBXtrigpat[HBXtrigger_flag.count()] = seg;
       dst.HBXtrigflag[seg] = tdc;
       HBXtrigger_flag.set(seg);
-      HF1(100, seg-1);
-      HF1(100+seg, tdc);
+      HF1(10, seg-1);
+      HF1(10+seg, tdc);
     }
-  }
+  }  
 
-    int nhit_trig[NumOfSegTrig] = {0};
+  std::vector<bool> tflag(NTriggerFlag,false);
+  
+  for(const auto& hit: rawData.GetHodoRawHitContainer("TFlag")){
+    Int_t seg = hit->SegmentId();
+    Int_t tdc = hit->GetTdc();
+    if( tdc>0 ){
+      event.trigpat[trigger_flag.count()] = seg;
+      event.trigflag[seg] = tdc;
+      dst.trigpat[trigger_flag.count()] = seg;
+      dst.trigflag[seg] = tdc;
+      HBXtrigger_flag.set(seg);
+      HF1(20, seg-1);
+      HF1(20+seg, tdc);
+      tflag[seg] = true;
+    }
+  }  
+
+    int nhit_trig[NumOfSegTrig] = {0};  
     int trigtdc[NumOfSegTrig] = {0};
 
     for(int seg=0; seg<NumOfSegTrig; seg++){
       nhit_trig[seg] = gUnpacker.get_entries( DetIdHBXTrig, 0, seg, 0, 1 );
-
+      
       if(nhit_trig[seg]>0){
 	trigtdc[seg] = gUnpacker.get( DetIdHBXTrig, 0, seg, 0, 1, 0);
       }
@@ -424,7 +424,7 @@ ProcessingNormal()
 	  if(tfa>0 )tfaflag = true;
 	  if(MinTFACUT<tfa && tfa<MaxTFACUT )tfacutflag = true;
 	}
-
+	
 	if(tfaflag){
 	  for(auto& f : flagsels){
 	    if (f.condition(tflag)) f.action(DataIdAdcwtfa,seg,adc,calib);
@@ -434,11 +434,11 @@ ProcessingNormal()
 	  for(auto& f : flagsels){
 	    if (f.condition(tflag)) f.action(DataIdAdcwtfacut,seg,adc,calib);
 	  }
-	}
+	}      
       }
 
       //adc w/ bgo cut
-
+      
       bool bgohitflag = false;
       bool bgocutflag = false;
       int crystal = 0;
@@ -455,38 +455,38 @@ ProcessingNormal()
       	  }
       	}
       }
-
+      
       if(bgohitflag==0) bgocutflag = true;
 
       if(bgocutflag){
 	for(auto& f : flagsels){
 	  if (f.condition(tflag)) f.action(DataIdAdcwbgocut,seg,adc,calib);
 	}
-      }
-
+      }      
+      
       bool resetcutflag = false;
       //adc w/ reset
       if( nhit_r>0){
 	for(int i=0; i<nhit_r; i++){
 	  double reset_time = gUnpacker.get( DetIdGe, 0, seg, 0, 7);
-	  HF2(TwodimHid+100*DataIdReset + seg, reset_time, adc);
+	  HF2(TwodimHid+100*DataIdReset + seg, reset_time, adc);	  
 	  if(MinRESETCUT<reset_time && reset_time<MaxRESETCUT )resetcutflag = true;
-
+	  
 	  if(resetcutflag){
 	    for(auto& f : flagsels){
 	      if (f.condition(tflag)) f.action(DataIdAdcwresetcut,seg,adc,calib);
 	    }
-	  }
-
+	  }      
+	  
 	  if(resetcutflag && bgocutflag && tfacutflag){
 	    for(auto& f : flagsels){
 	      if (f.condition(tflag)) f.action(DataIdAdcwbgotfaresetcut,seg,adc,calib);
 	    }
-	  }
-	}
+	  }      
+	}      
       }
     }
-
+    
 
       //tfa
       if( nhit_t>0 ){
@@ -499,7 +499,7 @@ ProcessingNormal()
 	  dst.geTfa[seg][i] = tfa;
 	}
       }
-
+      
       //reset
       if( nhit_r>0 ){
 	double reset_time = gUnpacker.get( DetIdGe, 0, seg, 0, 7);
@@ -507,9 +507,9 @@ ProcessingNormal()
 	event.gereset[seg] = reset_time;
 	dst.geReset[seg] = reset_time;
       }
-
-
-
+      
+      
+    
   }
 
   //---BGO--------------------------------------------------------------
@@ -518,7 +518,7 @@ ProcessingNormal()
     if( nhit>0 ){
 
       HF1( BGOHid+1, seg+0.5); //0 origin
-
+   
       for(int i = 0; i<nhit; ++i){
 	double tdc = gUnpacker.get( DetIdBGO, 0, seg, 0, 0, i )  ;
 	if(tdc > 0){
@@ -546,9 +546,9 @@ ProcessingNormal()
       int data = gUnpacker.get( DetIdScaler, 0, 0, seg, 0 );
       event.scaler2[seg] = data;
     }
-  }
+  }  
 
-
+  
   return true;
 }
 
@@ -690,7 +690,7 @@ namespace
   const double MinGeReset  =   0.;
   const double MaxGeReset  = 20000;
 
-
+  
 }
 
 //______________________________________________________________________________
@@ -713,15 +713,10 @@ ConfMan::InitializeHistograms( void )
   tree->Branch("trignhits", &event.trignhits, "trignhits/I");
 
   HB1(  1, "Status", 20, 0., 20. );
-  HB1(10, "Trigger HitPat", NumOfSegTrig, 0., Double_t(NumOfSegTrig));
+  HB1( 10, "Trigger HitPat", NumOfSegTrig, 0., Double_t(NumOfSegTrig) );
   for(Int_t i=0; i<NumOfSegTrig; ++i){
-    HB1(10+i+1, Form("Trigger Flag %d", i+1), 0x1000, 0, 0x1000);
+    HB1( 10+i+1, Form("Trigger Trig %d", i+1), 0x1000, 0, 0x1000 );
   }
-  HB1( 100, "HBXX Trigger HitPat", NumOfSegTrig, 0., Double_t(NumOfSegTrig) );
-  for(Int_t i=0; i<NumOfSegTrig; ++i){
-    HB1( 100+i+1, Form("HBXX Trigger Trig %d", i+1), 0x1000, 0, 0x1000 );
-  }
-
 
   //---Ge ADC & TDC-----------------------------------------------------
   for( int i=1; i<=NumOfSegGe; ++i ){
@@ -812,11 +807,11 @@ ConfMan::InitializeHistograms( void )
 
     TString title6  = Form("Ge-%d Tfa vs adc", i);
     TString title7  = Form("Ge-%d Reset vs adc", i);
-
+    
     TString title8  = Form("Ge-%d Tfa", i);
     TString title9  = Form("Ge-%d Crm", i);
     TString title10  = Form("Ge-%d Reset", i);
-
+    
 
     int  m = i - 1;
 
@@ -860,7 +855,7 @@ ConfMan::InitializeHistograms( void )
     HB1( GeHidcalib + FlagIdLSOxGe + DataIdAdcwbgocut*100 + m, title3_8, NbinAdc, MinAdc, MaxAdc );
     HB1( GeHidcalib + FlagIdLSOxGe + DataIdAdcwresetcut*100 + m, title4_8, NbinAdc, MinAdc, MaxAdc );
     HB1( GeHidcalib + FlagIdLSOxGe + DataIdAdcwbgotfaresetcut*100 + m, title5_8, NbinAdc, MinAdc, MaxAdc );
-
+    
     HB1( GeHidraw + FlagIdGeself + DataIdAdc*100 + m, title0_3, NbinAdc, MinAdc, MaxAdc );
     HB1( GeHidraw + FlagIdGeself + DataIdAdcwtfa*100 + m, title1_3, NbinAdc, MinAdc, MaxAdc );
     HB1( GeHidraw + FlagIdGeself + DataIdAdcwtfacut*100 + m, title2_3, NbinAdc, MinAdc, MaxAdc );
@@ -907,7 +902,7 @@ ConfMan::InitializeHistograms( void )
     HB1(TDCHid + 100*DataIdReset + m, title10, NbinGeReset, MinGeReset, MaxGeReset);
 
   }
-
+  
     TString title2_30 = "Ge vs BGO hitpat Spill On LSOxGe";
     TString title3_30 = "Ge vs BGO hitpat Spill Off LSOxGe";
     TString title4_30 = "Ge vs BGO hitpat Spill On L1";
@@ -978,7 +973,7 @@ ConfMan::InitializeHistograms( void )
   hbx->Branch("rm1spill", &dst.rm1spill, "rm1spill/I");
   hbx->Branch("rm2spill", &dst.rm2spill, "rm2spill/I");
   hbx->Branch("hrtdc",  dst.hrtdc,  Form("hrtdc[%d][%d]/I", NumOfChHRTDC, MaxDepth));
-  hbx->Branch("syncclock",  dst.syncclock,  Form("syncclock[%d]/I", MaxDepth));
+  hbx->Branch("syncclock",  dst.syncclock,  Form("syncclock[%d]/I", MaxDepth)); 
 
   hbx->Branch("trignhits", &dst.trignhits, "trignhits/I");
   hbx->Branch("trigpat",    dst.trigpat,   "trigpat[trignhits]/I");
@@ -998,7 +993,7 @@ ConfMan::InitializeHistograms( void )
 
   HPrint();
   return true;
-
+	
 }
 
 //______________________________________________________________________________
@@ -1017,3 +1012,4 @@ ConfMan::FinalizeProcess( void )
 {
   return true;
 }
+ 
