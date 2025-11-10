@@ -70,7 +70,7 @@ const Int_t DetIdVmeRm      = 81;
 const Int_t DetIdMsTRM      = 82;
 const Int_t DetIdHulRM      = 83;
 const Int_t DetIdUnixTime   = 200;
-const Int_t NumOfSegScaler  = 96;
+const Int_t NumOfSegScaler  = 128;
 const Int_t NumOfPlaneVmeRm = 2;
 
 // Trigger Flag
@@ -148,6 +148,82 @@ namespace trigger
      "Level1OR",
      "EssDischarge",
     };
+
+enum EHBXXTriggerFlag
+  {
+    k10Mclock,
+    kL1HBXX,
+    kLSOxGe,
+    kSpillOnEndHBXX,
+    kSpillOffEndHBXX,
+    kSpillOnHBXX,
+    kSpillOffHBXX,
+    kGeOR,
+    knull1,
+    knull2,
+    knull3,
+    knull4,
+    knull5,
+    kTrigReq,
+    kTrigAcc,
+    kDeadTime,
+    kLSO1,
+    kLSO2,
+    kLSO3,
+    kLSO4,
+    kLSO1xGe,
+    kLSO2xGe,
+    kLSO3sGe,
+    kLSO4xGe,
+    kNaI,
+    kCeBr,
+    knull6,
+    kLSO1woHT,
+    kLSO2woHT,
+    kLSO3woHT,
+    kLSO4woHT,
+    k10MClockHBXX,
+    NHBXXTriggerFlag
+  };
+
+  const std::vector<TString> SHBXTriggerFlag =
+    {
+      "10Mclock",
+      "L1",
+     "LSOxGe",
+     "SpillOnEnd",
+     "SpillOffEnd",
+     "SpillOn",
+     "SpillOff",
+     "GeSelfOR",
+     "--",
+     "--",
+     "--",
+     "--",
+     "--",
+     "Trigreq",
+     "Trigacc",
+     "DeadTime",
+     "LSO1",
+     "LSO2",
+     "LSO3",
+     "LSO4",
+     "LSO1xGe1",
+     "LSO2xGe2",
+     "LSO3xGe3",
+     "LSO4xGe4",
+     "NaI",
+     "CeBr",
+     "BH2",
+     "LSO1woHT",
+     "LSO2woHT",
+     "LSO3woHT",
+     "LSO4woHT",
+     "10Mclock",
+    };
+
+
+
 }
 const Int_t NumOfSegTrig = trigger::NTriggerFlag;
 

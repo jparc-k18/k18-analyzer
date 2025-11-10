@@ -94,6 +94,7 @@ struct Event
   //Ge Scaler
   int scaler1[NumOfSegScaler];
   int scaler2[NumOfSegScaler];
+  int scaler3[NumOfSegScaler];
   
   void clear();
 };
@@ -124,6 +125,7 @@ void Event::clear()
   for(int i=0; i<NumOfSegScaler; ++i){
     scaler1[i] =-1;
     scaler2[i] =-1;
+    scaler3[i] =-1;
   }
   for(int i=0; i<NumOfSegTrig; ++i){
     HBXtrigpat[i]  = -1;
@@ -304,27 +306,27 @@ ProcessingNormal()
       HF1(GeHidraw + type*100 + seg, adc);
       HF1(GeHidcalib + type*100 + seg, calib);}},
 
-    {[](std::vector<bool> &v){return  v[kTrigCPS];},
+    {[](std::vector<bool> &v){return  v[kL1HBXX];},
     [](Int_t type, int seg, double adc, double calib){
       HF1(GeHidraw + FlagIdKBeamTOF + type*100 + seg, adc);
       HF1(GeHidcalib + FlagIdKBeamTOF + type*100 + seg, calib);}},
 
-    {[](std::vector<bool> &v){return  v[kTrigEPS];},
+    {[](std::vector<bool> &v){return  v[kLSOxGe];},
      [](Int_t type, int seg, double adc, double calib){
        HF1(GeHidraw + FlagIdLSOxGe + type*100 + seg, adc);
        HF1(GeHidcalib + FlagIdLSOxGe + type*100 + seg, calib);}},
     
-    {[](std::vector<bool> &v){return  v[kTrigFPS];},
+    {[](std::vector<bool> &v){return  v[kGeOR];},
      [](Int_t type, int seg, double adc, double calib){
        HF1(GeHidraw + FlagIdGeself + type*100 + seg, adc);
        HF1(GeHidcalib + FlagIdGeself + type*100 + seg, calib);}},
     
-    {[](std::vector<bool> &v){return  v[kTrigEPS] && v[kL1SpillOn];},
+    {[](std::vector<bool> &v){return  v[kLSOxGe] && v[kSpillOnHBXX];},
      [](Int_t type, int seg, double adc, double calib){
        HF1(GeHidraw + FlagIdLSOxGexSpillOn + type*100 + seg, adc);
        HF1(GeHidcalib + FlagIdLSOxGexSpillOn + type*100 + seg, calib);}},
     
-    {[](std::vector<bool> &v){return  v[kTrigEPS] && v[kL1SpillOff];},
+    {[](std::vector<bool> &v){return  v[kLSOxGe] && v[kSpillOffHBXX];},
      [](Int_t type, int seg, double adc, double calib){
        HF1(GeHidraw + FlagIdLSOxGexSpillOff + type*100 + seg, adc);
        HF1(GeHidcalib + FlagIdLSOxGexSpillOff + type*100 + seg, calib);}}
@@ -344,10 +346,9 @@ ProcessingNormal()
   // std::cout << "spill num: " << event.spill << std::endl;
 
   rawData.DecodeHits("HBXTFlag");
-  rawData.DecodeHits("TFlag");
   std::bitset<NumOfSegTrig> HBXtrigger_flag;
-  std::bitset<NumOfSegTrig> trigger_flag;
-
+  std::vector<bool> tflag(NTriggerFlag,false);
+ 
   for(const auto& hit: rawData.GetHodoRawHitContainer("HBXTFlag")){
     Int_t seg = hit->SegmentId();
     Int_t tdc = hit->GetTdc();
@@ -358,11 +359,12 @@ ProcessingNormal()
       dst.HBXtrigflag[seg] = tdc;
       HBXtrigger_flag.set(seg);
       HF1(10, seg-1);
-      HF1(10+seg, tdc);
+      HF1(10+seg+1, tdc);
+      tflag[seg] = true;
     }
   }  
-
-  std::vector<bool> tflag(NTriggerFlag,false);
+  rawData.DecodeHits("TFlag");
+  std::bitset<NumOfSegTrig> trigger_flag;
   
   for(const auto& hit: rawData.GetHodoRawHitContainer("TFlag")){
     Int_t seg = hit->SegmentId();
@@ -372,10 +374,9 @@ ProcessingNormal()
       event.trigflag[seg] = tdc;
       dst.trigpat[trigger_flag.count()] = seg;
       dst.trigflag[seg] = tdc;
-      HBXtrigger_flag.set(seg);
-      HF1(20, seg-1);
-      HF1(20+seg, tdc);
-      tflag[seg] = true;
+      trigger_flag.set(seg);
+      HF1(100, seg-1);
+      HF1(100+seg+1, tdc);
     }
   }  
 
@@ -533,21 +534,28 @@ ProcessingNormal()
 
 
   for( int seg=0; seg<NumOfSegScaler; ++seg ){
-    int nhit = gUnpacker.get_entries( DetIdScaler, 1, 0, seg, 0 );
+    int nhit = gUnpacker.get_entries( DetIdScaler, 7, 0, seg, 0 );
     if( nhit>0 ){
-      int data = gUnpacker.get( DetIdScaler, 1, 0, seg, 0 );
+      int data = gUnpacker.get( DetIdScaler, 7, 0, seg, 0 );
       event.scaler1[seg] = data;
     }
   }
 
   for( int seg=0; seg<NumOfSegScaler; ++seg ){
-    int nhit = gUnpacker.get_entries( DetIdScaler, 0, 0, seg, 0 );
+    int nhit = gUnpacker.get_entries( DetIdScaler, 8, 0, seg, 0 );
     if( nhit>0 ){
-      int data = gUnpacker.get( DetIdScaler, 0, 0, seg, 0 );
+      int data = gUnpacker.get( DetIdScaler, 8, 0, seg, 0 );
       event.scaler2[seg] = data;
     }
   }  
 
+  for( int seg=0; seg<NumOfSegScaler; ++seg ){
+    int nhit = gUnpacker.get_entries( DetIdScaler, 0, 0, seg, 0 );
+    if( nhit>0 ){
+      int data = gUnpacker.get( DetIdScaler, 0, 0, seg, 0 );
+      event.scaler3[seg] = data;
+    }
+  }  
   
   return true;
 }
@@ -625,6 +633,7 @@ InitializeEvent( void )
   for( int it=0; it<NumOfSegScaler; it++){
     event.scaler1[it] = 0;
     event.scaler2[it] = 0;
+    event.scaler3[it] = 0;
   }
 
 
@@ -682,9 +691,9 @@ namespace
   const double MinGeTdc  =   0.;
   const double MaxGeTdc  = 8192.;
 
-  const int    NbinBGOTdc = 8192;
+  const int    NbinBGOTdc = 2000;
   const double MinBGOTdc  =   0.;
-  const double MaxBGOTdc  = 8192.;
+  const double MaxBGOTdc  = 2000;
 
   const int    NbinGeReset = 4000;
   const double MinGeReset  =   0.;
@@ -713,9 +722,13 @@ ConfMan::InitializeHistograms( void )
   tree->Branch("trignhits", &event.trignhits, "trignhits/I");
 
   HB1(  1, "Status", 20, 0., 20. );
-  HB1( 10, "Trigger HitPat", NumOfSegTrig, 0., Double_t(NumOfSegTrig) );
+  HB1( 10, "HBXX Trigger HitPat", NumOfSegTrig, 0., Double_t(NumOfSegTrig) );
   for(Int_t i=0; i<NumOfSegTrig; ++i){
     HB1( 10+i+1, Form("Trigger Trig %d", i+1), 0x1000, 0, 0x1000 );
+  }
+  HB1( 100, "Trigger HitPat", NumOfSegTrig, 0., Double_t(NumOfSegTrig) );
+  for(Int_t i=0; i<NumOfSegTrig; ++i){
+    HB1( 100+i+1, Form("Trigger Trig %d", i+1), 0x1000, 0, 0x1000 );
   }
 
   //---Ge ADC & TDC-----------------------------------------------------
@@ -895,8 +908,8 @@ ConfMan::InitializeHistograms( void )
     HB1( GeHidcalib + FlagIdLSOxGexSpillOff + DataIdAdcwresetcut*100 + m, title4_11, NbinAdc, MinAdc, MaxAdc );
     HB1( GeHidcalib + FlagIdLSOxGexSpillOff + DataIdAdcwbgotfaresetcut*100 + m, title5_11, NbinAdc, MinAdc, MaxAdc );
 
-    HB2(TwodimHid + 100*DataIdTfa + m, title6, NbinAdc, MinAdc, MaxAdc, NbinGeTdc, MinGeTdc, MaxGeTdc);
-    HB2(TwodimHid + 100*DataIdReset + m, title7, NbinGeReset, MinGeReset, MaxGeReset, NbinAdc, MinAdc, MaxAdc);
+    HB2(TwodimHid + 100*DataIdTfa + m, title6, 1000, 0, 8000, 1000, 0, 8000);
+    HB2(TwodimHid + 100*DataIdReset + m, title7, NbinGeReset, MinGeReset, MaxGeReset, 1000, 0, 8000);
 
     HB1(TDCHid + 100*DataIdTfa + m,title8 , NbinGeTdc, MinGeTdc, MaxGeTdc);
     HB1(TDCHid + 100*DataIdReset + m, title10, NbinGeReset, MinGeReset, MaxGeReset);
@@ -963,6 +976,7 @@ ConfMan::InitializeHistograms( void )
   //Ge Scaler
   tree->Branch("scaler1", event.scaler1, Form("scaler1[%d]/I", NumOfSegScaler));
   tree->Branch("scaler2", event.scaler2, Form("scaler2[%d]/I", NumOfSegScaler));
+  tree->Branch("scaler3", event.scaler3, Form("scaler3[%d]/I", NumOfSegScaler));
 
   /////Dst/////////////////////////////////
   hbx = new TTree( "hbx", "Data Summary Table of hbx" );
