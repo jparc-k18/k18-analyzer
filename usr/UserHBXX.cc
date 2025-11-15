@@ -747,7 +747,7 @@ ConfMan::InitializeHistograms( void )
     TString title2_1  = Form("Ge-%d Adc(Tfa Cut KBeamxTOF)", i);
     TString title3_1  = Form("Ge-%d Adc(Bgo Cut KBeamxTOF)", i);
     TString title4_1  = Form("Ge-%d Adc(Reset Cut KBeamxTOF)", i);
-    TString title5_1  = Form("Ge-%d Adc(Tfa BGO Reset CutKBeamxTOF)", i);
+    TString title5_1  = Form("Ge-%d Adc(Tfa BGO Reset CutKBeamxTOF)", i);    
 
     TString title0_2  = Form("Ge-%d Adc LSOxGe", i);
     TString title1_2  = Form("Ge-%d Adc(w Tfa LSOxGe)", i);
@@ -845,11 +845,11 @@ ConfMan::InitializeHistograms( void )
     HB1( GeHidcalib + DataIdAdcwbgotfaresetcut*100 + m, title5_6, NbinAdc, MinAdc, MaxAdc );
 
     HB1( GeHidraw + FlagIdKBeamTOF + m, title0_1, NbinAdc, MinAdc, MaxAdc );
-    HB1( GeHidraw + FlagIdKBeamTOF + DataIdAdcwtfa*100 + m, title1_0, NbinAdc, MinAdc, MaxAdc );
-    HB1( GeHidraw + FlagIdKBeamTOF + DataIdAdcwtfacut*100 + m, title2_0, NbinAdc, MinAdc, MaxAdc );
-    HB1( GeHidraw + FlagIdKBeamTOF + DataIdAdcwbgocut*100 + m, title3_0, NbinAdc, MinAdc, MaxAdc );
-    HB1( GeHidraw + FlagIdKBeamTOF + DataIdAdcwresetcut*100 + m, title4_0, NbinAdc, MinAdc, MaxAdc );
-    HB1( GeHidraw + FlagIdKBeamTOF + DataIdAdcwbgotfaresetcut*100 + m, title5_0, NbinAdc, MinAdc, MaxAdc );
+    HB1( GeHidraw + FlagIdKBeamTOF + DataIdAdcwtfa*100 + m, title1_1, NbinAdc, MinAdc, MaxAdc );
+    HB1( GeHidraw + FlagIdKBeamTOF + DataIdAdcwtfacut*100 + m, title2_1, NbinAdc, MinAdc, MaxAdc );
+    HB1( GeHidraw + FlagIdKBeamTOF + DataIdAdcwbgocut*100 + m, title3_1, NbinAdc, MinAdc, MaxAdc );
+    HB1( GeHidraw + FlagIdKBeamTOF + DataIdAdcwresetcut*100 + m, title4_1, NbinAdc, MinAdc, MaxAdc );
+    HB1( GeHidraw + FlagIdKBeamTOF + DataIdAdcwbgotfaresetcut*100 + m, title5_1, NbinAdc, MinAdc, MaxAdc );
     HB1( GeHidcalib + FlagIdKBeamTOF + DataIdAdc*100 + m, title0_7, NbinAdc, MinAdc, MaxAdc );
     HB1( GeHidcalib + FlagIdKBeamTOF + DataIdAdcwtfa*100 + m, title1_7, NbinAdc, MinAdc, MaxAdc );
     HB1( GeHidcalib + FlagIdKBeamTOF + DataIdAdcwtfacut*100 + m, title2_7, NbinAdc, MinAdc, MaxAdc );
