@@ -455,6 +455,7 @@ ProcessingNormal()
       	    }
       	  }
       	}
+	crystal++;
       }
       
       if(bgohitflag==0) bgocutflag = true;
