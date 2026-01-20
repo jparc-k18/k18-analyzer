@@ -34,6 +34,7 @@
 #define HodoCut 0
 #define UseTOF  0
 #define Matrix2D 0
+#define S2sBranch 0 // turn off whenever possible (to reduce data size)
 
 namespace
 {
@@ -127,8 +128,8 @@ struct Event
   Double_t lvtofS2s[MaxHits];
   Double_t tofsegS2s[MaxHits];
 
-  std::vector< std::vector<Double_t> > resL;
-  std::vector< std::vector<Double_t> > resG;
+  std::vector< std::vector<Double_t> > resL = std::vector< std::vector<Double_t> >(PlMaxTOF);
+  std::vector< std::vector<Double_t> > resG = std::vector< std::vector<Double_t> >(PlMaxTOF);
 
   // Calib
   enum eParticle { Pion, Kaon, Proton, nParticle };
@@ -1273,6 +1274,7 @@ ConfMan::InitializeHistograms()
   ////////////////////////////////////////////
   //Tree
   HBTree("s2s","tree of S2sTracking");
+#if S2sBranch
   tree->Branch("evnum",     &event.evnum,    "evnum/I");
   tree->Branch("trigpat",    event.trigpat,  Form("trigpat[%d]/I", NumOfSegTrig));
   tree->Branch("trigflag",   event.trigflag, Form("trigflag[%d]/I", NumOfSegTrig));
@@ -1354,12 +1356,10 @@ ConfMan::InitializeHistograms()
   tree->Branch("vpu",          event.vpu,          Form("vpu[%d]/D", NumOfLayersVP));
   tree->Branch("vpv",          event.vpv,          Form("vpv[%d]/D", NumOfLayersVP));
 
-  event.resL.resize(PlMaxTOF);
   for( Int_t i = PlMinSdcIn;  i<= PlMaxSdcIn;  i++ ) tree->Branch(Form("ResL%d", i), &event.resL[i-1]);
   for( Int_t i = PlMinSdcOut; i<= PlMaxSdcOut; i++ ) tree->Branch(Form("ResL%d", i), &event.resL[i-1]);
   for( Int_t i = PlMinTOF;    i<= PlMaxTOF;    i++ ) tree->Branch(Form("ResL%d", i), &event.resL[i-1]);
 
-  event.resG.resize(PlMaxTOF);
   for( Int_t i = PlMinSdcIn;  i<= PlMaxSdcIn;  i++ ) tree->Branch(Form("ResG%d", i), &event.resG[i-1]);
   for( Int_t i = PlMinSdcOut; i<= PlMaxSdcOut; i++ ) tree->Branch(Form("ResG%d", i), &event.resG[i-1]);
   for( Int_t i = PlMinTOF;    i<= PlMaxTOF;    i++ ) tree->Branch(Form("ResG%d", i), &event.resG[i-1]);
@@ -1371,7 +1371,8 @@ ConfMan::InitializeHistograms()
   tree->Branch("ddeTofSeg", event.ddeTofSeg, Form("ddeTofSeg[%d]/D", NumOfSegTOF));
   tree->Branch("tofua",     event.tofua,     Form("tofua[%d]/D", NumOfSegTOF));
   tree->Branch("tofda",     event.tofda,     Form("tofda[%d]/D", NumOfSegTOF));
-
+#endif
+  
   // HPrint();
   return true;
 }

@@ -25,6 +25,7 @@
 #define TdcCut  1
 #define TotCut  0
 #define Chi2Cut 0
+#define BcOutBranch 0 // turn off whenever possible (to reduce data size)
 
 namespace
 {
@@ -622,6 +623,7 @@ ConfMan:: InitializeHistograms()
   ////////////////////////////////////////////
   //Tree
   HBTree("bcout", "tree of BcOutTracking");
+#if BcOutBranch
   tree->Branch("evnum", &event.evnum, "evnum/I");
   tree->Branch("trigpat", event.trigpat, Form("trigpat[%d]/I", MaxHits));
   tree->Branch("trigflag", event.trigflag, Form("trigflag[%d]/I", NumOfSegTrig));
@@ -653,6 +655,7 @@ ConfMan:: InitializeHistograms()
   tree->Branch("y0",        event.y0,       "y0[ntrack]/D");
   tree->Branch("u0",        event.u0,       "u0[ntrack]/D");
   tree->Branch("v0",        event.v0,       "v0[ntrack]/D");
+#endif
 
   // HPrint();
 

@@ -35,6 +35,7 @@
 #define TIME_CUT 1 // in cluster analysis
 #define TotCut  1 //for BcOut tracking
 #define Chi2Cut  1 //for BcOut tracking
+#define K18TrackBranch 0 // turn off whenever possible (to reduce data size)
 
 namespace
 {
@@ -568,6 +569,7 @@ ConfMan:: InitializeHistograms()
 
   //tree
   HBTree("k18track","Data Summary Table of K18Tracking");
+#if K18TrackBranch
   // Trigger Flag
   tree->Branch("evnum",     &event.evnum,     "evnum/I");
   tree->Branch("trigpat",    event.trigpat,   Form("trigpat[%d]/I", NumOfSegTrig));
@@ -626,6 +628,7 @@ ConfMan:: InitializeHistograms()
   tree->Branch("vbftK18",    event.vbftK18,   "vbftK18[ntK18]/D");
   tree->Branch("theta",   event.theta,  "theta[ntK18]/D");
   tree->Branch("phi",     event.phi,    "phi[ntK18]/D");
+#endif
 
   HPrint();
   return true;

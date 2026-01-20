@@ -28,7 +28,8 @@
 #include "DCGeomMan.hh"
 
 // #define TimeCut    1 // in cluster analysis
-#define FHitBranch 0 // make FiberHit branches (becomes heavy)
+#define TreeBranch 0 // turn off whenever possible (to reduce data size)
+#define HodoBranch 0 // turn off whenever possible (to reduce data size)
 #define HodoHitPos 0
 
 namespace
@@ -2035,12 +2036,12 @@ ConfMan::InitializeHistograms()
   ////////////////////////////////////////////
   //Tree
   HBTree("tree","tree of Counter");
+#if TreeBranch
   tree->Branch("evnum",     &event.evnum,     "evnum/I");
   tree->Branch("spill",     &event.spill,     "spill/I");
   //Trig
   tree->Branch("trigpat",    event.trigpat,   Form("trigpat[%d]/I", NumOfSegTrig));
   tree->Branch("trigflag",   event.trigflag,  Form("trigflag[%d]/I", NumOfSegTrig));
-
   //BH1
   tree->Branch("bh1nhits",   &event.bh1nhits,    "bh1nhits/I");
   tree->Branch("bh1hitpat",   event.bh1hitpat,   Form("bh1hitpat[%d]/I",NumOfSegBH1));
@@ -2142,14 +2143,17 @@ ConfMan::InitializeHistograms()
   //tree->Branch("sfvnhits", &event.sfvnhits, "sfvnhits/I");
   //tree->Branch("sfvhitpat", event.sfvhitpat, Form("sfvhitpat[%d]/I", NumOfSegSFV));
   tree->Branch("sfvt", event.sfvt, Form("sfvt[%d][%d]/D", NumOfSegSFV, MaxDepth));
-
+#endif // for "TreeBranch"
+  
   ////////////////////////////////////////////
   //Dst
   hodo = new TTree("hodo","Data Summary Table of Hodoscope");
+#if HodoBranch
   hodo->Branch("evnum",     &dst.evnum,     "evnum/I");
   hodo->Branch("spill",     &dst.spill,     "spill/I");
   hodo->Branch("trigpat",    dst.trigpat,   Form("trigpat[%d]/I", NumOfSegTrig));
   hodo->Branch("trigflag",   dst.trigflag,  Form("trigflag[%d]/I", NumOfSegTrig));
+  
   hodo->Branch("nhBh1",     &dst.nhBh1,     "nhBh1/I");
   hodo->Branch("csBh1",      dst.csBh1,     "csBh1[nhBh1]/I");
   hodo->Branch("Bh1Seg",     dst.Bh1Seg,    "Bh1Seg[nhBh1]/D");
@@ -2215,6 +2219,7 @@ ConfMan::InitializeHistograms()
   hodo->Branch("WcSeg",     dst.WcSeg,    "WcSeg[nhWc]/D");
   hodo->Branch("tWc",       dst.tWc,      "tWc[nhWc]/D");
   hodo->Branch("deWc",      dst.deWc,     "deWc[nhWc]/D");
+#endif // for "HodoBranch"
 
   // HPrint();
   return true;

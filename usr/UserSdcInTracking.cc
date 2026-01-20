@@ -27,6 +27,7 @@
 #define Chi2Cut     0
 #define MaxMultiCut 0
 #define BcOutCut    0
+#define SdcInBranch 0 // turn off whenever possible (to reduce data size)
 
 namespace
 {
@@ -667,6 +668,7 @@ ConfMan:: InitializeHistograms()
   ////////////////////////////////////////////
   //Tree
   HBTree("sdcin","tree of SdcInTracking");
+#if SdcInBranch
   tree->Branch("evnum",     &event.evnum,     "evnum/I");
   tree->Branch("trigpat",    event.trigpat,   Form("trigpat[%d]/I", NumOfSegTrig));
   tree->Branch("trigflag",   event.trigflag,  Form("trigflag[%d]/I", NumOfSegTrig));
@@ -713,6 +715,8 @@ ConfMan:: InitializeHistograms()
   //   TString type = Form("%s_pos[%d]/D", layer_name[i].Data(), MaxHits);
   //   tree->Branch(name, event.pos[i], type);
   // }
+#endif
+  
   // HPrint();
   return true;
 }

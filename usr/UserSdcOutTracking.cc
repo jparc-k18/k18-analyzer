@@ -26,6 +26,7 @@
 #define Chi2Cut     0
 #define MaxMultiCut 0
 #define UseTOF      0 // use or not TOF for tracking
+#define SdcOutBranch 0 // turn off whenever possible (to reduce data size)
 
 namespace
 {
@@ -857,6 +858,7 @@ ConfMan::InitializeHistograms()
   ////////////////////////////////////////////
   //Tree
   HBTree("sdcout", "tree of SdcOutTracking");
+#if SdcOutBranch
   tree->Branch("evnum", &event.evnum, "evnum/I");
   tree->Branch("trigpat", event.trigpat, Form("trigpat[%d]/I", NumOfSegTrig));
   tree->Branch("trigflag", event.trigflag, Form("trigflag[%d]/I", NumOfSegTrig));
@@ -899,6 +901,8 @@ ConfMan::InitializeHistograms()
   tree->Branch("yTof",      event.yTof,     "yTof[ntrack]/D");
   tree->Branch("uTof",      event.uTof,     "uTof[ntrack]/D");
   tree->Branch("vTof",      event.vTof,     "vTof[ntrack]/D");
+#endif
+  
   // HPrint();
   return true;
 }

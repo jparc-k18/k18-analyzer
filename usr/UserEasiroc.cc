@@ -31,9 +31,10 @@
 #define HodoCut    0 // with BH1/BH2
 #define TIME_CUT   1 // in cluster analysis
 #define DE_CUT     1 // in cluster analysis for aft
+#define Ea0cBranch 0 // turn off whenever possible (to reduce data size)
 #define FHitBranch 0 // make FiberHit branches (becomes heavy)
 #define RawHitAFTBranch 0 //make AFT RawHit branches (becomes heavy)
-#define ClusterHitAFTBranch 1 //make AFTCluster branches
+#define ClusterHitAFTBranch 0 //make AFTCluster branches
 
 namespace
 {
@@ -758,6 +759,7 @@ ConfMan::InitializeHistograms()
 
   //Tree
   HBTree("ea0c", "tree of Easiroc");
+#if Ea0cBranch
   //Trig
   tree->Branch("evnum",     &event.evnum,     "evnum/I");
   tree->Branch("trigpat",    event.trigpat,   Form("trigpat[%d]/I", NumOfSegTrig));
@@ -844,6 +846,8 @@ ConfMan::InitializeHistograms()
   tree->Branch("aft_clpos",      event.aft_clpos,        "aft_clpos[aft_ncl]/D");
 #endif
 
+#endif // for "Ea0cBranch"
+  
   // HPrint();
   return true;
 }
