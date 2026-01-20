@@ -71,9 +71,11 @@ struct Event
   Int_t    bft_ncl_bh1mth;
   Int_t    bft_clsize[NumOfSegBFT];
   Double_t bft_ctime[NumOfSegBFT];
+  Double_t bft_ctot[NumOfSegBFT];
   Double_t bft_clpos[NumOfSegBFT];
+  Double_t bft_clseg[NumOfSegBFT];
   Int_t    bft_bh1mth[NumOfSegBFT];
-
+  
   // BcOut
   Int_t nlBcOut;
   Int_t ntBcOut;
@@ -143,9 +145,11 @@ Event::clear()
   }
 
   for(Int_t it=0; it<NumOfSegBFT; it++){
-    bft_clsize[it] = qnan;
+    bft_clsize[it] = 0;
     bft_ctime[it]  = qnan;
+    bft_ctot[it]   = qnan;
     bft_clpos[it]  = qnan;
+    bft_clseg[it]  = qnan;
     bft_bh1mth[it] = -1;
   }
 
@@ -315,12 +319,14 @@ ProcessingNormal()
       if(!cl) continue;
       Double_t clsize = cl->ClusterSize();
       Double_t ctime  = cl->CMeanTime();
+      Double_t ctot   = cl->TOT();
       Double_t pos    = cl->MeanPosition();
-      // Double_t width  = cl->Width();
-
+      Double_t seg    = cl->MeanSeg();
       event.bft_clsize[i] = clsize;
       event.bft_ctime[i]  = ctime;
+      event.bft_ctot[i]   = ctot;
       event.bft_clpos[i]  = pos;
+      event.bft_clseg[i]  = seg;
 
       if(event.Btof0Seg >= 0 && ncl != 1){
 	if(gBH1Mth.Judge(pos, event.Btof0Seg)){
@@ -589,7 +595,9 @@ ConfMan:: InitializeHistograms()
   tree->Branch("bft_ncl_bh1mth", &event.bft_ncl_bh1mth, "bft_ncl_bh1mth/I");
   tree->Branch("bft_clsize",      event.bft_clsize, "bft_clsize[bft_ncl]/I");
   tree->Branch("bft_ctime",       event.bft_ctime,  "bft_ctime[bft_ncl]/D");
+  tree->Branch("bft_ctot",        event.bft_ctot,   "bft_ctot[bft_ncl]/D");  
   tree->Branch("bft_clpos",       event.bft_clpos,  "bft_clpos[bft_ncl]/D");
+  tree->Branch("bft_clseg",       event.bft_clseg,  "bft_clseg[bft_ncl]/D");
   tree->Branch("bft_bh1mth",      event.bft_bh1mth, "bft_bh1mth[bft_ncl]/I");
 
   // BcOut

@@ -94,15 +94,15 @@ namespace dst
 enum kArgc
 {
   kProcess, kConfFile,
-  kS2sTracking, kK18Tracking, kHodoscope, kEasiroc,
+  kS2sTracking, kK18Tracking, kHodoscope,
   kOutFile, nArgc
 };
 std::vector<TString> ArgName =
 { "[Process]", "[ConfFile]", "[S2sTracking]",
-  "[K18Tracking]", "[Hodoscope]", "[Easiroc]",
+  "[K18Tracking]", "[Hodoscope]",
   "[OutFile]" };
 std::vector<TString> TreeName =
-{ "", "", "s2s", "k18track", "hodo", "ea0c", "" };
+{ "", "", "s2s", "k18track", "hodo", "" };
 std::vector<TFile*> TFileCont;
 std::vector<TTree*> TTreeCont;
 std::vector<TTreeReader*> TTreeReaderCont;
@@ -1877,6 +1877,13 @@ ConfMan::InitializeHistograms()
   TTreeCont[kS2sTracking]->SetBranchAddress("tofsegS2s", src.tofsegS2s);
 
   TTreeCont[kK18Tracking]->SetBranchStatus("*", 0);
+  TTreeCont[kK18Tracking]->SetBranchStatus("bft_ncl",    1);
+  TTreeCont[kK18Tracking]->SetBranchStatus("bft_clsize", 1);
+  TTreeCont[kK18Tracking]->SetBranchStatus("bft_ctime",  1);
+  TTreeCont[kK18Tracking]->SetBranchStatus("bft_ctot",   1);
+  TTreeCont[kK18Tracking]->SetBranchStatus("bft_clpos",  1);
+  TTreeCont[kK18Tracking]->SetBranchStatus("bft_clseg",  1);
+  
   TTreeCont[kK18Tracking]->SetBranchStatus("ntBcOut",     1);
   TTreeCont[kK18Tracking]->SetBranchStatus("nlBcOut",     1);
   TTreeCont[kK18Tracking]->SetBranchStatus("nhBcOut",     1);
@@ -1895,6 +1902,13 @@ ConfMan::InitializeHistograms()
   TTreeCont[kK18Tracking]->SetBranchStatus("utgtK18",     1);
   TTreeCont[kK18Tracking]->SetBranchStatus("vtgtK18",     1);
 
+  TTreeCont[kK18Tracking]->SetBranchAddress("bft_ncl",    &src.nhBft);
+  TTreeCont[kK18Tracking]->SetBranchAddress("bft_clsize",  src.csBft);
+  TTreeCont[kK18Tracking]->SetBranchAddress("bft_ctime",   src.tBft);
+  TTreeCont[kK18Tracking]->SetBranchAddress("bft_ctot",    src.wBft);
+  TTreeCont[kK18Tracking]->SetBranchAddress("bft_clpos",   src.BftPos);
+  TTreeCont[kK18Tracking]->SetBranchAddress("bft_clseg",   src.BftSeg);
+  
   TTreeCont[kK18Tracking]->SetBranchAddress("ntBcOut",     &src.ntBcOut    );
   TTreeCont[kK18Tracking]->SetBranchAddress("nlBcOut",     &src.nlBcOut    );
   TTreeCont[kK18Tracking]->SetBranchAddress("nhBcOut",      src.nhBcOut    );
@@ -1912,21 +1926,6 @@ ConfMan::InitializeHistograms()
   TTreeCont[kK18Tracking]->SetBranchAddress("ytgtK18", src.ytgtK18);
   TTreeCont[kK18Tracking]->SetBranchAddress("utgtK18", src.utgtK18);
   TTreeCont[kK18Tracking]->SetBranchAddress("vtgtK18", src.vtgtK18);
-
-  TTreeCont[kEasiroc]->SetBranchStatus("*", 0);
-  TTreeCont[kEasiroc]->SetBranchStatus("bft_ncl",    1);
-  TTreeCont[kEasiroc]->SetBranchStatus("bft_clsize", 1);
-  TTreeCont[kEasiroc]->SetBranchStatus("bft_ctime",  1);
-  TTreeCont[kEasiroc]->SetBranchStatus("bft_ctot",   1);
-  TTreeCont[kEasiroc]->SetBranchStatus("bft_clpos",  1);
-  TTreeCont[kEasiroc]->SetBranchStatus("bft_clseg",  1);
-
-  TTreeCont[kEasiroc]->SetBranchAddress("bft_ncl",    &src.nhBft);
-  TTreeCont[kEasiroc]->SetBranchAddress("bft_clsize", src.csBft);
-  TTreeCont[kEasiroc]->SetBranchAddress("bft_ctime",  src.tBft);
-  TTreeCont[kEasiroc]->SetBranchAddress("bft_ctot",   src.wBft);
-  TTreeCont[kEasiroc]->SetBranchAddress("bft_clpos",  src.BftPos);
-  TTreeCont[kEasiroc]->SetBranchAddress("bft_clseg",  src.BftSeg);
 
   return true;
 }
