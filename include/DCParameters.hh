@@ -33,24 +33,24 @@ extern const Int_t NPPInfoBcOut, NPPInfoSdcIn, NPPInfoSdcOut;
 #ifdef DefStatic
 const DCPairPlaneInfo PPInfoBcOut[] = {
   // { pair_plane, honeycomb, fiber, id1, id2, CellSize }
-  { true, false, false, 0,  1,  3.0 }, { true, false, false,  2,  3,  3.0 },
-  { true, false, false, 4,  5,  3.0 }, { true, false, false,  6,  7,  3.0 },
-  { true, false, false, 8, 9,  3.0 }, { true, false, false, 10, 11,  3.0 },
-  // { false, false, false, 12, 12, 10.0 }
+  { true, false, false, 0,  1,  3.0 }, { true, false, false,  2,  3,  3.0 }, //BC3
+  { true, false, false, 4,  5,  3.0 }, 
+  { true, false, false,  6,  7,  3.0 }, { true, false, false, 8, 9,  3.0 }, //BC4
+  { true, false, false, 10, 11,  3.0 } 
 };
 
 const DCPairPlaneInfo PPInfoSdcIn[] = {
   // { pair_plane, honeycomb, fiber, id1, id2, CellSize }
-  { true, true, false, 0, 1,  6.0 }, { true, true, false, 2,  3,  6.0 },
-  { true, true, false, 4, 5,  6.0 },
-  { true, false, false, 6, 7, 5.0 }, { true, false, false, 8, 9, 5.0 }
+  { true, false, false, 0, 1,  6.0 }, { true, false, false, 2,  3,  6.0 }, //SDC1
+  { true, false, false, 4, 5,  6.0 },
+  { true, false, false, 6, 7, 5.0 }, { true, false, false, 8, 9, 5.0 } //SDC2
 };
 
 const DCPairPlaneInfo PPInfoSdcOut[] = {
   // { pair_plane, honeycomb, fiber, id1, id2, CellSize }
   { true, true, false, 0, 1,  9.0 }, { true, true, false, 2, 3,  9.0 }, //SDC3
   { true, true, false, 4, 5,  9.0 }, { true, true, false, 6, 7,  9.0 }, //SDC4
-  { true, true, false, 8, 9,  9.0 }, { true, true, false, 10, 11,  9.0 }, //SDC5
+  { true, true, false, 8, 9,  9.0 }, { true, true, false, 10, 11,  9.0 }  //SDC5
 };
 
 const Int_t NPPInfoBcOut  = sizeof(PPInfoBcOut)/sizeof(DCPairPlaneInfo);
