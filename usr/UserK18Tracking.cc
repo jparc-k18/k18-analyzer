@@ -35,6 +35,8 @@
 #define TIME_CUT 1 // in cluster analysis
 #define TotCut  1 //for BcOut tracking
 #define Chi2Cut  1 //for BcOut tracking
+#define K18TrackBranch 0 // turn off whenever possible (to reduce data size)
+#define KPiprod 0 // use in E63 Kpi prod.
 
 namespace
 {
@@ -70,7 +72,9 @@ struct Event
   Int_t    bft_ncl_bh1mth;
   Int_t    bft_clsize[NumOfSegBFT];
   Double_t bft_ctime[NumOfSegBFT];
+  Double_t bft_ctot[NumOfSegBFT];
   Double_t bft_clpos[NumOfSegBFT];
+  Double_t bft_clseg[NumOfSegBFT];
   Int_t    bft_bh1mth[NumOfSegBFT];
 
   // BcOut
@@ -142,9 +146,11 @@ Event::clear()
   }
 
   for(Int_t it=0; it<NumOfSegBFT; it++){
-    bft_clsize[it] = qnan;
+    bft_clsize[it] = 0;
     bft_ctime[it]  = qnan;
+    bft_ctot[it]   = qnan;
     bft_clpos[it]  = qnan;
+    bft_clseg[it]  = qnan;
     bft_bh1mth[it] = -1;
   }
 
@@ -249,7 +255,11 @@ ProcessingNormal()
     }
   }
 
-  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd])
+  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd]
+#if KPiprod
+     || trigger_flag[trigger::kTrigEPS] || trigger_flag[trigger::kTrigFPS]
+#endif
+     )
     return true;
 
   HF1(1, 1);
@@ -314,12 +324,14 @@ ProcessingNormal()
       if(!cl) continue;
       Double_t clsize = cl->ClusterSize();
       Double_t ctime  = cl->CMeanTime();
+      Double_t ctot   = cl->TOT();
       Double_t pos    = cl->MeanPosition();
-      // Double_t width  = cl->Width();
-
+      Double_t seg    = cl->MeanSeg();
       event.bft_clsize[i] = clsize;
       event.bft_ctime[i]  = ctime;
+      event.bft_ctot[i]   = ctot;
       event.bft_clpos[i]  = pos;
+      event.bft_clseg[i]  = seg;
 
       if(event.Btof0Seg >= 0 && ncl != 1){
 	if(gBH1Mth.Judge(pos, event.Btof0Seg)){
@@ -452,6 +464,7 @@ ProcessingNormal()
     Double_t theta = ltrack->GetTheta();
     Double_t phi   = ltrack->GetPhi();
 
+    HF1(72, chisqr);
     HF1(74, xt); HF1(75, yt); HF1(76, ut); HF1(77, vt);
     HF2(78, xt, ut); HF2(79, yt, vt); HF2(80, xt, yt);
     HF1(84, xb); HF1(85, yb); HF1(86, ub); HF1(87, vb);
@@ -569,6 +582,7 @@ ConfMan:: InitializeHistograms()
   //tree
   HBTree("k18track","Data Summary Table of K18Tracking");
   // Trigger Flag
+#if K18TrackBranch
   tree->Branch("evnum",     &event.evnum,     "evnum/I");
   tree->Branch("trigpat",    event.trigpat,   Form("trigpat[%d]/I", NumOfSegTrig));
   tree->Branch("trigflag",   event.trigflag,  Form("trigflag[%d]/I", NumOfSegTrig));
@@ -587,7 +601,9 @@ ConfMan:: InitializeHistograms()
   tree->Branch("bft_ncl_bh1mth", &event.bft_ncl_bh1mth, "bft_ncl_bh1mth/I");
   tree->Branch("bft_clsize",      event.bft_clsize, "bft_clsize[bft_ncl]/I");
   tree->Branch("bft_ctime",       event.bft_ctime,  "bft_ctime[bft_ncl]/D");
+  tree->Branch("bft_ctot",        event.bft_ctot,   "bft_ctot[bft_ncl]/D");
   tree->Branch("bft_clpos",       event.bft_clpos,  "bft_clpos[bft_ncl]/D");
+  tree->Branch("bft_clseg",       event.bft_clseg,  "bft_clseg[bft_ncl]/D");
   tree->Branch("bft_bh1mth",      event.bft_bh1mth, "bft_bh1mth[bft_ncl]/I");
 
   // BcOut
@@ -626,6 +642,7 @@ ConfMan:: InitializeHistograms()
   tree->Branch("vbftK18",    event.vbftK18,   "vbftK18[ntK18]/D");
   tree->Branch("theta",   event.theta,  "theta[ntK18]/D");
   tree->Branch("phi",     event.phi,    "phi[ntK18]/D");
+#endif
 
   HPrint();
   return true;

@@ -34,6 +34,8 @@
 #define HodoCut 0
 #define UseTOF  0
 #define Matrix2D 0
+#define S2sBranch 0 // turn off whenever possible (to reduce data size)
+#define KPiprod 0 // use in E63 Kpi prod.
 
 namespace
 {
@@ -337,7 +339,11 @@ ProcessingNormal()
 
   HF1(1, 0.);
 
-  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd])
+  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd]
+#if KPiprod
+     || trigger_flag[trigger::kTrigEPS] || trigger_flag[trigger::kTrigFPS]
+#endif
+     )
     return true;
 
   HF1(1, 1.);
@@ -718,14 +724,15 @@ ProcessingNormal()
   //////////////S2S Tracking
   if( nhTof > 0 ){
     Double_t seg = event.TofSeg[0];
-    Double_t par[3] = {1.59, -3.07e-2, 4.19e-4};
+    //Double_t par[3] = {1.59, -3.07e-2, 4.19e-4}; // E70 param
+    Double_t par[3] = {9.72e-1, -1.79e-2, 1.78e-4}; // E63 param
     Double_t pMag   = par[0]+seg*par[1]+seg*seg*par[2]; // Magnitude
     Double_t scale  = 1.;
     Double_t initial_momentum = pMag*scale;
     DCAna.TrackSearchS2s(initial_momentum);
   }
   else{
-    DCAna.TrackSearchS2s(1.4);
+    DCAna.TrackSearchS2s(0.9);
   }
 
   Int_t ntS2s = DCAna.GetNTracksS2s();
@@ -1273,6 +1280,7 @@ ConfMan::InitializeHistograms()
   ////////////////////////////////////////////
   //Tree
   HBTree("s2s","tree of S2sTracking");
+#if S2sBranch
   tree->Branch("evnum",     &event.evnum,    "evnum/I");
   tree->Branch("trigpat",    event.trigpat,  Form("trigpat[%d]/I", NumOfSegTrig));
   tree->Branch("trigflag",   event.trigflag, Form("trigflag[%d]/I", NumOfSegTrig));
@@ -1353,6 +1361,7 @@ ConfMan::InitializeHistograms()
   tree->Branch("vpy",          event.vpy,          Form("vpy[%d]/D", NumOfLayersVP));
   tree->Branch("vpu",          event.vpu,          Form("vpu[%d]/D", NumOfLayersVP));
   tree->Branch("vpv",          event.vpv,          Form("vpv[%d]/D", NumOfLayersVP));
+#endif
 
   event.resL.resize(PlMaxTOF);
   for( Int_t i = PlMinSdcIn;  i<= PlMaxSdcIn;  i++ ) tree->Branch(Form("ResL%d", i), &event.resL[i-1]);

@@ -31,9 +31,11 @@
 #define HodoCut    0 // with BH1/BH2
 #define TIME_CUT   1 // in cluster analysis
 #define DE_CUT     1 // in cluster analysis for rc
+#define Ea0cBranch 0 // turn off whenever possible (to reduce data size)
 #define FHitBranch 0 // make FiberHit branches (becomes heavy)
-#define RawHitRCBranch 1 //make RC RawHit branches (becomes heavy)
+#define RawHitRCBranch 0 //make RC RawHit branches (becomes heavy)
 #define ClusterHitRCBranch 0 //make RCCluster branches
+#define KPiprod 0 // use in E63 Kpi prod.
 
 namespace
 {
@@ -269,7 +271,11 @@ ProcessingNormal()
     }
   }
 
-  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd])
+  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd]
+#if KPiprod
+     || trigger_flag[trigger::kTrigEPS] || trigger_flag[trigger::kTrigFPS]
+#endif
+     )
     return true;
 
   HF1(1, 1);
@@ -782,6 +788,7 @@ ConfMan::InitializeHistograms()
 
   //Tree
   HBTree("ea0c", "tree of Easiroc");
+#if Ea0cBranch
   //Trig
   tree->Branch("evnum",     &event.evnum,     "evnum/I");
   tree->Branch("trigpat",    event.trigpat,   Form("trigpat[%d]/I", NumOfSegTrig));
@@ -868,6 +875,7 @@ ConfMan::InitializeHistograms()
   tree->Branch("rc_clpos",      event.rc_clpos,        "rc_clpos[rc_ncl]/D");
 #endif
 
+#endif // for "Ea0cBranch"
   // HPrint();
   return true;
 }

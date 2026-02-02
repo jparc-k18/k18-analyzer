@@ -27,6 +27,8 @@
 #define Chi2Cut     0
 #define MaxMultiCut 0
 #define BcOutCut    0
+#define SdcInBranch 0 // turn off whenever possible (to reduce data size)
+#define KPiprod 0 // use in E63 Kpi prod.
 
 namespace
 {
@@ -193,7 +195,11 @@ ProcessingNormal()
 
   HF1(1, 0.);
 
-  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd])
+  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd]
+#if KPiprod
+     || trigger_flag[trigger::kTrigEPS] || trigger_flag[trigger::kTrigFPS]
+#endif
+     )
     return true;
 
   HF1(1, 1.);
@@ -667,6 +673,7 @@ ConfMan:: InitializeHistograms()
   ////////////////////////////////////////////
   //Tree
   HBTree("sdcin","tree of SdcInTracking");
+#if SdcInBranch
   tree->Branch("evnum",     &event.evnum,     "evnum/I");
   tree->Branch("trigpat",    event.trigpat,   Form("trigpat[%d]/I", NumOfSegTrig));
   tree->Branch("trigflag",   event.trigflag,  Form("trigflag[%d]/I", NumOfSegTrig));
@@ -704,6 +711,7 @@ ConfMan:: InitializeHistograms()
   tree->Branch("y0",     event.y0,       "y0[ntrack]/D");
   tree->Branch("u0",     event.u0,       "u0[ntrack]/D");
   tree->Branch("v0",     event.v0,       "v0[ntrack]/D");
+#endif
 
   // TString layer_name[NumOfLayersSdcIn] =
   //   { "sdc1u1", "sdc1u0", "sdc1x1", "sdc1x0", "sdc1v1", "sdc1v0",

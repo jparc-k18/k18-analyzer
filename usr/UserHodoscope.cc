@@ -28,8 +28,10 @@
 #include "DCGeomMan.hh"
 
 // #define TimeCut    1 // in cluster analysis
-#define FHitBranch 0 // make FiberHit branches (becomes heavy)
+#define TreeBranch 0 // turn off whenever possible (to reduce data size)
+#define HodoBranch 0 // turn off whenever possible (to reduce data size)
 #define HodoHitPos 0
+#define KPiprod 0 // use in E63 Kpi prod.
 
 namespace
 {
@@ -542,8 +544,11 @@ ProcessingNormal()
     }
   }
 
-  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd])
-    return true;
+  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd]
+#if KPiprod
+     || trigger_flag[trigger::kTrigEPS] || trigger_flag[trigger::kTrigFPS]
+#endif
+     )
 
   HF1(1, 1);
 
@@ -2009,6 +2014,7 @@ ConfMan::InitializeHistograms()
   ////////////////////////////////////////////
   //Tree
   HBTree("tree","tree of Counter");
+#if TreeBranch
   tree->Branch("evnum",     &event.evnum,     "evnum/I");
   tree->Branch("spill",     &event.spill,     "spill/I");
   //Trig
@@ -2112,10 +2118,12 @@ ConfMan::InitializeHistograms()
   //tree->Branch("sacnhits", &event.sacnhits, "sacnhits/I");
   tree->Branch("saca", event.saca, Form("saca[%d]/D", NumOfSegSAC));
   tree->Branch("sact", event.sact, Form("sact[%d][%d]/D", NumOfSegSAC, MaxDepth));
+#endif // for "TreeBranch"
 
   ////////////////////////////////////////////
   //Dst
   hodo = new TTree("hodo","Data Summary Table of Hodoscope");
+#if HodoBranch
   hodo->Branch("evnum",     &dst.evnum,     "evnum/I");
   hodo->Branch("spill",     &dst.spill,     "spill/I");
   hodo->Branch("trigpat",    dst.trigpat,   Form("trigpat[%d]/I", NumOfSegTrig));
@@ -2185,7 +2193,8 @@ ConfMan::InitializeHistograms()
   hodo->Branch("WcSeg",     dst.WcSeg,    "WcSeg[nhWc]/D");
   hodo->Branch("tWc",       dst.tWc,      "tWc[nhWc]/D");
   hodo->Branch("deWc",      dst.deWc,     "deWc[nhWc]/D");
-
+#endif // for "HodoBranch"
+  
   // HPrint();
   return true;
 }

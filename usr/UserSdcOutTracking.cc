@@ -26,6 +26,8 @@
 #define Chi2Cut     0
 #define MaxMultiCut 0
 #define UseTOF      0 // use or not TOF for tracking
+#define SdcOutBranch 0 // turn off whenever possible (to reduce data size)
+#define KPiprod 0 // use in E63 Kpi prod.
 
 namespace
 {
@@ -222,7 +224,11 @@ ProcessingNormal()
 
   HF1(1, 0.);
 
-  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd])
+  if(trigger_flag[trigger::kSpillOnEnd] || trigger_flag[trigger::kSpillOffEnd]
+#if KPiprod
+     || trigger_flag[trigger::kTrigEPS] || trigger_flag[trigger::kTrigFPS]
+#endif
+     )
     return true;
 
   HF1(1, 1.);
@@ -857,6 +863,7 @@ ConfMan::InitializeHistograms()
   ////////////////////////////////////////////
   //Tree
   HBTree("sdcout", "tree of SdcOutTracking");
+#if SdcOutBranch
   tree->Branch("evnum", &event.evnum, "evnum/I");
   tree->Branch("trigpat", event.trigpat, Form("trigpat[%d]/I", NumOfSegTrig));
   tree->Branch("trigflag", event.trigflag, Form("trigflag[%d]/I", NumOfSegTrig));
@@ -899,6 +906,7 @@ ConfMan::InitializeHistograms()
   tree->Branch("yTof",      event.yTof,     "yTof[ntrack]/D");
   tree->Branch("uTof",      event.uTof,     "uTof[ntrack]/D");
   tree->Branch("vTof",      event.vTof,     "vTof[ntrack]/D");
+#endif
   // HPrint();
   return true;
 }
