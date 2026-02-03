@@ -666,6 +666,7 @@ dst::DstRead(Int_t ievent)
 		for( Int_t it=0, nhit=event.nhAc1; it<nhit; it++ ){
 		  if( event.Ac1Seg[it] == 21 ){ flagAc1=true; break; }
 		}
+		//flagAc1 = true; // e63
 		if(ip == Event::Pion && !flagAc1) continue; // select Pion
 		if(ip == Event::Kaon) continue;
 		if(ip == Event::Proton && (m2 < 0.5 || !xy_ok)) continue;
@@ -775,7 +776,7 @@ ConfMan::InitializeHistograms()
   for(Int_t ip=0; ip<Event::nParticle; ++ip){
     HB2(10000+ip+1,
         Form("TofTime-%sTime %% TofSeg", name[ip].Data()),
-        500, -25., 25., NumOfSegTOF, 0., (Double_t)NumOfSegTOF);
+        1000, -50., 50., NumOfSegTOF, 0., (Double_t)NumOfSegTOF);
   }
   HB2(20001, "Tof TimeDiff U-D",
       1000, -25., 25., NumOfSegTOF, 0., (Double_t)NumOfSegTOF);
@@ -793,7 +794,7 @@ ConfMan::InitializeHistograms()
     for(Int_t ip=0; ip<Event::nParticle; ++ip){
       HB1(10000+(i+1)*100+ip+1,
           Form("Tof-%d TofTime-%sTime", i+1, name[ip].Data()),
-          500, -25., 25.);
+          1000, -50., 50.);
       HB1(33000+(i+1)*100+ip+1,
           Form("TOF ADC-Signal %d-U [%s]", i+1, name[ip].Data()),
           4000, 0., 4000.);
