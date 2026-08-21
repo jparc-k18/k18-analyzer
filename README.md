@@ -3,10 +3,10 @@
 Analyzer framework for the J-PARC E05 experiment (Oct-Nov 2015,
 K1.8/SKS), based on the K18 analyzer v20150402.
 
-This is the **shared** distribution: the analyzer code, the
-v20150402 baseline parameter set and the E05 run bookkeeping.
-The calibration constants derived from the E05 data are not
-included -- see "What this repository does not contain" below.
+This is the **shared** distribution: the analyzer code and the
+v20150402 baseline parameter set. The calibration constants and
+the run bookkeeping derived from the E05 data are not included
+-- see "What this repository does not contain" below.
 
 ## Build
 
@@ -52,10 +52,8 @@ them as symlinks (or plain directories) in the repository root:
   missing-mass histograms.
 - `param/` -- the v20150402 baseline parameter set, plus the E05
   channel maps, digit maps and unpacker configuration.
-- `runmanager/` -- LSF batch manager and the E05 run lists.
-  `runmanager/runlist/{hodo,bft}/*.yml` classify all E05 Oct-2015
-  runs by target, beam momentum and trigger condition, with the
-  logbook comment on each run.
+- `runmanager/` -- LSF batch manager. It is driven by run lists
+  (yaml); `runmanager/runlist/example.yml` documents the format.
 
 ## What this repository does not contain
 
@@ -82,11 +80,15 @@ To run without them, write your own conf modelled on
 `param/conf/analyzer_20151025.conf`, which references only
 baseline tables that ARE included.
 
+The E05 run lists are not distributed either: which runs belong
+to which target, beam momentum and trigger setting is bookkeeping
+that goes with the calibration. `runmanager/runlist/` therefore
+holds only `example.yml`, and `*.yml` and subdirectories under it
+are gitignored, so your own run lists can live there without
+dirtying the working tree.
+
 Related consequences:
 
-- The run lists in `runmanager/runlist/` use `conf: param/conf/e05`,
-  i.e. they expect `param/conf/e05/analyzer_<run>.conf` to exist.
-  Point `conf:` at your own conf file or directory instead.
 - `dst/DstKKAna.cc` applies a momentum calibration through the
   `H_COEF` / `K_COEF` / `PO0` / `PO1` constants. They are **zeroed
   here**, so the momenta pass through unchanged. Fit them for your
@@ -97,7 +99,7 @@ Related consequences:
 ## Run lists
 
 ```sh
-python3 runmanager/run.py runmanager/runlist/hodo/hodo-prod-c-m18-2.yml
+python3 runmanager/run.py runmanager/runlist/my-runlist.yml
 ```
 
 Every path in a run list is relative to the repository root, so a
@@ -107,9 +109,11 @@ run list needs no absolute path anywhere:
 DEFAULT:
   queue: l      # use "l", not "s", for mass production
   bin:   bin/Hodoscope
-  conf:  param/conf/e05
+  conf:  param/conf/my.conf
   data:  e05_oct
   root:  root/v1
+RUN:
+  10217:        # reads e05_oct/run10217.dat.gz
 ```
 
 An optional `WORKDIR` key overrides that root; set it only if the

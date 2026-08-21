@@ -1,4 +1,6 @@
+# Run lists are experiment bookkeeping and are kept out of this
+# repository; example.yml is the format reference. Dropping your
+# own run lists in here will not dirty the working tree.
 *.yml
 !example.yml
-!hodo/*.yml
-!bft/*.yml
+*/
