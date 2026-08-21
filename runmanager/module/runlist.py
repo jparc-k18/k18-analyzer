@@ -15,6 +15,13 @@ import utility
 
 logger = logging.getLogger('__main__').getChild(__name__)
 
+# Repository root (this file is runmanager/module/runlist.py).
+# Every path in a run list is relative to the work directory, and
+# the work directory is this root unless a run list overrides it
+# with WORKDIR.
+REPO_ROOT = os.path.dirname(os.path.dirname(
+  os.path.dirname(os.path.abspath(__file__))))
+
 #______________________________________________________________________________
 class RunlistManager(metaclass=classimpl.Singleton):
   ''' Manager class handling run list. '''
@@ -166,7 +173,8 @@ class RunlistManager(metaclass=classimpl.Singleton):
 
   #____________________________________________________________________________
   def get_work_dir(self, path):
-    ''' Get directory of "WORKDIR" in run list yaml. '''
+    ''' Get directory of "WORKDIR" in run list yaml.
+        Falls back to the repository root if not declared. '''
     if self.__is_ready is False:
       return None
     data = dict()
@@ -176,7 +184,9 @@ class RunlistManager(metaclass=classimpl.Singleton):
     except yaml.parser.ParserError as e:
       logger.error(f'runlist yaml syntax error: {e}')
       exit(1)
-    work_dir = os.path.expanduser(data['WORKDIR'])
+    work_dir = (os.path.expanduser(data['WORKDIR'])
+                if isinstance(data, dict) and data.get('WORKDIR')
+                else REPO_ROOT)
     if os.path.isdir(work_dir):
       return work_dir
     else:

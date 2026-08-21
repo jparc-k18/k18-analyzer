@@ -3,8 +3,6 @@
 # K tuning @-1.8 GeV/c (10/31)
 #
 
-WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
-
 DEFAULT:
   queue: s
   qmerge: s

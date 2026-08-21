@@ -3,8 +3,6 @@
 # Production run w/ CH2 (4.8 g/cm2) target @-1.8 GeV/c
 #
 
-WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
-
 DEFAULT:
   queue: s
   qmerge: s

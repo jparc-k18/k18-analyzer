@@ -3,8 +3,6 @@
 # Beam profile and counter check (10/27)
 #
 
-WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
-
 DEFAULT:
   queue: s
   qmerge: s

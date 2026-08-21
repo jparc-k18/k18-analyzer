@@ -3,8 +3,6 @@
 # Production run w/ Carbon target @-1.8 GeV/c (KinxTOF 1/150)
 #
 
-WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
-
 DEFAULT:
   queue: s
   qmerge: s

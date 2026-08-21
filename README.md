@@ -96,10 +96,14 @@ Related consequences:
 
 ## Run lists
 
-Each entry in `runmanager/runlist/` is edited before use:
+```sh
+python3 runmanager/run.py runmanager/runlist/hodo/hodo-prod-c-m18-2.yml
+```
+
+Every path in a run list is relative to the repository root, so a
+run list needs no absolute path anywhere:
 
 ```yaml
-WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
 DEFAULT:
   queue: l      # use "l", not "s", for mass production
   bin:   bin/Hodoscope
@@ -108,5 +112,6 @@ DEFAULT:
   root:  root/v1
 ```
 
-`WORKDIR` must be the absolute path of your checkout. See
+An optional `WORKDIR` key overrides that root; set it only if the
+run list drives an analyzer outside this checkout. See
 `runmanager/runlist/example.yml` for the full key reference.

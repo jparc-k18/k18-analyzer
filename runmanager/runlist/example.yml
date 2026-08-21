@@ -20,9 +20,11 @@
 
 #____________________________________________________
 # work directory path
-# The following paths must be relative to this path
+# All paths below are relative to it. Optional: it defaults to
+# the repository root, which is what the E05 run lists rely on.
+# Set it only if this run list drives an analyzer somewhere else.
 
-WORKDIR: ~/workdir/of/your/analyzer
+#WORKDIR: ~/workdir/of/your/analyzer
 
 #____________________________________________________
 # default setting

@@ -3,8 +3,6 @@
 # Beam through at various momenta w/o SKS field (11/15)
 #
 
-WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
-
 DEFAULT:
   queue: s
   qmerge: s
