@@ -1,0 +1,23 @@
+#
+# E05 Oct 2015 Hodoscope runlist : sigma-p15
+# Sigma- run @+1.5 GeV/c (SKS 400 A)
+#
+
+WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
+
+DEFAULT:
+  queue: s
+  qmerge: s
+  unit:  200000
+  nproc: 18
+  buff:  root/buf
+  bin:   bin/Hodoscope
+  conf:  param/conf/e05
+  data:  e05_oct
+  root:  root/v1
+  fig:   fig/hodo
+
+RUN:
+  10143: # 10/31 10:25:37 Sigma- run @ 1.5 GeV/c (400A) (trig: BH2 *(1/100*1/100*1/4) + Kin*TOF *(1/140) + (K, pi) *(1/1)+ (K, K)*(1/3))
+  10144: # 10/31 11:59:45 Sigma- run @ 1.5 GeV/c (400A) (trig: BH2 *(1/100*1/100*1/4) + Kin*TOF *(1/140) + (K, pi) *(1/1)+ (K, K)*(1/3))
+  10145: # 10/31 13:01:18 Sigma- run @ 1.5 GeV/c (400A) (trig: BH2 *(1/100*1/100*1/4) + Kin*TOF *(1/140) + (K, pi) *(1/1)+ (K, K)*(1/3))

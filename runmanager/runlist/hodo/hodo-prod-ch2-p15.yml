@@ -1,0 +1,29 @@
+#
+# E05 Oct 2015 Hodoscope runlist : prod-ch2-p15
+# Production run w/ CH2 target @+1.5 GeV/c
+#
+
+WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
+
+DEFAULT:
+  queue: s
+  qmerge: s
+  unit:  200000
+  nproc: 18
+  buff:  root/buf
+  bin:   bin/Hodoscope
+  conf:  param/conf/e05
+  data:  e05_oct
+  root:  root/v1
+  fig:   fig/hodo
+
+RUN:
+  10120: # 10/30 00:06:05 Production run w/CH2 target @1.5GeV/c (trig. BH2*(1/100x1/100x1/3)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10121: # 10/30 01:07:06 Production run w/CH2 target @1.5GeV/c (trig. BH2*(1/100x1/100x1/3)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10122: # 10/30 02:07:39 Production run w/CH2 target @1.5GeV/c (trig. BH2*(1/100x1/100x1/3)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10123: # 10/30 03:08:08 Production run w/CH2 target @1.5GeV/c (trig. BH2*(1/100x1/100x1/3)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10124: # 10/30 04:07:05 Production run w/CH2 target @1.5GeV/c (trig. BH2*(1/100x1/100x1/3)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10126: # 10/30 05:05:01 Production run w/CH2 target @1.5GeV/c after MsT adjusting (trig. BH2*(1/100x1/100x1/3)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10128: # 10/30 06:35:20 Production run w/CH2 target @1.5GeV/c after MsT adjusting (trig. BH2*(1/100x1/100x1/3)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10129: # 10/30 07:47:44 Production run w/CH2 target @1.5GeV/c (trig. BH2*(1/100x1/100x1/3)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10130: # 10/30 09:00:21 Production run w/CH2 target @1.5GeV/c (trig. BH2*(1/100x1/100x1/3)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))

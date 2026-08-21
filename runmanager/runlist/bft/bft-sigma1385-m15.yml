@@ -1,0 +1,24 @@
+#
+# E05 Oct 2015 BFT runlist : sigma1385-m15
+# Sigma(1385) production w/ Carbon @-1.5 GeV/c
+#
+
+WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
+
+DEFAULT:
+  queue: s
+  qmerge: s
+  unit:  200000
+  nproc: 18
+  buff:  root/buf
+  bin:   bin/BFT
+  conf:  param/conf/e05
+  data:  e05_oct
+  root:  root/v1
+  fig:   fig/bft
+
+RUN:
+  10545: # 11/16 20:56:40 S(1385) production w/ Carbon @ -1.5 GeV/c, BH2 (1/100*1/100*1/4) + KinxTOF (1/140) + (K,pi) (1/1) + (K,K) (1/1)
+  10546: # 11/16 21:41:53 S(1385) production w/ Carbon @ -1.5 GeV/c, BH2 (1/100*1/100*1/4) + KinxTOF (1/140) + (K,pi) (1/1) + (K,K) (1/1)
+  10547: # 11/16 22:26:40 S(1385) production w/ Carbon @ -1.5 GeV/c, BH2 (1/100*1/100*1/4) + KinxTOF (1/140) + (K,pi) (1/1) + (K,K) (1/1)
+  10548: # 11/16 22:28:03 S(1385) production w/ Carbon @ -1.5 GeV/c, BH2 (1/100*1/100*1/4) + KinxTOF (1/140) + (K,pi) (1/1) + (K,K) (1/1)

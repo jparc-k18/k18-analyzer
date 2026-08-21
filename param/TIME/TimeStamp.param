@@ -1,0 +1,6 @@
+# digit is converted to time information in nanosecond as follows;
+# (time) = (digit) * ("unit")
+# "offset" should be given in nanosecond, if needed
+#
+#	ID	name	unit 	offset
+	0x9d2	soy1	10	0

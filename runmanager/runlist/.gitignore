@@ -1,0 +1,4 @@
+*.yml
+!example.yml
+!hodo/*.yml
+!bft/*.yml

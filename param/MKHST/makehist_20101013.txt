@@ -1,0 +1,34 @@
+# makehist_20101013.txt
+
+# mother directory
+#mother BH1 BH2 
+
+#name,title,dimension,bin1,min1,max1,bin2,min2,max2,mother,
+#detID planeId segID UorD AorT 
+
+trig_bh2       TriggerFlag_BH2_(1)       1 4096 0 4096 0 0 0 none 11 0  0 0 1
+trig_pitof     TriggerFlag_pi_x_TOF_(1)	 1 4096 0 4096 0 0 0 none 11 0  1 0 1
+trig_pik       TriggerFlag_(pi,K)_(1)	 1 4096 0 4096 0 0 0 none 11 0  2 0 1
+trig_pibeam    TriggerFlag_pi-beam_(1)   1 4096 0 4096 0 0 0 none 11 0  3 0 1
+trig_bh2_2     TriggerFlag_BH2_(2)	 1 4096 0 4096 0 0 0 none 11 0  4 0 1
+trig_pitof_2   TriggerFlag_pi_x_TOF_(2)  1 4096 0 4096 0 0 0 none 11 0  5 0 1
+trig_pik_2     TriggerFlag_(pi,K)_(2)	 1 4096 0 4096 0 0 0 none 11 0  6 0 1
+trig_pibeam_2  TriggerFlag_pi-beam_(2)	 1 4096 0 4096 0 0 0 none 11 0  7 0 1
+trig_pip       TriggerFlag_(pi,p)	 1 4096 0 4096 0 0 0 none 11 0  8 0 1
+trig_pipi      TriggerFlag_(pi,pi)	 1 4096 0 4096 0 0 0 none 11 0  9 0 1
+trig_pbeam     TriggerFlag_p-beam	 1 4096 0 4096 0 0 0 none 11 0 10 0 1
+trig_kbeam     TriggerFlag_K-beam	 1 4096 0 4096 0 0 0 none 11 0 11 0 1
+trig_reserve2  TriggerFlag_Reserve2	 1 4096 0 4096 0 0 0 none 11 0 12 0 1
+trig_reserve1  TriggerFlag_Reserve1	 1 4096 0 4096 0 0 0 none 11 0 13 0 1
+trig_pk_noMTX   TriggerFlag_PiK_noMTX	 1 4096 0 4096 0 0 0 none 11 0 17 0 1
+trig_matrix2   TriggerFlag_Matrix2	 1 4096 0 4096 0 0 0 none 11 0 18 0 1
+trig_matrix1   TriggerFlag_Matrix1	 1 4096 0 4096 0 0 0 none 11 0 16 0 1
+
+#bh1ut4	 BH1UpTdc4   1  4096  0  4096  0  0  0  none  3  0   3  0  1
+#bh1ut5	 BH1UpTdc5   1  4096  0  4096  0  0  0  none  3  0   4  0  1
+#bh1ut6	 BH1UpTdc6   1  4096  0  4096  0  0  0  none  3  0   5  0  1
+#bh1ut7	 BH1UpTdc7   1  4096  0  4096  0  0  0  none  3  0   6  0  1
+#bh1ut8	 BH1UpTdc8   1  4096  0  4096  0  0  0  none  3  0   7  0  1
+#bh1ut9	 BH1UpTdc9   1  4096  0  4096  0  0  0  none  3  0   8  0  1
+#bh1ut10	 BH1UpTdc10  1  4096  0  4096  0  0  0  none  3  0   9  0  1
+#bh1ut11	 BH1UpTdc11  1  4096  0  4096  0  0  0  none  3  0  10  0  1

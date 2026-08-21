@@ -1,0 +1,23 @@
+#
+# E05 Oct 2015 BFT runlist : ktune-p16
+# K tuning and beam profile check @+1.6 GeV/c (10/29)
+#
+
+WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
+
+DEFAULT:
+  queue: s
+  qmerge: s
+  unit:  200000
+  nproc: 18
+  buff:  root/buf
+  bin:   bin/BFT
+  conf:  param/conf/e05
+  data:  e05_oct
+  root:  root/v1
+  fig:   fig/bft
+
+RUN:
+  10089: # 10/29 00:55:50 During k-tune (Kin x TOF)
+  10090: # 10/29 01:44:42 During k-tune (Kin x TOF)
+  10092: # 10/29 02:30:45 beam profile check , trig:K in

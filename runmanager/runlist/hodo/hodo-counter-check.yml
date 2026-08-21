@@ -1,0 +1,24 @@
+#
+# E05 Oct 2015 Hodoscope runlist : counter-check
+# Beam profile and counter check (10/27)
+#
+
+WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
+
+DEFAULT:
+  queue: s
+  qmerge: s
+  unit:  200000
+  nproc: 18
+  buff:  root/buf
+  bin:   bin/Hodoscope
+  conf:  param/conf/e05
+  data:  e05_oct
+  root:  root/v1
+  fig:   fig/hodo
+
+RUN:
+  10064: # 10/27 22:00:49 profile check , trig : BH2
+  10065: # 10/27 22:05:36 counter check: Kin * TOF triger
+  10066: # 10/27 22:56:54 counter check: Kin * TOF triger SDC34 ON
+  10067: # 10/27 23:02:33 beamprofile check: Kin triger

@@ -1,0 +1,117 @@
+#______________________________________________________________________
+# for pion
+MinDeltaEBH2  0.3
+MaxDeltaEBH2  4.0
+
+#______________________________________________________________________
+MinDeltaEBH1  0.3
+MaxDeltaEBH1  4.0
+
+#______________________________________________________________________
+# hodo clustering
+MaxTimeDifBH1 1.0
+MaxTimeDifBH2 1.0
+MaxTimeDifTof 3.5
+MaxTimeDifLc  5.5
+
+#___________________________________________________________
+# tolerance unit : positive -> mm, negative -> sigma
+#___________________________________________________________
+#BH1Tolerance  -14
+#BH2Tolerance  -14
+BH1Tolerance  1.5 
+BH2Tolerance  3.0
+
+#______________________________________________________________________
+# for pion
+MinBeamToF   -1.0
+MaxBeamToF    1.0
+
+#______________________________________________________________________
+# for kaon
+MinDeltaETof  0.3
+MaxDeltaETof  3.2
+
+#______________________________________________________________________
+MinTimeTof  -4.0
+MaxTimeTof  40.0
+
+#______________________________________________________________________
+# for kaon
+MinDeltaELc  0.00
+MaxDeltaELc  4.0
+
+#______________________________________________________________________
+MinTimeLc  -20.0
+MaxTimeLc   40.0
+
+#______________________________________________________________________
+#MinToFT2L   -3.0
+#MaxToFT2L   30.0
+MinTimeDiffTofLc   -3.0
+MaxTimeDiffTofLc   30.0
+
+#______________________________________________________________________
+#MinToF2LSeg   -3
+#MaxToF2LSeg   13
+MinSegDiffTofLc   -13
+MaxSegDiffTofLc   3
+
+#______________________________________________________________________
+MaxChisqrBcIn    -100.
+MaxChisqrBcOut   -100.
+MaxChisqrSdcIn   -100.
+MaxChisqrSdcOut  -100.
+MaxChisqrK18     -100.
+MaxChisqrSks     -100.
+
+#______________________________________________________________________
+#MaxMultiHitBcIn   10
+#MaxMultiHitBcOut  10
+#MaxMultiHitSdcIn  10
+#MaxMultiHitSdcOut 10
+#MaxMultiHitBcIn   5
+#MaxMultiHitBcOut  5
+#MaxMultiHitSdcIn  5
+#MaxMultiHitSdcOut 5
+MaxMultiHitBcIn   2
+MaxMultiHitBcOut  2
+MaxMultiHitSdcIn  2
+MaxMultiHitSdcOut 2
+#MaxMultiHitBcIn   2
+#MaxMultiHitBcOut  2
+#MaxMultiHitSdcIn  2
+#MaxMultiHitSdcOut 2
+
+#______________________________________________________________________
+MaxNTrackBcIn    20
+MaxNTrackBcOut   20
+MaxNTrackSdcIn   20
+MaxNTrackSdcOut  10
+MaxNTrackK18     20
+MaxNTrackSks     20
+
+#______________________________________________________________________
+MinTgtXSdcIn    -100.
+MaxTgtXSdcIn     100.
+MinTgtYSdcIn    -50.
+MaxTgtYSdcIn     50.
+
+#______________________________________________________________________
+MinTgtXBcOut    -100.
+MaxTgtXBcOut     100.
+MinTgtYBcOut    -50.
+MaxTgtYBcOut     50.
+
+#______________________________________________________________________
+MinMassSquare   0.00
+MaxMassSquare   1.00
+
+#______________________________________________________________________
+tofOffset -3.0
+
+#______________________________________________________________________
+x_offset  10.922
+y_offset   0.6382
+u_offset  -0.00183
+v_offset   0.00219

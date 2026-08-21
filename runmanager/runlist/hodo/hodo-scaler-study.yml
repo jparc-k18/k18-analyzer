@@ -1,0 +1,35 @@
+#
+# E05 Oct 2015 Hodoscope runlist : scaler-study
+# Scaler study (Kin trig) and scaler check on (K,K)
+#
+
+WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
+
+DEFAULT:
+  queue: s
+  qmerge: s
+  unit:  200000
+  nproc: 18
+  buff:  root/buf
+  bin:   bin/Hodoscope
+  conf:  param/conf/e05
+  data:  e05_oct
+  root:  root/v1
+  fig:   fig/hodo
+
+RUN:
+  10495: # 11/15 06:51:31 Scaler study (Kin trig), condition1
+  10496: # 11/15 06:53:50 Scaler study (Kin trig), condition2
+  10497: # 11/15 06:56:02 Scaler study (Kin trig), condition3
+  10498: # 11/15 06:58:16 Scaler study (Kin trig), condition4
+  10499: # 11/15 07:00:53 Scaler study (Kin trig), condition5
+  10500: # 11/15 07:03:02 Scaler study (Kin trig), condition6
+  10501: # 11/15 07:05:41 Scaler study (Kin trig), condition7
+  10502: # 11/15 07:08:53 Scaler study (Kin trig), condition8
+  10503: # 11/15 07:12:24 Scaler study (Kin trig), condition9
+  10528: # 11/16 00:39:22 scaler check on (K,K), condition 1
+  10529: # 11/16 00:42:08 scaler check on (K,K), condition 2
+  10530: # 11/16 00:46:22 scaler check on (K,K), condition 3
+  10531: # 11/16 00:49:33 scaler check on (K,K), condition 4
+  10532: # 11/16 00:54:12 scaler check on (K,K), condition 5
+  10533: # 11/16 00:57:46 scaler check on (K,K), condition 6

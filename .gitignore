@@ -6,11 +6,37 @@
 *.so
 *.pcm
 *.pyc
+*.swp
+.#*
 \#*
 Makefile
 bin
 data*
 lib
 macro
-fieldmap
 rootfile*
+runmanager/log
+runmanager/stat
+runmanager/tmp
+set_links.sh
+
+# Machine-specific symlinks created at setup (see README/README.md).
+# No trailing slash: these are absolute symlinks in some checkouts
+# and plain directories in others, and the slash-only form does not
+# match a symlink.
+/e05_oct
+/root
+/fieldmap
+/K18LogBook
+/refs
+/fig
+
+# Large SSD calibration data (not tracked in VCS)
+/param/SSDCalib/
+/param/SSDPRM/
+
+# Per-experiment calibration output. These are produced by the
+# calibration chain and are deliberately NOT tracked on this
+# branch; see "What this branch does not contain" in
+# README/README.md.
+/param/*/e05/

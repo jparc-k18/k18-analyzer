@@ -1,0 +1,36 @@
+#
+# E05 Oct 2015 Hodoscope runlist : ktune-p18
+# K tuning @+1.8 GeV/c (10/26-27)
+#
+
+WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
+
+DEFAULT:
+  queue: s
+  qmerge: s
+  unit:  200000
+  nproc: 18
+  buff:  root/buf
+  bin:   bin/Hodoscope
+  conf:  param/conf/e05
+  data:  e05_oct
+  root:  root/v1
+  fig:   fig/hodo
+
+RUN:
+  10018: # 10/26 22:58:08 K tuning
+  10019: # 10/26 23:00:45 K tuning  , trig:(K,K)
+  10020: # 10/26 23:03:08 K tuning  , trig : K- x TOF
+  10021: # 10/26 23:07:06 K tuning  , trig : BH2 x TOF x LC
+  10022: # 10/26 23:16:01 K tuning  , trig : BH1
+  10023: # 10/26 23:18:25 K tuning  , trig : pi in
+  10024: # 10/26 23:19:32 K tuning  , trig : BH1
+  10025: # 10/26 23:21:38 K tuning  , trig : BH2 x TOF
+  10026: # 10/26 23:30:35 K tuning  , trig : BH1
+  10027: # 10/26 23:49:21 K tuning  , trig : K in
+  10028: # 10/27 00:12:32 K tuning  , trig : K x TOF x LC
+  10029: # 10/27 00:47:14 K tuning  , trig : K x TOF x LC
+  10030: # 10/27 00:49:14 K tuning  , trig : pi in
+  10031: # 10/27 01:20:50 K tuning  , trig : K in x TOF xLC
+  10032: # 10/27 01:35:51 K tuning  , trig : K in x TOF xLC
+  10033: # 10/27 01:47:31 K tuning  , trig : K in

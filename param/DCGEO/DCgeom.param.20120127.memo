@@ -1,0 +1,70 @@
+DCgeom.param.20120127.memo
+
+   2012/01/27  created  (M.Moritsu, T.O.Yamamoto)
+
+＜2012Febビームタイム用初期値＞
+
+########  K1.8BS part  ############
+
+#BC1,BC2:
+  X,Z: 0 [Log#10p178-180参照]
+  Y,L: とりあえずdesign value [チェンバーとフレームの図面参照]を採用。
+       実測[Log#10p180]
+       VI = 17cm-upstream from Q10E.G.
+  Res: 1mm/sqrt(12) = 0.289mm ~ 0.3 mm
+  W0:  図面参照
+
+#BC3:
+  X,Z: 0 [Log#10p190-195参照]
+  Y,L: とりあえずdesign value [チェンバーとフレームの図面参照]を採用。
+       実測[Log#10p192]
+       VO = 17cm-downstream from Q13E.G. = BC3取付け板表面
+  TA,W0: 基板のシールと図面参照  
+
+#BC4 = K6BDC:
+  X,Z: 0 [Log#10p190-195参照]
+  Y,L: 取付け板表面まではdesign value=VO+400[チェンバーとフレームの図面参照]を採用。
+       実測[Log#10p194] G10間隔は実測[Log#3p67]
+  TA,W0: 基板のシール[Log#3p65-66]
+           (注)Log#3p66でUとVの表記は逆
+
+#GC:
+  Y,L: center position
+       distance from VI = 923-170  実測[log#11p18]
+  others: no meaning
+
+#BH1:
+  Y,L: center position
+       distance from VI = 697.25-170  実測[log#11p18]
+  others: no meaning
+
+#BH2:
+  Y,L: center position
+       distance from VO = 400+203.625  実測[log#11p66]
+  others: no meaning
+
+#K18Target
+  Y,L: LH2Target center position (so called FF+600)
+       distance from VO = 1370-170+600-18.2 = 1781.8
+       図面+実測[Log#11p126-129]
+  others: no meaning
+
+
+########  SKS part  ############
+
+ジオメトリ作成のための情報は後日まとめたいと思います。
+
+以下注意点です。
+●　すべてSKS座標。
+　　（X、Yに関しては、Targetはbeam lineに合わせたためoffcenter）
+　　（Zに関しては、Target、SDC1,2はbeam lineに合わせたためSKSより3.6mm高い）
+●　TOF,LCはシンチ厚中心の座標を用いた。
+●　ACは上流フレームから10mm下流の座標を用いた。（後日変更の可能性あり）
+●　Target以外はSksZ=0とした。
+　　（ローカルトラッキングのため。Zのずれはoffsetとして入っています。）
+●　SKS上流ではFF+600をL=0と定義
+●　SKS下流ではTOFをL=0と定義
+●　LACはHigh Momentum側に3.5mmずれていることを反映させている。
+●　TOF、AC、LCは傾いて立っている分を考慮。約2mでの座標が入っている。
+●　（使わないかもしれないが、）TOF、AC、LCの位置分解能として仮にセグメントの半分の値
+を入れている。

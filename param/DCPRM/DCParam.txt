@@ -1,0 +1,326 @@
+# PPInfo      flag   id1  id2   cell-size
+PPInfoBcOut   true   113  114	3.0
+PPInfoBcOut   true   115  116	3.0
+PPInfoBcOut   true   117  118	3.0
+PPInfoBcOut   true   119  120	5.0
+PPInfoBcOut   true   121  122	5.0
+PPInfoBcOut   true   123  124	5.0
+#
+#
+PPInfoSdcIn   true     1    2	3.0
+PPInfoSdcIn   true     3    4	3.0
+PPInfoSdcIn   true     5    6	5.0
+PPInfoSdcIn   true     7    8	5.0
+PPInfoSdcIn   true     9   10	5.0
+
+#_______________________________________________________________________________
+#_______________________________________________________________________________
+MinNumOfHitsBcIn	8
+MinNumOfHitsBcOut	8
+MinNumOfHitsSdcIn	8
+MinNumOfHitsSdcOut	8
+
+#_______________________________________________________________________________
+#_______________________________________________________________________________
+# [24]
+# BC1
+MinDLBc	-0.5	-0.5	-0.5	-0.5	-0.5	-0.5
+#MinDLBc	 0  	 0  	 0  	 0  	 0  	 0  
+# BC2
+MinDLBc	-0.5	-0.5	-0.5	-0.5	-0.5	-0.5
+#MinDLBc	 0  	 0  	 0  	 0  	 0  	 0  
+# BC3
+MinDLBc -0.5	-0.5	-0.5	-0.5	-0.5	-0.5
+# BC4
+MinDLBc -0.5	-0.5	-0.5	-0.5	-0.5	-0.5
+
+#_______________________________________________________________________________
+# [24]
+# BC1
+MaxDLBc 70.5	70.5	70.5	70.5	70.5	70.5	
+# BC2
+MaxDLBc 70.5	70.5	70.5	70.5	70.5	70.5	
+# BC3
+MaxDLBc 1.8	1.8	1.8	1.8	1.8	1.8
+# BC4
+MaxDLBc 3.0	3.0	3.0	3.0	3.0	3.0
+
+#_______________________________________________________________________________
+# [42]
+# SDC1
+MinDLSdc -0.5	-0.5	-0.5	-0.5
+# SDC2
+MinDLSdc -0.5	-0.5	-0.5	-0.5	-0.5	-0.5
+# Dummy Id= 11-30
+MinDLSdc 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+MinDLSdc 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+# SDC3
+MinDLSdc -0.5	-0.5	-0.5	-0.5	-0.5	-0.5
+# SDC4
+MinDLSdc -0.5	-0.5	-0.5	-0.5	-0.5	-0.5
+
+#_______________________________________________________________________________
+# [42]
+# SDC1
+MaxDLSdc 1.8	1.8	1.8	1.8
+# SDC2
+MaxDLSdc 3.0	3.0	3.0	3.0	3.0	3.0
+# Dummy Id= 11-30
+MaxDLSdc 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+MaxDLSdc 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0
+# SDC3
+MaxDLSdc 13.0	13.0	13.0	13.0	13.0	13.0
+# SDC4
+MaxDLSdc 13.0	13.0	13.0	13.0	13.0	13.0
+
+#_______________________________________________________________________________
+# chi^2 cut in tracking
+# negative value is ignored 
+#_______________________________________________________________________________
+MaxChiSquareBcIn   -1.0e2
+MaxChiSquareBcOut  -1.0e2
+MaxChiSquareSdcIn  -1.0e2
+MaxChiSquareSdcOut -1.0e2
+MaxChiSquare2D     -1.0e2
+MaxChiSquareK18    -1.0e2
+MaxChiSquareSks    -1.0e2
+#_______________________________________________________________________________
+# p-value cut in tracking
+# negative value is ignored
+#_______________________________________________________________________________
+MinPValueBcIn    -1.0e-200
+MinPValueBcOut   -1.0e-200
+MinPValueSdcIn   -1.0e-200
+MinPValueSdcOut  -1.0e-200
+MinPValueK18     -1.0e-200
+MinPValueSks     -1.0e-200
+
+#_______________________________________________________________________________
+# tolerance 
+#  unit: 
+#   positive -> mm
+#   negative -> sigma
+#_______________________________________________________________________________
+ToleranceBcIn         -5.0
+#ToleranceBcIn         500.0
+#ToleranceBcOut       -10.0
+ToleranceBcOut        -5.0
+#ToleranceBcOut        500.0
+ToleranceSdcIn       -5.0
+ToleranceSdcOut      -5.0
+ToleranceBcOutSdcIn  -5.0
+Tolerance2D           -5.0
+#ToleranceK18          -10.0
+#ToleranceK18          -5.0
+ToleranceK18          5000.0
+ToleranceSks         -5.0
+
+#_______________________________________________________________________________
+MaxCombiBcIn	1.e6
+MaxCombiBcOut	1.e6
+MaxCombiSdcIn	1.e6
+MaxCombiSdcOut	1.e6
+
+#_______________________________________________________________________________
+# key		   local-z[mm]   	xmin[mm]	xmax[mm]	ymin[mm]	ymax[mm]
+#
+#EffectiveAreaBcIn	-1370		-100		100		-20		20
+#EffectiveAreaBcIn	-532		-100		100		-40		40
+#
+EffectiveAreaBcIn	-453		-130		130		-50		50
+EffectiveAreaBcIn	-433		-130		130		-50		50
+EffectiveAreaBcIn	-413		-130		130		-50		50
+EffectiveAreaBcIn	-393		-130		130		-50		50
+EffectiveAreaBcIn	-373		-130		130		-50		50
+EffectiveAreaBcIn	-353		-130		130		-50		50
+#
+EffectiveAreaBcIn	-119		-130		130		-50		50
+EffectiveAreaBcIn	 -99		-130		130		-50		50
+EffectiveAreaBcIn	 -79		-130		130		-50		50
+EffectiveAreaBcIn	 -59		-130		130		-50		50
+EffectiveAreaBcIn	 -39		-130		130		-50		50
+EffectiveAreaBcIn	 -19		-130		130		-50		50
+#
+#EffectiveAreaBcIn	   0		-130		130		-50		50
+#
+#  ____________________________________________________________________________
+#
+#EffectiveAreaBcOut	   0		-130		130		-80		80
+#EffectiveAreaBcOut	   0		-200		200		-50		50
+#
+EffectiveAreaBcOut	  21		-100		100		-50		50
+EffectiveAreaBcOut	  25		-100		100		-50		50
+EffectiveAreaBcOut	  41		-100		100		-50		50
+EffectiveAreaBcOut	  45		-100		100		-50		50
+EffectiveAreaBcOut	  61		-100		100		-50		50
+EffectiveAreaBcOut	  65		-100		100		-50		50
+#
+EffectiveAreaBcOut	 427.80		-130		130		-75		75 
+EffectiveAreaBcOut	 433.05		-130		130		-75		75 
+EffectiveAreaBcOut	 453.25		-130		130		-75		75 
+EffectiveAreaBcOut	 458.50		-130		130		-75 		75 
+EffectiveAreaBcOut	 478.70		-130		130		-75 		75 
+EffectiveAreaBcOut	 483.95		-130		130		-75 		75 
+#
+#EffectiveAreaBcOut	 600.00		-70		70		-40		40
+#  ____________________________________________________________________________
+#
+EffectiveAreaSdcIn	 238.75		-110		110		-50		50
+EffectiveAreaSdcIn	 242.75		-110		110		-50		50
+EffectiveAreaSdcIn	 258.75		-110		110		-50		50
+EffectiveAreaSdcIn	 262.75		-110		110		-50		50
+#			 	    
+EffectiveAreaSdcIn	 495.50		-210		210		-75		75
+EffectiveAreaSdcIn	 500.50		-210		210		-75		75
+EffectiveAreaSdcIn	 515.50		-210		210		-75		75
+EffectiveAreaSdcIn	 520.50		-210		210		-75		75
+EffectiveAreaSdcIn	 535.50		-210		210		-75		75
+EffectiveAreaSdcIn	 540.50		-210		210		-75		75
+#
+#EffectiveAreaSdcIn	 800.00		-1000		1000		-300		300
+#  ____________________________________________________________________________
+#
+#EffectiveAreaSdcOut     3600.00		-1000		1000		-300		300
+#
+EffectiveAreaSdcOut     4129.00		-1100		1100		-570		570
+EffectiveAreaSdcOut	4141.00		-1100		1100		-570		570
+EffectiveAreaSdcOut	4153.00		-1100		1100		-570		570
+EffectiveAreaSdcOut	4165.00		-1100		1100		-570		570
+EffectiveAreaSdcOut	4177.00		-1100		1100		-570		570
+EffectiveAreaSdcOut	4189.00		-1100		1100		-570		570
+#			 									    
+#			 									    
+EffectiveAreaSdcOut	4883.90		-1100		1100		-570		570
+EffectiveAreaSdcOut	4895.90		-1100		1100		-570		570
+EffectiveAreaSdcOut	4907.90		-1100		1100		-570		570
+EffectiveAreaSdcOut	4919.90		-1100		1100		-570		570
+EffectiveAreaSdcOut	4931.90		-1100		1100		-570		570
+EffectiveAreaSdcOut	4943.90		-1100		1100		-570		570
+#
+#EffectiveAreaSdcOut	5118.24		-1150		1150		-500		500
+#EffectiveAreaSdcOut	6474.24		-1450		1450		-700		700
+#
+
+#_______________________________________________________________________________
+# plane ID list for 2D track finding 
+#_______________________________________________________________________________
+# key		type planeId
+DC2DInfoBcIn	X    101 104 109 112
+DC2DInfoBcIn	U    103 106 107 110
+DC2DInfoBcIn	V    102 105 108 111
+#_______________________________________________________________________________
+# key		type planeId
+DC2DInfoBcOut	X    113 114 123 124
+DC2DInfoBcOut	U    117 118 119 120
+DC2DInfoBcOut	V    115 116 121 122
+#_______________________________________________________________________________
+# key		type planeId
+DC2DInfoSdcIn	X    9   10
+DC2DInfoSdcIn	U    3   4   7   8
+DC2DInfoSdcIn	V    1   2   5   6
+#_______________________________________________________________________________
+# key		type planeId
+DC2DInfoSdcOut	X    32  35  38  41
+DC2DInfoSdcOut	U    33  36  39  42
+DC2DInfoSdcOut	V    31  34  37  40
+
+#_______________________________________________________________________________
+#Hough Transform parameter
+#_______________________________________________________________________________
+# key		type	nbinsx	xmin[mm]	xmax[mm]	nbinstx	txmin[mm]	txmax[mm]	ntryx	ntrytx		
+HTInfoBcIn	X	260	-130		130		400	-0.2		0.2		1	1	
+HTInfoBcIn	U	260	-130		130		400	-0.2		0.2		1	1	
+HTInfoBcIn	V	260	-130		130		400	-0.2		0.2		1	1	
+#HTInfoBcIn	X	260	-130		130		400	-0.2		0.2		10	10		
+#HTInfoBcIn	U	260	-130		130		400	-0.2		0.2		10	10		
+#HTInfoBcIn	V	260	-130		130		400	-0.2		0.2		10	10		
+
+#_______________________________________________________________________________
+# key		type	nbinsx	xmin[mm]	xmax[mm]	nbinstx	txmin[mm]	txmax[mm]	ntryx	ntrytx			
+HTInfoBcOut	X	70	-100		100		400	-0.2		0.2		1 	1 	
+HTInfoBcOut	U	70	-100		100		400	-0.2		0.2		1 	1 	
+HTInfoBcOut	V	70	-100		100		400	-0.2		0.2		1 	1 	
+
+#_______________________________________________________________________________
+# key		type	nbinsx	xmin[mm]	xmax[mm]	nbinstx	txmin[mm]	txmax[mm]	ntryx   ntrytx				
+HTInfoSdcIn	X	200	-200		200		800	-0.4		0.4		1 	1 	
+HTInfoSdcIn	U	200	-200		200		800	-0.4		0.4		1 	1 	
+HTInfoSdcIn	V	200	-200		200		800	-0.4		0.4		1 	1 	
+
+#_______________________________________________________________________________
+# key		type	nbinsx	xmin[mm]	xmax[mm]	nbinstx	txmin[mm]	txmax[mm]	ntryx   ntrytx		
+HTInfoSdcOut	X	220	-1100		1100		800	-0.8		0.8		1 	1 	
+HTInfoSdcOut	U	220	-1100		1100		800	-0.8		0.8		1 	1 	
+HTInfoSdcOut	V	220	-1100		1100		800	-0.8		0.8		1 	1 	
+
+#_______________________________________________________________________________
+# MWPC clustering parameter
+#_______________________________________________________________________________
+MWPCClusteringWireExt            1
+MWPCClusteringLeadingTimeExt     10
+MWPCClusteringTrailingTimeExt    10
+MWPCClusteringGiveUp             1000
+
+#_______________________________________________________________________________
+# K1.8 Track parameter
+#_______________________________________________________________________________
+#MinK18InX    -80
+#MinK18InY    -20
+#MinK18InU     -0.15
+#MinK18InV     -0.05
+
+#MaxK18InX     80
+#MaxK18InY     20
+#MaxK18InU      0.15
+#MaxK18InV      0.05
+
+MinK18InX    -130
+MinK18InY    -100
+MinK18InU      -0.3
+MinK18InV      -0.3
+
+MaxK18InX     130
+MaxK18InY     100
+MaxK18InU       0.3
+MaxK18InV       0.3
+
+#MinK18OutX   -80
+#MinK18OutY   -50
+#MinK18OutU    -0.15
+#MinK18OutV    -0.05
+
+#MaxK18OutX    80
+#MaxK18OutY    50
+#MaxK18OutU     0.15
+#MaxK18OutV     0.05
+
+MinK18OutX   -130
+MinK18OutY   -100
+MinK18OutU    -0.3
+MinK18OutV    -0.3
+
+MaxK18OutX    130
+MaxK18OutY    100
+MaxK18OutU     0.3
+MaxK18OutV     0.3
+
+MinK18Delta   -0.20
+MaxK18Delta    0.20
+
+K18IniError0  0.4
+K18IniError1  0.4
+K18IniError2  1.e-5
+K18IniError3  1.e-4
+K18IniError4  1.e-3
+
+K18EPS        1
+K18MaxFCNCall 300
+
+#_______________________________________________________________________________
+# SKS Track parameter
+#_______________________________________________________________________________
+SksDefPini         1.00
+SksMaxIteration    1.0e2
+SksInitialChiSqr   1.0e10
+SksMaxChiSqr       1.0e4
+SksMinDeltaChiSqrR 2.0e-4

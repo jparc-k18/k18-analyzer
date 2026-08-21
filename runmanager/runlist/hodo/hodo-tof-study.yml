@@ -1,0 +1,25 @@
+#
+# E05 Oct 2015 Hodoscope runlist : tof-study
+# TOF Vth study and TOF efficiency study
+#
+
+WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
+
+DEFAULT:
+  queue: s
+  qmerge: s
+  unit:  200000
+  nproc: 18
+  buff:  root/buf
+  bin:   bin/Hodoscope
+  conf:  param/conf/e05
+  data:  e05_oct
+  root:  root/v1
+  fig:   fig/hodo
+
+RUN:
+  10043: # 10/27 02:31:05 TOF Vth study , trig : (K,K)
+  10044: # 10/27 02:31:24 TOF Vth study , trig : (K,K)
+  10046: # 10/27 02:45:35 TOF efficiency study ,  trig: BH2 x LC
+  10047: # 10/27 02:58:33 TOF efficiency study ,  trig: BH2 x LC
+  10048: # 10/27 03:06:26 TOF efficiency study ,  trig: BH2 x AC x LC

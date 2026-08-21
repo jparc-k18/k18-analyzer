@@ -1,0 +1,71 @@
+#
+# E05 Oct 2015 Hodoscope runlist : prod-c-m18-1
+# Production run w/ Carbon target @-1.8 GeV/c (KinxTOF 1/150)
+#
+
+WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
+
+DEFAULT:
+  queue: s
+  qmerge: s
+  unit:  200000
+  nproc: 18
+  buff:  root/buf
+  bin:   bin/Hodoscope
+  conf:  param/conf/e05
+  data:  e05_oct
+  root:  root/v1
+  fig:   fig/hodo
+
+RUN:
+  10217: # 11/01 23:05:00 Production run w/ C target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10220: # 11/02 00:48:35 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K)) , after BH1 problem
+  10221: # 11/02 01:47:06 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10222: # 11/02 02:48:01 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10223: # 11/02 03:08:37 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10224: # 11/02 03:54:18 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10225: # 11/02 13:50:31 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10226: # 11/02 14:51:45 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10227: # 11/02 16:10:12 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10228: # 11/02 16:45:52 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10230: # 11/02 17:52:31 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10232: # 11/02 18:56:12 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10233: # 11/02 19:55:44 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10272: # 11/03 16:05:16 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10273: # 11/03 17:05:06 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10274: # 11/03 18:05:19 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10275: # 11/03 19:12:32 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10276: # 11/03 19:24:01 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K)) MsT_clear*1/5
+  10278: # 11/03 20:25:11 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10279: # 11/03 21:25:54 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10280: # 11/03 22:46:13 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10281: # 11/03 23:46:05 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10282: # 11/04 00:46:13 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10283: # 11/04 01:50:01 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10284: # 11/04 03:22:12 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10285: # 11/04 04:37:59 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10286: # 11/04 05:47:10 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10287: # 11/04 06:10:26 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10292: # 11/04 07:44:35 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10294: # 11/04 08:53:18 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10295: # 11/04 10:08:43 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10296: # 11/04 11:10:47 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10297: # 11/04 12:46:30 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10298: # 11/04 13:57:45 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10299: # 11/04 15:00:29 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10300: # 11/04 17:04:56 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10301: # 11/04 18:05:16 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10302: # 11/04 19:05:42 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10303: # 11/04 19:57:13 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10309: # 11/04 21:05:29 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10310: # 11/04 22:11:21 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10311: # 11/04 23:29:41 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10312: # 11/05 00:31:08 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10313: # 11/05 02:52:46 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10314: # 11/05 04:27:42 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10315: # 11/05 05:30:43 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10316: # 11/05 06:35:19 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10317: # 11/05 07:39:30 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10318: # 11/05 08:05:05 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10321: # 11/05 08:31:04 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))
+  10322: # 11/05 09:00:30 Production run w/ Carbon target @-1.8GeV/c (trig. BH2*(1/100x1/100x1/4)+ Kin x TOF*1/150 + (K,pi)*1/3 + (K,K))

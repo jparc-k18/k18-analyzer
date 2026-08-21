@@ -1,0 +1,23 @@
+#
+# E05 Oct 2015 BFT runlist : bc3-check
+# BC3 noise and profile check
+#
+
+WORKDIR: ~/work/k18analyzer/e05/k18analyzer-e05-shared
+
+DEFAULT:
+  queue: s
+  qmerge: s
+  unit:  200000
+  nproc: 18
+  buff:  root/buf
+  bin:   bin/BFT
+  conf:  param/conf/e05
+  data:  e05_oct
+  root:  root/v1
+  fig:   fig/bft
+
+RUN:
+  10132: # 10/30 19:17:55 BC3 noise chcek
+  10483: # 11/14 16:31:28 BC3 profile check
+  10486: # 11/14 17:01:24 BC3 profile check (reference trig)
