@@ -139,7 +139,7 @@ against the per-bit firing rates in the data.
 hardcoded `offset = 1.3108917166` from `Parameter.hh`, an E13-era
 constant for kaons at 1.8 GeV/c. The Runge-Kutta path length
 starts at the target, so the BH2 -> target beam leg is now
-subtracted explicitly, from the surveyed `DCGEOM` positions
+subtracted explicitly, from the surveyed `DCGEO` positions
 (`K18Target` id 130, `BH2` id 202) and the beam velocity implied
 by `PK18:`. `UserKPiAna` and `UserSksHodoscope` still use the old
 `offset` (the latter reads it from the `USER:` parameter file);
@@ -198,18 +198,38 @@ Post-stage programs that combine Stage-1 trees by `evnum`:
 
 ## 9. Conf file keys
 
-Three data-plane keys were renamed, so a v20150402 conf file is
-**not** read correctly by this analyzer -- the old keys are
-silently ignored and the corresponding manager stays empty:
+Two spellings were in circulation: the v20150402 code reads
+`DCGEO:` / `DCTDC:` / `DCDRFT:`, while the E05-era parameter
+directory writes `DCGEOM:` / `TDCCALIB:` / `DRFTPM:`. The
+canonical keys here follow the **current K1.8 analyzer**
+(HYPS/E70), which keeps the short forms and shortens
+`UNPACKER:` to `UNPACK:`:
 
-| v20150402 | here |
-|-----------|------|
-| `DCGEO:` | `DCGEOM:` |
-| `DCTDC:` | `TDCCALIB:` |
-| `DCDRFT:` | `DRFTPM:` |
+| canonical (here, HYPS/E70) | v20150402 | E05 param dir |
+|----------------------------|-----------|---------------|
+| `UNPACK:`  | `UNPACKER:` | `UNPACKER:` |
+| `DCGEO:`   | `DCGEO:`    | `DCGEOM:`   |
+| `DCTDC:`   | `DCTDC:`    | `TDCCALIB:` |
+| `DCDRFT:`  | `DCDRFT:`   | `DRFTPM:`   |
 
-`GeADC:`, `GeTDC:` and `PWOTDC:` are no longer recognised, and
-`TARGET:` is new (see 7).
+Every other key (`DIGIT:`, `CMAP:`, `HDPRM:`, `HDPHC:`, `USER:`,
+`K18TM:`, `PK18:`, `FLDMAP:`, `FLDNMR:`, `FLDCALC:`) already
+matches.
+
+The three right-hand spellings are accepted as aliases and
+normalised on read, so an old conf file still works and the key
+recorded in the output ROOT file is the canonical one either way.
+`runmanager` also reads the unpacker path out of the conf file
+and now looks for `UNPACK`, the name it uses upstream.
+
+`GeADC:`, `GeTDC:` and `PWOTDC:` are no longer recognised (see 2)
+and `TARGET:` is new (see 7).
+
+One inherited oddity is left alone: `USER:` appears in the E05
+conf files but nothing in this lineage consumes it -- the
+`FILEMAN:` key is what feeds `FileManager`. In the current K1.8
+analyzer `USER:` drives `UserParamMan`, which does not exist
+here.
 
 ## 10. Not a code change
 

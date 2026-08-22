@@ -661,7 +661,7 @@ bool EventSksTracking::ProcessingNormal()
 
     // scattered-particle flight time target -> TOF: the RK path
     // length starts at the target, so the beam leg BH2 -> target
-    // is subtracted using the SURVEYED positions in DCGEOM
+    // is subtracted using the SURVEYED positions in DCGEO
     // (K18Target id 130 and BH2 id 202, same beam-line frame) and
     // the BEAM velocity from PK18 (kaon). The old hardcoded
     // Parameter.hh offset (E13 era) is not used.

@@ -11,7 +11,7 @@
   events skipped by either analyzer are dropped. The scattered-
   particle flight time is
     stof = cmtTof - time0 - L_bt/(beta_beam c)
-  with L_bt from the surveyed DCGEOM positions (K18Target id 130,
+  with L_bt from the surveyed DCGEO positions (K18Target id 130,
   BH2 id 202) and beta_beam from PK18 (kaon).
 
   Usage:
@@ -121,10 +121,12 @@ main( int argc, char* argv[] )
 
   const std::string prmFile = confValue( conf, "HDPRM:" );
   const std::string phcFile = confValue( conf, "HDPHC:" );
-  const std::string geoFile = confValue( conf, "DCGEOM:" );
+  std::string geoFile = confValue( conf, "DCGEO:" );
+  // legacy E05 spelling, cf. ConfMan's alias table
+  if( geoFile.empty() ) geoFile = confValue( conf, "DCGEOM:" );
   const std::string pk18Str = confValue( conf, "PK18:" );
   if( prmFile.empty() || geoFile.empty() || pk18Str.empty() ){
-    std::cerr << "#E missing HDPRM/DCGEOM/PK18 in " << conf
+    std::cerr << "#E missing HDPRM/DCGEO/PK18 in " << conf
 	      << std::endl;
     return EXIT_FAILURE;
   }
@@ -228,7 +230,7 @@ main( int argc, char* argv[] )
       dst.path[it]      = src.path[it];
     }
     // the TOF plane is the origin of the SdcOut local frame
-    // (DCGEOM id 51, l = 0), so y(TOF) = y0Out
+    // (DCGEO id 51, l = 0), so y(TOF) = y0Out
     dst.ntOut = src.ntOut > MaxHits ? MaxHits : src.ntOut;
     for( int it = 0; it < dst.ntOut; ++it )
       dst.yTof[it] = src.y0Out[it];

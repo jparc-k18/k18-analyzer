@@ -82,6 +82,29 @@ ConfMan::~ConfMan()
 //   return gConfMan;
 // }
 
+namespace
+{
+  // Canonical conf keys follow the current K1.8 analyzer
+  // (HYPS/E70). The E05-era long forms are still accepted so that
+  // conf files written for this analyzer keep working; they are
+  // normalised here, so the key recorded in the output ROOT file
+  // is the canonical one either way.
+  const char* const AliasKey[][2] = {
+    { "UNPACKER:", "UNPACK:"  },
+    { "DCGEOM:",   "DCGEO:"   },
+    { "TDCCALIB:", "DCTDC:"   },
+    { "DRFTPM:",   "DCDRFT:"  }
+  };
+  const int NumOfAliasKey = sizeof(AliasKey)/sizeof(AliasKey[0]);
+
+  std::string CanonicalKey( const std::string& key )
+  {
+    for( int i=0; i<NumOfAliasKey; ++i )
+      if( key == AliasKey[i][0] ) return AliasKey[i][1];
+    return key;
+  }
+}
+
 bool
 ConfMan::Initialize()
 {
@@ -107,51 +130,52 @@ ConfMan::Initialize()
     std::vector<std::string> param_list(line_begin, line_end);
     if (param_list.size()!=2)
       continue;
-    std::cout << param_list[0] << " " << param_list[1] << std::endl;
-    if (param_list[0][0] != '#')
-      m_paramLines[param_list[0]] = param_list[1];
+    const std::string key = CanonicalKey(param_list[0]);
+    std::cout << key << " " << param_list[1] << std::endl;
+    if (key[0] != '#')
+      m_paramLines[key] = param_list[1];
     //Conf
-    if (param_list[0] == "UNPACKER:")
+    if (key == "UNPACK:")
       m_UnpackerFileName = param_list[1];
-    if (param_list[0] == "DIGIT:")
+    if (key == "DIGIT:")
       m_DigitFileName = param_list[1];
-    if (param_list[0] == "CMAP:")
+    if (key == "CMAP:")
       m_CmapFileName = param_list[1];
     //Hodo
-    if (param_list[0] == "HDPRM:")
+    if (key == "HDPRM:")
       HodoParamFileName_ = param_list[1];	
-    if (param_list[0] == "HDPHC:")
+    if (key == "HDPHC:")
       HodoPHCFileName_ = param_list[1];	
     //DC
-    if (param_list[0] == "DCGEOM:")
+    if (key == "DCGEO:")
       DCGeomFileName_ = param_list[1];
-    if (param_list[0] == "TDCCALIB:")
+    if (key == "DCTDC:")
       DCTdcCalibFileName_ = param_list[1];
-    if (param_list[0] == "DRFTPM:")
+    if (key == "DCDRFT:")
       DCDriftParamFileName_ = param_list[1];
-    if (param_list[0] == "K18TM:")
+    if (key == "K18TM:")
       K18MatrixFileName_ = param_list[1];
-    if (param_list[0] == "PK18:")
+    if (key == "PK18:")
       K18Momentum_ = boost::lexical_cast<double>(param_list[1]);
-    if (param_list[0] == "FLDMAP:")
+    if (key == "FLDMAP:")
       FieldMapFileName_ = param_list[1];
-    if (param_list[0] == "FLDNMR:")
+    if (key == "FLDNMR:")
       SKSFieldNMR_ = boost::lexical_cast<double>(param_list[1]);
-    if (param_list[0] == "FLDCALC:")
+    if (key == "FLDCALC:")
       SKSFieldCalc_ = boost::lexical_cast<double>(param_list[1]);
 
     // h_Utility
-    if(param_list[0] == "FILEMAN:"){
+    if(key == "FILEMAN:"){
       FileManagerName_ = param_list[1];
     }
 
     // Event display 
-    if( param_list[0] == "EVDISP:" )
+    if( key == "EVDISP:" )
       if(param_list[1]=="1") FlagEvDisp_=true;
       else         FlagEvDisp_=false;
       
     //MHTDC event suppression flag
-    if( param_list[0] == "MHTDC:" )
+    if( key == "MHTDC:" )
       if(param_list[1]=="1") FlagMHTDC_=true;
       else         FlagMHTDC_=false;
   }

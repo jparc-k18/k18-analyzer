@@ -543,7 +543,7 @@ class SingleRun(object):
     config.optionxform = lambda option: option
     try:
       config.read_string(buff)
-      tmp_unpack = self.__make_path(config.get('dummy', 'UNPACKER'))
+      tmp_unpack = self.__make_path(config.get('dummy', 'UNPACK'))
     except configparser.Error as e:
       logger.error(f'Invalid format in {self.__conf_path}')
       self.__bjob_status = False
@@ -556,7 +556,7 @@ class SingleRun(object):
       return
     for item in self.__elem_list:
       path_unpack = os.path.join(self.__dummy_dir.name, item+'.xml')
-      config['dummy']['UNPACKER'] = path_unpack
+      config['dummy']['UNPACK'] = path_unpack
       path_conf = os.path.join(self.__dummy_dir.name, item+'.conf')
       with open(path_conf, 'w') as f:
         for option in config.options('dummy'):

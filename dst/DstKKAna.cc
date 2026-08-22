@@ -31,7 +31,7 @@
 
   The target material (ch2/carbon, for the eloss calculation)
   is read from the conf file's "TARGET:" key (defaults to ch2
-  if absent), the same way HDPRM:/DCGEOM:/PK18: are read --
+  if absent), the same way HDPRM:/DCGEO:/PK18: are read --
   NOT a command-line argument, since runmanager invokes Dst
   programs with a fixed argument count built from "dstin" and
   cannot pass an extra one.
@@ -276,10 +276,12 @@ main( int argc, char* argv[] )
 
   const std::string prmFile = confValue( conf, "HDPRM:" );
   const std::string phcFile = confValue( conf, "HDPHC:" );
-  const std::string geoFile = confValue( conf, "DCGEOM:" );
+  std::string geoFile = confValue( conf, "DCGEO:" );
+  // legacy E05 spelling, cf. ConfMan's alias table
+  if( geoFile.empty() ) geoFile = confValue( conf, "DCGEOM:" );
   const std::string pk18Str = confValue( conf, "PK18:" );
   if( prmFile.empty() || geoFile.empty() || pk18Str.empty() ){
-    std::cerr << "#E missing HDPRM/DCGEOM/PK18 in " << conf
+    std::cerr << "#E missing HDPRM/DCGEO/PK18 in " << conf
 	      << std::endl;
     return EXIT_FAILURE;
   }
