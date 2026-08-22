@@ -8,6 +8,8 @@ v20150402 baseline parameter set. The calibration constants and
 the run bookkeeping derived from the E05 data are not included
 -- see "What this repository does not contain" below.
 
+`diff.md` lists what changed relative to the v20150402 tarball.
+
 ## Build
 
 ```
