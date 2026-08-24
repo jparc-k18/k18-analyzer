@@ -50,6 +50,14 @@ debug::ObjectCounter& gCounter  = debug::ObjectCounter::GetInstance();
 const Int_t MaxTPCHits = 10000;
 const Int_t MaxTPCTracks = 100;
 const Int_t MaxTPCnHits = 50;
+
+inline Double_t
+ConfDoubleOr(const char* key, Double_t default_value)
+{
+  if(!gConf.Get<TString>(key).IsNull())
+    return gConf.Get<Double_t>(key);
+  return default_value;
+}
 }
 
 namespace dst
@@ -83,6 +91,8 @@ struct Event
   Double_t theta0;
   Double_t p0;
   Double_t pB;
+  Double_t pTgtTruth;
+  Double_t seedMomentumS2s;
 
   Int_t nhTof;
   Double_t TofSeg[MaxHits];
@@ -168,6 +178,7 @@ struct Src
   TTreeReaderValue<Double_t>* theta0;
   TTreeReaderValue<Double_t>* p0;
   TTreeReaderValue<Double_t>* pB;
+  TTreeReaderValue<Double_t>* pTgtTruth;
 
   TTreeReaderArray<TParticle>* PRM;
   TTreeReaderArray<TParticle>* SDC1;
@@ -187,6 +198,22 @@ Event  event;
 Src    src;
 TH1   *h[MaxHist];
 TTree *tree;
+}
+
+namespace
+{
+Double_t
+TruthMomentumGeV(Double_t p)
+{
+  if(!std::isfinite(p)) return qnan;
+  return (std::abs(p) > 10.) ? p/1000. : p;
+}
+
+Bool_t
+HasInputBranch(const char* name)
+{
+  return TTreeCont[kS2sGeant4] && TTreeCont[kS2sGeant4]->GetBranch(name);
+}
 }
 
 //_____________________________________________________________________
@@ -210,11 +237,15 @@ main(int argc, char **argv)
   Int_t max_loop = gUnpacker.get_max_loop();
   Int_t nevent = GetEntries(TTreeCont);
   if (max_loop > 0) nevent = skip + max_loop;
+  const Long64_t smear_seed_base = static_cast<Long64_t>(std::llround(
+    ConfDoubleOr("S2sGeant4SmearSeedBase", 0.)));
 
   CatchSignal::Set();
 
   Int_t ievent = skip;
   for(; ievent<nevent && !CatchSignal::Stop(); ++ievent){
+    if(smear_seed_base > 0)
+      gRandom->SetSeed(static_cast<ULong_t>(smear_seed_base + ievent));
     gCounter.check();
     InitializeEvent();
     if(DstRead(ievent)) tree->Fill();
@@ -243,6 +274,8 @@ dst::InitializeEvent()
   event.theta0 = qnan;
   event.p0 = qnan;
   event.pB = qnan;
+  event.pTgtTruth = qnan;
+  event.seedMomentumS2s = qnan;
 
   event.nhTof = 0;
 
@@ -374,6 +407,7 @@ dst::DstRead(Int_t ievent)
   event.theta0 = **src.theta0;
   event.p0     = **src.p0;
   event.pB     = **src.pB;
+  if(src.pTgtTruth) event.pTgtTruth = **src.pTgtTruth;
 
   event.nhTof = (*src.TOF).GetSize();
   for(Int_t i=0; i<event.nhTof; ++i){
@@ -621,21 +655,36 @@ dst::DstRead(Int_t ievent)
 
   HF1(1, 21.);
 
-  ///// BTOF BH2-Target
-  static const auto StofOffset = gUser.GetParameter("StofOffset");
-
   //////////////S2S Tracking
+  const Int_t seed_mode =
+    static_cast<Int_t>(ConfDoubleOr("DstS2sTrackingSeedMode", 0.));
   if( false && event.nhTof > 0 ){
     Double_t seg = event.TofSeg[0];
     Double_t par[3] = {1.59, -3.07e-2, 4.19e-4};
     Double_t pMag   = par[0]+seg*par[1]+seg*seg*par[2]; // Magnitude
     Double_t scale  = 1.;
     Double_t initial_momentum = pMag*scale;
+    event.seedMomentumS2s = initial_momentum;
+    DCAna.TrackSearchS2s(initial_momentum);
+  }
+  else if(seed_mode == 1){
+    event.seedMomentumS2s = std::abs(gConf.Get<Double_t>("PK18"));
+    DCAna.TrackSearchS2s(); // use PK18 as initial momentum
+  }
+  else if(seed_mode == 2){
+    const Double_t initial_momentum =
+      ConfDoubleOr("DstS2sTrackingSeedMomentum",
+                   std::abs(gConf.Get<Double_t>("PK18")));
+    event.seedMomentumS2s = initial_momentum;
     DCAna.TrackSearchS2s(initial_momentum);
   }
   else{
-    DCAna.TrackSearchS2s(event.p0/1000.); // [GeV/c]
-    // DCAna.TrackSearchS2s(); // use PK18 as initial momentum
+    const Bool_t prefer_p0_seed =
+      ConfDoubleOr("DstS2sTrackingPreferP0Seed", 0.) != 0.;
+    event.seedMomentumS2s = TruthMomentumGeV(
+      (!prefer_p0_seed && std::isfinite(event.pTgtTruth))
+      ? event.pTgtTruth : event.p0);
+    DCAna.TrackSearchS2s(event.seedMomentumS2s);
   }
 
   Int_t ntS2s = DCAna.GetNTracksS2s();
@@ -1230,6 +1279,9 @@ ConfMan::InitializeHistograms()
   tree->Branch("theta0", &event.theta0, "theta0/D");
   tree->Branch("p0",     &event.p0,     "p0/D");
   tree->Branch("pB",     &event.pB,     "pB/D");
+  tree->Branch("pTgtTruth", &event.pTgtTruth, "pTgtTruth/D");
+  tree->Branch("seedMomentumS2s", &event.seedMomentumS2s,
+               "seedMomentumS2s/D");
 
   tree->Branch("nhTof",  &event.nhTof,   "nhTof/I");
   tree->Branch("TofSeg",  event.TofSeg,  "TofSeg[nhTof]/D");
@@ -1314,6 +1366,8 @@ ConfMan::InitializeHistograms()
   src.theta0 = new TTreeReaderValue<Double_t>(*reader,  "theta0");
   src.p0     = new TTreeReaderValue<Double_t>(*reader,  "p0");
   src.pB     = new TTreeReaderValue<Double_t>(*reader,  "pB");
+  src.pTgtTruth = HasInputBranch("pTgtTruth")
+    ? new TTreeReaderValue<Double_t>(*reader, "pTgtTruth") : nullptr;
   src.PRM    = new TTreeReaderArray<TParticle>(*reader, "PRM");
   src.SDC1   = new TTreeReaderArray<TParticle>(*reader, "SDC1");
   src.SDC2   = new TTreeReaderArray<TParticle>(*reader, "SDC2");

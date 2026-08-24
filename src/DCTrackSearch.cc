@@ -998,10 +998,8 @@ MakeLocalTrackGeant4(const std::vector<DCHC>& HitCont,
       Int_t multi = hit->GetEntries();
       if(multi!=1 || !hit->IsGood()) continue;
       Int_t layer  = hit->LayerId();
-      Double_t ofs = gGeom.GetOffset(layer);
       const auto& lpos = hit->GetLocalHitPosGeant4();
-      Double_t a  = hit->GetTiltAngle()*TMath::DegToRad();
-      Double_t s  = lpos.x()*TMath::Cos(a) + lpos.y()*TMath::Sin(a) + ofs;
+      const Double_t s = DCHit::CalcGeant4ReadoutPosition(layer, lpos);
       Double_t res = gUser.GetParameter(Form("ResolutionLayer%d", layer));
       Double_t local_hit_pos = gRandom->Gaus(s, res);
 #if 0

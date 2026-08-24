@@ -16,6 +16,7 @@
 #include "DCDriftParamMan.hh"
 #include "DCGeomMan.hh"
 #include "DCParameters.hh"
+#include "ConfMan.hh"
 #include "DCRawHit.hh"
 #include "DCTdcCalibMan.hh"
 #include "DCLTrackHit.hh"
@@ -32,7 +33,14 @@ const auto& gGeom  = DCGeomMan::GetInstance();
 const auto& gTdc   = DCTdcCalibMan::GetInstance();
 const auto& gDrift = DCDriftParamMan::GetInstance();
 const auto& gUser  = UserParamMan::GetInstance();
+const auto& gConf  = ConfMan::GetInstance();
 const Bool_t SelectTDC1st = false;
+
+Double_t
+ConfDoubleOr(const char* key, Double_t fallback)
+{
+  return gConf.Get<TString>(key).IsNull() ? fallback : gConf.Get<Double_t>(key);
+}
 }
 
 //_____________________________________________________________________________
@@ -118,6 +126,9 @@ DCHit::ClearDCData()
 {
   m_drift_time.clear();
   m_drift_length.clear();
+  m_geant4_true_drift_length.clear();
+  m_geant4_smear_delta.clear();
+  m_geant4_smeared_readout_position.clear();
   m_tot.clear();
   m_belong_to_track.clear();
   m_is_good.clear();
@@ -131,6 +142,13 @@ DCHit::EraseDCData(Int_t i)
   m_trailing.erase(m_trailing.begin() + i);
   m_drift_time.erase(m_drift_time.begin() + i);
   m_drift_length.erase(m_drift_length.begin() + i);
+  if(i < static_cast<Int_t>(m_geant4_true_drift_length.size()))
+    m_geant4_true_drift_length.erase(m_geant4_true_drift_length.begin() + i);
+  if(i < static_cast<Int_t>(m_geant4_smear_delta.size()))
+    m_geant4_smear_delta.erase(m_geant4_smear_delta.begin() + i);
+  if(i < static_cast<Int_t>(m_geant4_smeared_readout_position.size()))
+    m_geant4_smeared_readout_position.erase(
+      m_geant4_smeared_readout_position.begin() + i);
   m_tot.erase(m_tot.begin() + i);
   m_belong_to_track.erase(m_belong_to_track.begin() + i);
   m_is_good.erase(m_is_good.begin() + i);
@@ -244,6 +262,20 @@ DCHit::CalcDCObservables()
 }
 
 //_____________________________________________________________________________
+Double_t
+DCHit::CalcGeant4ReadoutPosition(Int_t layer, const TVector3& lpos)
+{
+  static const Bool_t use_tilted_readout =
+    !gConf.Get<TString>("G4DCUseTiltedReadout").IsNull()
+    && gConf.Get<Double_t>("G4DCUseTiltedReadout") != 0.;
+  if(!use_tilted_readout)
+    return lpos.x();
+
+  const Double_t angle = gGeom.GetTiltAngle(layer)*TMath::DegToRad();
+  return lpos.x()*TMath::Cos(angle) + lpos.y()*TMath::Sin(angle);
+}
+
+//_____________________________________________________________________________
 Bool_t
 DCHit::CalcDCObservablesGeant4()
 {
@@ -257,14 +289,44 @@ DCHit::CalcDCObservablesGeant4()
   m_angle = gGeom.GetTiltAngle(m_layer);
   m_z     = gGeom.GetLocalZ(m_layer);
 
-  // gRandom->SetSeed(TDatime().Convert());
-  Double_t res = gUser.GetParameter(Form("ResolutionLayer%d", m_layer));
+  static const Double_t smear_scale_global =
+    std::max(0., ConfDoubleOr("G4DCSmearResolutionScale", 0.));
+  static const Double_t smear_scale_sdc_in =
+    std::max(0., ConfDoubleOr("G4DCSmearResolutionScaleSdcIn",
+                              smear_scale_global));
+  static const Double_t smear_scale_sdc_out =
+    std::max(0., ConfDoubleOr("G4DCSmearResolutionScaleSdcOut",
+                              smear_scale_global));
+  static const Bool_t smear_signed_position =
+    ConfDoubleOr("G4DCSmearSignedPosition", 0.) != 0.;
+  Double_t smear_scale = smear_scale_global;
+  if(1 <= m_layer && m_layer <= 10)
+    smear_scale = smear_scale_sdc_in;
+  else if(31 <= m_layer && m_layer <= 42)
+    smear_scale = smear_scale_sdc_out;
   for(Int_t i=0, n=m_lpos.size(); i<n; ++i){
     Double_t dt = TMath::QuietNaN();
-    Double_t a  = m_angle*TMath::DegToRad();
-    Double_t s  = m_lpos[i].x()*TMath::Cos(a) + m_lpos[i].y()*TMath::Sin(a);
-    Double_t dl = TMath::Abs(s-m_wpos);
-    // dl = gRandom->Gaus(dl, res);
+    const Double_t s = CalcGeant4ReadoutPosition(m_layer, m_lpos[i]);
+    const Double_t signed_dl = s-m_wpos;
+    const Double_t true_dl = TMath::Abs(signed_dl);
+    Double_t dl = true_dl;
+    Double_t smeared_s = s;
+    if(smear_scale > 0.){
+      const Double_t sigma = smear_scale*gGeom.GetResolution(m_layer);
+      if(std::isfinite(sigma) && sigma > 0.){
+        if(smear_signed_position){
+          smeared_s = m_wpos + gRandom->Gaus(signed_dl, sigma);
+          dl = TMath::Abs(smeared_s-m_wpos);
+        }
+        else{
+          dl = gRandom->Gaus(dl, sigma);
+          smeared_s = m_wpos + std::copysign(dl, signed_dl);
+        }
+      }
+    }
+    m_geant4_true_drift_length.push_back(true_dl);
+    m_geant4_smear_delta.push_back(dl-true_dl);
+    m_geant4_smeared_readout_position.push_back(smeared_s);
     Double_t tot = m_de[i];
     Bool_t dl_is_good = false;
     switch(m_layer){

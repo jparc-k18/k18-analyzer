@@ -28,6 +28,7 @@ namespace
 const auto& gGeom   = DCGeomMan::GetInstance();
 auto&       gEvDisp = EventDisplay::GetInstance();
 const auto& gField  = FieldMan::GetInstance();
+auto&       gConf   = ConfMan::GetInstance();
 // const Int_t& IdTOF    = gGeom.DetectorId("TOF");
 const Int_t& IdTOF_UX = gGeom.DetectorId("TOF-UX");
 const Int_t& IdTOF_UY = gGeom.DetectorId("TOF-UY");
@@ -40,7 +41,20 @@ const Int_t& IdBH2    = gGeom.DetectorId("BH2");
 const Int_t& IdK18Target = gGeom.DetectorId("K18Target");
 
 const Double_t CHLB     = 2.99792458E-4;
-const Double_t Polarity = 1.;
+
+inline Double_t
+ConfDoubleOr(const char* key, Double_t default_value)
+{
+  if(!gConf.Get<TString>(key).IsNull())
+    return gConf.Get<Double_t>(key);
+  return default_value;
+}
+
+inline Double_t
+Polarity()
+{
+  return ConfDoubleOr("S2sRKPolarity", 1.) < 0. ? -1. : 1.;
+}
 }
 
 #define WARNOUT 0
@@ -94,14 +108,14 @@ RKCordParameter::RKCordParameter(const ThreeVector &pos,
     u(mom.x()/mom.z()), v(mom.y()/mom.z())
 {
   Double_t p = mom.Mag();
-  q = Polarity/p;
+  q = Polarity()/p;
 }
 
 //_____________________________________________________________________________
 ThreeVector
 RKCordParameter::MomentumInGlobal() const
 {
-  Double_t p  = Polarity/q;
+  Double_t p  = Polarity()/q;
   Double_t pz = std::abs(p)/std::sqrt(1.+u*u+v*v);
   return ThreeVector(pz*u, pz*v, pz);
 }
@@ -630,7 +644,7 @@ RK::CheckCrossing(Int_t lnum, const RKTrajectoryPoint &startPoint,
   Double_t dvdv = (ip1*endPoint.dvdv - ip2*startPoint.dvdv)/(ip1-ip2);
   Double_t dvdq = (ip1*endPoint.dvdq - ip2*startPoint.dvdq)/(ip1-ip2);
 
-  Double_t pz = Polarity/(std::sqrt(1.+u*u+v*v)*q);
+  Double_t pz = Polarity()/(std::sqrt(1.+u*u+v*v)*q);
 
   crossPoint.posG = ThreeVector(x, y, z);
   crossPoint.momG = ThreeVector(pz*u, pz*v, pz);

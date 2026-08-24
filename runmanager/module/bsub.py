@@ -199,7 +199,7 @@ class BSub(object):
         self.__rtime = self.__stime
     elif self.__proc.poll() == 1:
       logger.error(f'bsub command failed at {self.__tag}')
-      outs, errs = proc.communicate()
+      outs, errs = self.__proc.communicate()
       self.__process_status = 'FAILED'
     else:
       self.__process_status = 'UNKNOWN'

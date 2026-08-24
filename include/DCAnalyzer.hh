@@ -89,6 +89,7 @@ public:
   Bool_t DecodeFiberHits();
   Bool_t DecodeBcInHits();
   Bool_t DecodeBcOutHits();
+  Bool_t DecodeBcOutHitsGeant4(const TTreeReaderArray<TParticle>& k18bc);
   Bool_t DecodeSdcInHits();
   Bool_t DecodeSdcOutHits(Double_t ofs_dt=0.);
   Bool_t DecodeSdcInHitsGeant4(const TTreeReaderArray<TParticle>& sdc1,

@@ -73,6 +73,14 @@ const Int_t& IdTOFDY = gGeom.DetectorId("TOF-DY");
 
 const Double_t TimeDiffToYTOF = 77.3511; // [mm/ns]
 
+inline Double_t
+ConfDoubleOr(const char* key, Double_t default_value)
+{
+  if(!gConf.Get<TString>(key).IsNull())
+    return gConf.Get<Double_t>(key);
+  return default_value;
+}
+
 const Double_t MaxChiSqrS2sTrack = 10000.;
 const Double_t MaxTimeDifMWPC       =   100.;
 
@@ -288,6 +296,43 @@ DCAnalyzer::DecodeBcOutHits()
 
 //_____________________________________________________________________________
 Bool_t
+DCAnalyzer::DecodeBcOutHitsGeant4(const TTreeReaderArray<TParticle>& k18bc)
+{
+  m_BcOutHC.clear();
+  m_BcOutHC.resize(NumOfLayersBcOut);
+
+  for(const auto& name: DCNameList.at("BcOut")){
+    const Int_t first_layer = (name == "BC3") ? PlMinBcOut : PlMinBcOut + 6;
+    const Int_t n_plane = 6;
+    std::vector<Int_t> planeArr;
+    std::vector<Int_t> layerArr;
+    std::vector<TVector3> lposArr;
+    std::vector<Double_t> deArr;
+    for(const auto& particle: k18bc){
+      if(particle.GetFirstMother()!=0) continue;
+      const Int_t layer = particle.GetSecondMother();
+      if(layer < first_layer || layer >= first_layer + n_plane) continue;
+      const Int_t plane = layer - first_layer;
+      TVector3 lpos(particle.Vx(), particle.Vy(), particle.Vz());
+      planeArr.push_back(plane);
+      layerArr.push_back(layer);
+      lposArr.push_back(lpos);
+      deArr.push_back(particle.Energy());
+    }
+    DecodeHitsGeant4(name, planeArr, layerArr, lposArr, deArr);
+    for(const auto& hit: m_dc_hit_collection.at(name)){
+      if(hit && hit->CalcDCObservablesGeant4()){
+        const Int_t index = hit->LayerId() - PlMinBcOut;
+        if(0 <= index && index < NumOfLayersBcOut)
+          m_BcOutHC[index].push_back(hit);
+      }
+    }
+  }
+  return true;
+}
+
+//_____________________________________________________________________________
+Bool_t
 DCAnalyzer::DecodeSdcInHits()
 {
   static const auto& digit_info =
@@ -384,6 +429,10 @@ DCAnalyzer::DecodeSdcHitsGeant4(TString SdcName, Int_t PlMinSdc,
 {
   static const auto& digit_info =
     hddaq::unpacker::GConfig::get_instance().get_digit_info();
+  static const Int_t accepted_pdg =
+    static_cast<Int_t>(ConfDoubleOr("S2sGeant4AcceptedPdg", 0.));
+  static const Bool_t accept_secondaries =
+    ConfDoubleOr("S2sGeant4AcceptSecondaries", 0.) != 0.;
   HC.clear();
   Int_t plane_offset = 0;
   for(const auto& name: DCNameList.at(SdcName)){
@@ -394,7 +443,9 @@ DCAnalyzer::DecodeSdcHitsGeant4(TString SdcName, Int_t PlMinSdc,
     std::vector<TVector3> lposArr;
     std::vector<Double_t> deArr;
     for(const auto& particle: *PC.at(name)){
-      if(particle.GetFirstMother()!=0) continue;
+      if(!accept_secondaries && particle.GetFirstMother()!=0) continue;
+      if(accepted_pdg != 0 && particle.GetPdgCode() != accepted_pdg)
+        continue;
       Int_t plane = particle.GetSecondMother() - 101;
       Int_t layer = PlMinSdc + plane_offset + plane;
       TVector3 lpos( particle.Vx(), particle.Vy(), particle.Vz() );
@@ -432,8 +483,7 @@ DCAnalyzer::DecodeHitsGeant4(const TString& name,
   HitCont.clear();
 
   for(Int_t ip=0, np=plane.size(); ip<np; ++ip){
-    Double_t a = gGeom.GetTiltAngle(layer[ip])*TMath::DegToRad();
-    Double_t s = lpos[ip].x()*TMath::Cos(a) + lpos[ip].y()*TMath::Sin(a);
+    const Double_t s = DCHit::CalcGeant4ReadoutPosition(layer[ip], lpos[ip]);
     Int_t wire = gGeom.CalcWireNumber(layer[ip], s);
     DCHit *p = nullptr;
     for(Int_t i=0, n=HitCont.size(); i<n; ++i){
@@ -628,7 +678,9 @@ DCAnalyzer::TrackSearchBcOut(const std::vector<std::vector<DCHC> >& hc, Int_t T0
 Bool_t
 DCAnalyzer::TrackSearchSdcIn()
 {
-  static const Int_t MinLayer = gUser.GetParameter("MinLayerSdcIn");
+  static const Int_t MinLayer = static_cast<Int_t>(
+    ConfDoubleOr("S2sGeant4MinLayerSdcIn",
+                 gUser.GetParameter("MinLayerSdcIn")));
   track::LocalTrackSearch(m_SdcInHC, PPInfoSdcIn, NPPInfoSdcIn, m_SdcInTC, MinLayer);
   return true;
 }
@@ -683,7 +735,9 @@ DCAnalyzer::TrackSearchSdcOut(const HodoClusterContainer& TOFCont)
 Bool_t
 DCAnalyzer::MakeTrackSdcInGeant4()
 {
-  static const Int_t MinLayer = gUser.GetParameter("MinLayerSdcIn");
+  static const Int_t MinLayer = static_cast<Int_t>(
+    ConfDoubleOr("S2sGeant4MinLayerSdcIn",
+                 gUser.GetParameter("MinLayerSdcIn")));
   track::MakeLocalTrackGeant4(m_SdcInHC, m_SdcInTC, MinLayer);
   return true;
 }

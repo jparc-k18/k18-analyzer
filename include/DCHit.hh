@@ -48,6 +48,9 @@ protected:
   // Geant4
   std::vector<TVector3> m_lpos;
   data_t m_de;
+  data_t m_geant4_true_drift_length;
+  data_t m_geant4_smear_delta;
+  data_t m_geant4_smeared_readout_position;
 
   // DCData normalized
   data_t m_drift_time;
@@ -99,6 +102,7 @@ public:
   }
   Bool_t CalcDCObservables();
   Bool_t CalcDCObservablesGeant4();
+  static Double_t CalcGeant4ReadoutPosition(Int_t layer, const TVector3& lpos);
   Bool_t CalcFiberObservables();
   Bool_t CalcMWPCObservables();
   Bool_t CalcCFTObservables();
@@ -117,6 +121,18 @@ public:
   Int_t GetTdc1st() const;
   Double_t GetTiltAngle() const { return m_angle; }
   TVector3 GetLocalHitPosGeant4(Int_t i=0) const { return m_lpos[i]; }
+  Double_t GetLocalHitPosGeant4Readout(Int_t i=0) const {
+    return CalcGeant4ReadoutPosition(m_layer, m_lpos[i]);
+  }
+  Double_t GetGeant4TrueDriftLength(Int_t i=0) const {
+    return m_geant4_true_drift_length.at(i);
+  }
+  Double_t GetGeant4SmearDelta(Int_t i=0) const {
+    return m_geant4_smear_delta.at(i);
+  }
+  Double_t GetGeant4SmearedReadoutPosition(Int_t i=0) const {
+    return m_geant4_smeared_readout_position.at(i);
+  }
   Double_t GetWirePosition() const {
     if(m_mwpc_flag) return m_mwpc_wpos;
     else return m_wpos;
