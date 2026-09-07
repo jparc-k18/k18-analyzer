@@ -25,6 +25,7 @@
 #include "DetectorID.hh"
 #include "DstHelper.hh"
 #include "K18BeamlineRK.hh"
+#include "K18Geant4Config.hh"
 #include "K18TrackD2U.hh"
 #include "K18TransMatrix.hh"
 #include "RootHelper.hh"
@@ -86,9 +87,7 @@ SeedK18BftSmearing(Int_t evnum)
 void
 SeedK18DcSmearing(Int_t evnum)
 {
-  static const Bool_t enabled =
-    ConfDoubleOr("G4DCSmearResolutionScale", 0.) > 0.;
-  if(enabled) gRandom->SetSeed(K18HitSmearSeed(evnum, 0x4243ULL));
+  gRandom->SetSeed(K18HitSmearSeed(evnum, 0x4243ULL));
 }
 
 Double_t
@@ -416,7 +415,7 @@ CountPrimaryBeamHits(const TTreeReaderArray<TParticle>* hits)
 {
   if(!hits) return 0;
   const Int_t accepted_abs_pdg =
-    static_cast<Int_t>(ConfDoubleOr("K18BFTAcceptedAbsPdg", 321.));
+    static_cast<Int_t>(gConf.Get<Double_t>("K18BFTAcceptedAbsPdg"));
   Int_t count = 0;
   for(const auto& particle: *hits){
     if(particle.GetFirstMother() != 0) continue;
@@ -435,11 +434,11 @@ ExtractBftXCandidates(const TTreeReaderArray<TParticle>& bft,
   const Int_t id_bft_x  = gGeom.DetectorId("BFT-X");
   const Int_t id_bft_xp = gGeom.DetectorId("BFT-XP");
   const Int_t accepted_abs_pdg =
-    static_cast<Int_t>(ConfDoubleOr("K18BFTAcceptedAbsPdg", 321.));
+    static_cast<Int_t>(gConf.Get<Double_t>("K18BFTAcceptedAbsPdg"));
   static const Double_t cluster_gap =
-    std::max(0., ConfDoubleOr("K18BFTClusterGap", 5.));
+    ConfDoubleOr("K18BFTClusterGap", 5.);
   static const Double_t smear_sigma =
-    std::max(0., ConfDoubleOr("K18BFTPositionSmearSigma", 0.));
+    gConf.Get<Double_t>("K18BFTPositionSmearSigma");
   std::vector<Double_t> xs;
   xs.reserve(kBftHitMax);
 
@@ -652,6 +651,20 @@ FillK18RKTracks(const DCAnalyzer& DCAna, const std::vector<Double_t>& xCand)
 int
 main(int argc, char **argv)
 {
+  // Validate before DstOpen can create/truncate the output ROOT file.
+  const bool check_only = argc == 3 && std::string(argv[1]) == "--check-config";
+  if(check_only || argc == nArgc){
+    try{
+      k18geant4::ValidateConfigFile(argv[check_only ? 2 : kConfFile]);
+    }catch(const std::exception& error){
+      std::cerr << "DstK18TrackingGeant4 config error: " << error.what() << std::endl;
+      return EXIT_FAILURE;
+    }
+    if(check_only){
+      std::cout << "PASS DstK18TrackingGeant4 config" << std::endl;
+      return EXIT_SUCCESS;
+    }
+  }
   std::vector<std::string> arg(argv, argv+argc);
   if(!CheckArg(arg))
     return EXIT_FAILURE;
@@ -784,12 +797,12 @@ Bool_t
 dst::DstClose()
 {
   TNamed("k18_hit_smearing",
-         Form("G4DCSmearResolutionScale=%.12g; K18BFTPositionSmearSigma_mm=%.12g; "
+         Form("BC_response=DCGEO.Res; BC_readout=plane-local-x; "
+              "K18BFTPositionSmearSigma_mm=%.12g; "
               "K18HitSmearSeed=%.0f; per-event detector-specific deterministic streams; "
-              "BC dl~Gaus(abs(s-wire),scale*DCGEO.Res) after truth wire assignment and before DL gate; "
+              "BC dl~Gaus(abs(s-wire),DCGEO.Res) after truth wire assignment and before DL gate; "
               "BFT xcand=true-hit cluster mean+Gaus(0,sigma), bft_xmean/xrms remain unsmeared",
-              ConfDoubleOr("G4DCSmearResolutionScale", 0.),
-              ConfDoubleOr("K18BFTPositionSmearSigma", 0.),
+              gConf.Get<Double_t>("K18BFTPositionSmearSigma"),
               ConfDoubleOr("K18HitSmearSeed", 20260716.))).Write();
   TFileCont[kOutFile]->Write();
   std::cout << "#D Close : " << TFileCont[kOutFile]->GetName() << std::endl;
@@ -963,10 +976,19 @@ ConfMan::InitializeHistograms()
 Bool_t
 ConfMan::InitializeParameterFiles()
 {
-  return
-    (InitializeParameter<DCGeomMan>("DCGEO")      &&
-     InitializeParameter<K18TransMatrix>("K18TM") &&
-     InitializeParameter<UserParamMan>("USER"));
+  if(!InitializeParameter<DCGeomMan>("DCGEO") ||
+     !InitializeParameter<K18TransMatrix>("K18TM") ||
+     !InitializeParameter<UserParamMan>("USER")) return false;
+  for(Int_t layer=113; layer<=124; ++layer){
+    const Double_t sigma = gGeom.GetResolution(layer);
+    if(!std::isfinite(sigma) || sigma <= 0.){
+      std::cerr << "K18 BC layer " << layer
+                << ": DCGEO.Res must be finite and positive (mm); got "
+                << sigma << std::endl;
+      return false;
+    }
+  }
+  return true;
 }
 
 //_____________________________________________________________________

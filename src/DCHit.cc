@@ -265,6 +265,11 @@ DCHit::CalcDCObservables()
 Double_t
 DCHit::CalcGeant4ReadoutPosition(Int_t layer, const TVector3& lpos)
 {
+  // K18BC planes are physically rotated in Geant4. Their stored plane-local
+  // x is already the wire readout coordinate; applying a second rotation is
+  // never valid for this input contract. SDC coordinates have a separate owner.
+  if(113 <= layer && layer <= 124)
+    return lpos.x();
   static const Bool_t use_tilted_readout =
     !gConf.Get<TString>("G4DCUseTiltedReadout").IsNull()
     && gConf.Get<Double_t>("G4DCUseTiltedReadout") != 0.;
@@ -299,7 +304,10 @@ DCHit::CalcDCObservablesGeant4()
                               smear_scale_global));
   static const Bool_t smear_signed_position =
     ConfDoubleOr("G4DCSmearSignedPosition", 0.) != 0.;
-  Double_t smear_scale = smear_scale_global;
+  const Bool_t is_bc = 113 <= m_layer && m_layer <= 124;
+  // BC measurement noise and local-fit weights have one source: DCGEO.Res.
+  // A multiplier would change the noise without changing the fit uncertainty.
+  Double_t smear_scale = is_bc ? 1. : smear_scale_global;
   if(1 <= m_layer && m_layer <= 10)
     smear_scale = smear_scale_sdc_in;
   else if(31 <= m_layer && m_layer <= 42)
@@ -314,7 +322,7 @@ DCHit::CalcDCObservablesGeant4()
     if(smear_scale > 0.){
       const Double_t sigma = smear_scale*gGeom.GetResolution(m_layer);
       if(std::isfinite(sigma) && sigma > 0.){
-        if(smear_signed_position){
+        if(!is_bc && smear_signed_position){
           smeared_s = m_wpos + gRandom->Gaus(signed_dl, sigma);
           dl = TMath::Abs(smeared_s-m_wpos);
         }

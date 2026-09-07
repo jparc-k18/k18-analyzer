@@ -1,0 +1,34 @@
+schema_version: 1
+retired_keys: {}
+retired_keys_by_application:
+  DstK18TrackingGeant4:
+    G4DCSmearResolutionScale:
+      retired_on: 2026-09-07
+      replacement: BC always uses DCGEO.Res for measurement noise and fit weights.
+        Only legacy scale=1 has an equivalent migration.
+    G4DCSmearResolutionScaleSdcIn:
+      retired_on: 2026-09-07
+      replacement: SDC response settings do not belong in K18 configs.
+    G4DCSmearResolutionScaleSdcOut:
+      retired_on: 2026-09-07
+      replacement: SDC response settings do not belong in K18 configs.
+    G4DCSmearSignedPosition:
+      retired_on: 2026-09-07
+      replacement: BC uses the validated drift-length response; alternate studies
+        require their historical checkout.
+    G4DCUseTiltedReadout:
+      retired_on: 2026-09-07
+      replacement: K18BC input is already plane-local. No second projection is allowed.
+    G4DCUseTiltedReadoutAngleFactor:
+      retired_on: 2026-09-07
+      replacement: Historical coordinate-transform control; no production interpretation.
+retired_implementations:
+  k18_bc_response_switches:
+    retired_on: 2026-09-07
+    owner: analyzer
+    replacement: BC plane-local readout and DCGEO.Res noise/fit weights are fixed.
+    recovery: Reproduce alternative responses in an isolated pre-retirement checkout.
+    forbidden:
+    - path: dst/DstK18TrackingGeant4.cc
+      regex: ConfDoubleOr\s*\(\s*"G4DC
+      reason: The K18 producer must not recover a response toggle.

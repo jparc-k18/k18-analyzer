@@ -22,6 +22,14 @@ files use the same placeholder convention.
 
 ## Build and run
 
+K18 tracking requires `K18TrackingConfigVersion: 2`. BC resolution is set only
+by the positive `Res` values in DCGEO (mm), for both smearing and fit weights.
+The former K18 `G4DC*` switches are rejected. See
+[`config/README.k18_tracking.md`](../../config/README.k18_tracking.md) for the
+minimal configuration and the offline migration tool. S-2S settings are separate.
+After building, check a K18 configuration with
+`bin/DstK18TrackingGeant4 --check-config path/to/k18.conf`.
+
 Build the three stages with:
 
 ```sh
