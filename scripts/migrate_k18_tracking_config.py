@@ -4,6 +4,8 @@
 This is an offline migration, never a runtime compatibility fallback. Legacy
 ideal/scaled/signed-position/reprojected response studies cannot be migrated by
 dropping their keys: reproduce them in their original checkout instead.
+Equivalence covers response parameters, not legacy ROOT coordinates: regenerate
+BcOut hits with chamber-local-v1 geometry before using the migrated config.
 """
 from __future__ import annotations
 
@@ -74,7 +76,8 @@ def main() -> int:
     except (OSError, ConfigAuditError) as error:
         parser.exit(1, f"FAIL: {error}\n")
     print(f"Migrated equivalent BC response to {args.output}; "
-          "check with bin/DstK18TrackingGeant4 --check-config before running.")
+          "check with bin/DstK18TrackingGeant4 --check-config before running. "
+          "Legacy BcOut ROOT must be regenerated with chamber-local-v1 geometry.")
     return 0
 
 

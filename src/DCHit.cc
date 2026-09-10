@@ -265,17 +265,8 @@ DCHit::CalcDCObservables()
 Double_t
 DCHit::CalcGeant4ReadoutPosition(Int_t layer, const TVector3& lpos)
 {
-  // K18BC planes are physically rotated in Geant4. Their stored plane-local
-  // x is already the wire readout coordinate; applying a second rotation is
-  // never valid for this input contract. SDC coordinates have a separate owner.
-  if(113 <= layer && layer <= 124)
-    return lpos.x();
-  static const Bool_t use_tilted_readout =
-    !gConf.Get<TString>("G4DCUseTiltedReadout").IsNull()
-    && gConf.Get<Double_t>("G4DCUseTiltedReadout") != 0.;
-  if(!use_tilted_readout)
-    return lpos.x();
-
+  // Both S2S and BcOut sensitive planes use chamber-local x/y. The wire
+  // stereo angle belongs to the readout, not to the sensitive-volume frame.
   const Double_t angle = gGeom.GetTiltAngle(layer)*TMath::DegToRad();
   return lpos.x()*TMath::Cos(angle) + lpos.y()*TMath::Sin(angle);
 }
@@ -294,24 +285,11 @@ DCHit::CalcDCObservablesGeant4()
   m_angle = gGeom.GetTiltAngle(m_layer);
   m_z     = gGeom.GetLocalZ(m_layer);
 
-  static const Double_t smear_scale_global =
-    std::max(0., ConfDoubleOr("G4DCSmearResolutionScale", 0.));
-  static const Double_t smear_scale_sdc_in =
-    std::max(0., ConfDoubleOr("G4DCSmearResolutionScaleSdcIn",
-                              smear_scale_global));
-  static const Double_t smear_scale_sdc_out =
-    std::max(0., ConfDoubleOr("G4DCSmearResolutionScaleSdcOut",
-                              smear_scale_global));
   static const Bool_t smear_signed_position =
     ConfDoubleOr("G4DCSmearSignedPosition", 0.) != 0.;
   const Bool_t is_bc = 113 <= m_layer && m_layer <= 124;
-  // BC measurement noise and local-fit weights have one source: DCGEO.Res.
-  // A multiplier would change the noise without changing the fit uncertainty.
-  Double_t smear_scale = is_bc ? 1. : smear_scale_global;
-  if(1 <= m_layer && m_layer <= 10)
-    smear_scale = smear_scale_sdc_in;
-  else if(31 <= m_layer && m_layer <= 42)
-    smear_scale = smear_scale_sdc_out;
+  // All DC measurement noise and local-fit weights use DCGEO.Res directly.
+  // There is no independent smearing multiplier.
   for(Int_t i=0, n=m_lpos.size(); i<n; ++i){
     Double_t dt = TMath::QuietNaN();
     const Double_t s = CalcGeant4ReadoutPosition(m_layer, m_lpos[i]);
@@ -319,17 +297,15 @@ DCHit::CalcDCObservablesGeant4()
     const Double_t true_dl = TMath::Abs(signed_dl);
     Double_t dl = true_dl;
     Double_t smeared_s = s;
-    if(smear_scale > 0.){
-      const Double_t sigma = smear_scale*gGeom.GetResolution(m_layer);
-      if(std::isfinite(sigma) && sigma > 0.){
-        if(!is_bc && smear_signed_position){
-          smeared_s = m_wpos + gRandom->Gaus(signed_dl, sigma);
-          dl = TMath::Abs(smeared_s-m_wpos);
-        }
-        else{
-          dl = gRandom->Gaus(dl, sigma);
-          smeared_s = m_wpos + std::copysign(dl, signed_dl);
-        }
+    const Double_t sigma = gGeom.GetResolution(m_layer);
+    if(std::isfinite(sigma) && sigma > 0.){
+      if(!is_bc && smear_signed_position){
+        smeared_s = m_wpos + gRandom->Gaus(signed_dl, sigma);
+        dl = TMath::Abs(smeared_s-m_wpos);
+      }
+      else{
+        dl = gRandom->Gaus(dl, sigma);
+        smeared_s = m_wpos + std::copysign(dl, signed_dl);
       }
     }
     m_geant4_true_drift_length.push_back(true_dl);

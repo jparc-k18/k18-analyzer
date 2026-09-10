@@ -718,6 +718,16 @@ dst::DstOpen(std::vector<std::string> arg)
   if(!CheckEntries(TTreeCont))
     return false;
 
+  const auto* frame = dynamic_cast<TNamed*>(
+    TTreeCont[kK18Geant4]->GetUserInfo()->FindObject("G4DCReadoutFrame"));
+  if(!frame || TString(frame->GetTitle()) != "chamber-local-v1"){
+    std::cerr << "BcOut input lacks chamber-local-v1 readout metadata. "
+              << "Regenerate with unrotated BcOut sensitive planes; legacy "
+              << "wire-local ROOT requires its historical analyzer checkout."
+              << std::endl;
+    return false;
+  }
+
   TFileCont[kOutFile] = new TFile(arg[kOutFile].c_str(), "recreate");
   return true;
 }
@@ -797,7 +807,7 @@ Bool_t
 dst::DstClose()
 {
   TNamed("k18_hit_smearing",
-         Form("BC_response=DCGEO.Res; BC_readout=plane-local-x; "
+         Form("BC_response=DCGEO.Res; BC_readout=chamber-local-wire-projection; "
               "K18BFTPositionSmearSigma_mm=%.12g; "
               "K18HitSmearSeed=%.0f; per-event detector-specific deterministic streams; "
               "BC dl~Gaus(abs(s-wire),DCGEO.Res) after truth wire assignment and before DL gate; "

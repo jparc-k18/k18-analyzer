@@ -83,7 +83,7 @@ inline void ValidateConfig(const Config& config)
     const auto& key = item.first;
     if(key.compare(0, 4, "G4DC") == 0)
       throw std::runtime_error("retired/unsupported K18 key " + key +
-        "; BC uses plane-local x and DCGEO.Res for both smearing and fit. "
+        "; BC always projects chamber-local x/y onto wires and uses DCGEO.Res for smearing and fit. "
         "Use scripts/migrate_k18_tracking_config.py for an equivalent config; "
         "old diagnostic response models require their historical checkout.");
     if(files.count(key)){

@@ -1,34 +1,62 @@
 schema_version: 1
-retired_keys: {}
+retired_keys:
+  G4DCSmearResolutionScale:
+    retired_on: 2026-09-08
+    replacement: All DC smearing uses DCGEO.Res directly, with no multiplier.
+      Only legacy scale=1 is equivalent; other response studies need their historical checkout.
+  G4DCSmearResolutionScaleSdcIn:
+    retired_on: 2026-09-08
+    replacement: SdcIn smearing uses DCGEO.Res directly, with no multiplier.
+  G4DCSmearResolutionScaleSdcOut:
+    retired_on: 2026-09-08
+    replacement: SdcOut smearing uses DCGEO.Res directly, with no multiplier.
+  G4DCUseTiltedReadout:
+    retired_on: 2026-09-08
+    replacement: S2S and BcOut always project chamber-local x/y onto DCGEO wires.
+      Regenerate legacy BcOut ROOT with unrotated sensitive planes and remove this key.
 retired_keys_by_application:
   DstK18TrackingGeant4:
-    G4DCSmearResolutionScale:
-      retired_on: 2026-09-07
-      replacement: BC always uses DCGEO.Res for measurement noise and fit weights.
-        Only legacy scale=1 has an equivalent migration.
-    G4DCSmearResolutionScaleSdcIn:
-      retired_on: 2026-09-07
-      replacement: SDC response settings do not belong in K18 configs.
-    G4DCSmearResolutionScaleSdcOut:
-      retired_on: 2026-09-07
-      replacement: SDC response settings do not belong in K18 configs.
     G4DCSmearSignedPosition:
       retired_on: 2026-09-07
       replacement: BC uses the validated drift-length response; alternate studies
         require their historical checkout.
-    G4DCUseTiltedReadout:
-      retired_on: 2026-09-07
-      replacement: K18BC input is already plane-local. No second projection is allowed.
     G4DCUseTiltedReadoutAngleFactor:
       retired_on: 2026-09-07
       replacement: Historical coordinate-transform control; no production interpretation.
 retired_implementations:
+  dc_smearing_multipliers:
+    retired_on: 2026-09-08
+    owner: analyzer
+    replacement: All DC Gaussian widths use DCGEO.Res without a scale factor.
+    recovery: Reproduce scaled or ideal responses in an isolated historical checkout.
+    forbidden:
+    - path: src/DCHit.cc
+      regex: G4DCSmearResolutionScale|smear_scale
+      reason: Smearing must not have an independent multiplier or off-by-default path.
   k18_bc_response_switches:
     retired_on: 2026-09-07
     owner: analyzer
-    replacement: BC plane-local readout and DCGEO.Res noise/fit weights are fixed.
+    replacement: BC chamber-local wire projection and DCGEO.Res noise/fit weights are fixed.
     recovery: Reproduce alternative responses in an isolated pre-retirement checkout.
     forbidden:
     - path: dst/DstK18TrackingGeant4.cc
       regex: ConfDoubleOr\s*\(\s*"G4DC
       reason: The K18 producer must not recover a response toggle.
+  dc_shared_readout_toggle:
+    retired_on: 2026-09-08
+    owner: analyzer
+    replacement: Always project chamber-local hits onto the DCGEO wire axis.
+    recovery: Isolated historical analyzer and G4 checkout for old ROOT files.
+    forbidden:
+    - path: src/DCHit.cc
+      regex: G4DCUseTiltedReadout
+      reason: A common chamber-local frame must not fall back to raw local x.
+  bcout_rotated_sensitive_faces:
+    retired_on: 2026-09-08
+    owner: k18geant4
+    replacement: Chamber-aligned rectangular BcOut sensitive faces; only wires are tilted.
+    recovery: Isolated historical G4 checkout, never a production geometry toggle.
+    forbidden:
+    - path: src/K18BeamlineDetectorBuilder.cc
+      regex: make_local_stereo_rotation
+      reason: The BcOut frame is not a rotated wire frame.

@@ -109,6 +109,22 @@ ConfMan::Initialize()
 
     TString key = v[0];
     TString val = v[1];
+    if(key == "G4DCSmearResolutionScale" ||
+       key == "G4DCSmearResolutionScaleSdcIn" ||
+       key == "G4DCSmearResolutionScaleSdcOut"){
+      hddaq::cerr << FUNC_NAME << " retired key " << key
+                  << ": all DC smearing uses DCGEO.Res directly; "
+                  << "remove this multiplier key." << std::endl;
+      return false;
+    }
+    if(key == "G4DCUseTiltedReadout"){
+      hddaq::cerr << FUNC_NAME << " retired key " << key
+                  << ": tilted readout is always enabled for S2S and BcOut. "
+                  << "Regenerate legacy BcOut hits with chamber-local planes; "
+                  << "remove this key."
+                  << std::endl;
+      return false;
+    }
     hddaq::cout << " key = "   << std::setw(10) << std::left << key
 		<< " value = " << std::setw(30) << std::left << val
 		<< std::endl;

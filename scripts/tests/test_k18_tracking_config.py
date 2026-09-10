@@ -60,7 +60,9 @@ int main(int argc, char** argv) {
         self.check(MINIMAL.replace("0.20", "0"))
 
     def test_all_scoped_tombstones_rejected_at_runtime(self):
-        retired = load_policy()["retired_keys_by_application"]["DstK18TrackingGeant4"]
+        policy = load_policy()
+        retired = {**policy["retired_keys"],
+                   **policy["retired_keys_by_application"]["DstK18TrackingGeant4"]}
         for key in retired:
             with self.subTest(key=key):
                 self.check(MINIMAL + f"{key}: 0\n", "retired/unsupported")
@@ -100,11 +102,31 @@ int main(int argc, char** argv) {
                 migrate(text)
 
     def test_offline_retirement_is_application_scoped(self):
-        content = b"G4DCSmearResolutionScale: 1\n"
+        content = b"G4DCSmearSignedPosition: 1\n"
         audit_config_bytes(content, source="s2s", policy=load_policy())
         with self.assertRaisesRegex(ConfigAuditError, "retired"):
             audit_config_bytes(content, source="k18", policy=load_policy(),
                                application="DstK18TrackingGeant4")
+
+    def test_dc_smearing_multipliers_are_retired_for_all_applications(self):
+        for key in ("G4DCSmearResolutionScale", "G4DCSmearResolutionScaleSdcIn",
+                    "G4DCSmearResolutionScaleSdcOut"):
+            for application in (None, "DstK18TrackingGeant4"):
+                for value in (0, 1, 2):
+                    with self.subTest(key=key, application=application, value=value):
+                        with self.assertRaisesRegex(ConfigAuditError, "retired"):
+                            audit_config_bytes(f"{key}: {value}\n".encode(),
+                                               source="smearing", policy=load_policy(),
+                                               application=application)
+
+    def test_readout_toggle_is_retired_for_both_systems(self):
+        for application in (None, "DstK18TrackingGeant4"):
+            for value in (0, 1):
+                with self.subTest(application=application, value=value):
+                    with self.assertRaisesRegex(ConfigAuditError, "retired"):
+                        audit_config_bytes(
+                            f"G4DCUseTiltedReadout: {value}\n".encode(),
+                            source="readout", policy=load_policy(), application=application)
 
     def test_public_k18_examples_are_accepted(self):
         configs = sorted((REPO / "runmanager/runlist").glob("*_k18*.conf"))

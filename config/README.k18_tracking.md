@@ -4,9 +4,17 @@
 DCGEOの各層の `Res` 列（Gaussianのσ、mm）だけで指定する。hitのsmearと直線fitの
 誤差が同じ値を使う。`Res` は有限かつ正でなければ起動を拒否する。
 
-入力は現行K18 Geant4が保存する `K18BC` の面ローカル座標である。`Vx()` がすでに
-wire方向の座標なので、追加の傾斜射影を選ぶ設定はない。wireをtruth位置で決め、
-`DL = Gaus(abs(x-wire), Res)` を作り、従来の `-0.5 < DL < 1.8 mm` gateをかける。
+S2Sもsmearingのσには各層のDCGEO `Res` を直接使う。
+`G4DCSmearResolutionScale` と `G4DCSmearResolutionScaleSdcIn/Out` は全DCで廃止し、
+設定例から削除した。倍率を1として掛ける処理も残していない。
+従来倍率1の設定例の応答は変わらない。倍率省略でsmearingなしとなる旧既定動作は廃止した。
+DCGEOの値、fit重み、DL gateは変更していない。BFTのcluster位置σは別の設定なので変更しない。
+
+入力は非回転の敏感面を持つK18 Geant4が保存する `K18BC` のチェンバー局所座標である。
+S2Sと共通に `s = Vx()*cos(tilt) + Vy()*sin(tilt)` を常に計算する。
+枠は回さず、DCGEOのワイヤー角だけを読み出し投影へ使う。切替パラメータはない。
+wireをtruth読み出し位置で決め、`DL = Gaus(abs(s-wire), Res)` を作り、
+従来の `-0.5 < DL < 1.8 mm` gateをかける。
 負DLを一律に絶対値化する変更、gate、最小hit数、χ² cutの変更はしていない。
 
 | 設定 | 役割 |
@@ -54,6 +62,13 @@ bin/DstK18TrackingGeant4 --check-config new.conf
 
 移行は元ファイルを変更せず、既存の出力configも上書きしない。scale=0/別倍率、
 signed-position、追加射影の比較は移行対象外。旧commitと入力を隔離して再現する。
-S-2S側の同名設定は今回の廃止対象ではない。
+`G4DCUseTiltedReadout` とsmearing倍率3キーはS2S側も廃止した。
+S2Sの `G4DCSmearSignedPosition` は揺らし方を選ぶ既存設定であり、倍率ではないため今回は変更しない。
+
+このoffline移行は応答パラメータの移行であり、旧ROOTの座標を書き換えるものではない。
+新しい `g4s2s` TTreeのUserInfoには `G4DCReadoutFrame=chamber-local-v1` が必要。
+旧BcOut ROOTは新版Geant4で再生成する。識別情報がない入力は出力作成前に拒否する。
+`--check-config` はROOTを開かないため、この座標規約の検査は通常実行時に行う。
+敏感面の矩形境界の向きは変わるが、窓・陰極・母体ガスと既存の分解能処理は変更しない。
 
 新形式のconfigには必ず新版binaryを使う。旧binaryは形式識別子を検査せず、BCをsmearしない可能性がある。
