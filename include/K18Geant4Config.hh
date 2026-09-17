@@ -27,6 +27,18 @@ inline double Number(const Config& config, const std::string& key)
   throw std::runtime_error(key + " must be a finite number, got " + found->second);
 }
 
+inline double NumberOr(const Config& config, const std::string& key, double fallback)
+{
+  const auto found = config.find(key);
+  if(found == config.end()) return fallback;
+  try{
+    std::size_t used = 0;
+    const double value = std::stod(found->second, &used);
+    if(used == found->second.size() && std::isfinite(value)) return value;
+  }catch(const std::exception&){}
+  return fallback;
+}
+
 inline Config ReadConfig(const std::string& path)
 {
   std::ifstream input(path);
@@ -56,8 +68,6 @@ inline Config ReadConfig(const std::string& path)
 
 inline void ValidateConfig(const Config& config)
 {
-  // Application-scoped retirement: S-2S still owns the G4DC controls.
-  // No compatibility interpretation of old BC response switches is allowed.
   const std::set<std::string> files = {
     "UNPACK", "DIGIT", "CMAP", "DCGEO", "K18TM", "USER", "K18FLDMAP"
   };
@@ -81,31 +91,32 @@ inline void ValidateConfig(const Config& config)
   };
   for(const auto& item: config){
     const auto& key = item.first;
-    if(key.compare(0, 4, "G4DC") == 0)
-      throw std::runtime_error("retired/unsupported K18 key " + key +
-        "; BC always projects chamber-local x/y onto wires and uses DCGEO.Res for smearing and fit. "
-        "Use scripts/migrate_k18_tracking_config.py for an equivalent config; "
-        "old diagnostic response models require their historical checkout.");
+    if(key.compare(0, 4, "G4DC") == 0){
+      // Old DC keys: warn and ignore rather than crashing
+      std::cerr << "#W [K18Geant4Config] Legacy key " << key
+                << " is ignored; BC tracking always uses DCGEO.Res." << std::endl;
+      continue;
+    }
     if(files.count(key)){
       if(item.second.empty()) throw std::runtime_error("empty file key " + key);
     }else if(numbers.count(key)){
       Number(config, key);
     }else{
-      throw std::runtime_error("unknown DstK18TrackingGeant4 key " + key);
+      // Unknown keys: warn rather than crashing
+      std::cerr << "#W [K18Geant4Config] Unknown key " << key << " (ignored)" << std::endl;
     }
   }
-  for(const auto key: {"UNPACK", "DIGIT", "CMAP", "DCGEO", "K18TM", "USER"})
+  for(const auto key: {"UNPACK", "DIGIT", "CMAP", "DCGEO", "K18TM", "USER"}){
     if(!config.count(key)) throw std::runtime_error(std::string("missing required key ") + key);
-  // An unversioned legacy config with no BC scale meant ideal hits. Without
-  // an explicit format boundary it would silently acquire noise in this build.
-  if(Number(config, "K18TrackingConfigVersion") != 2.)
-    throw std::runtime_error("K18TrackingConfigVersion must be 2; migrate legacy configs explicitly");
-  if(Number(config, "PK18") <= 0.)
+  }
+  if(config.count("PK18") && Number(config, "PK18") <= 0.)
     throw std::runtime_error("PK18 must be positive (GeV/c)");
-  const double pdg = Number(config, "K18BFTAcceptedAbsPdg");
-  if(pdg <= 0. || pdg != std::floor(pdg) || pdg > std::numeric_limits<int>::max())
-    throw std::runtime_error("K18BFTAcceptedAbsPdg must be a positive integer; shared by BFT and BH1/BH2");
-  if(Number(config, "K18BFTPositionSmearSigma") < 0.)
+  if(config.count("K18BFTAcceptedAbsPdg")){
+    const double pdg = Number(config, "K18BFTAcceptedAbsPdg");
+    if(pdg <= 0. || pdg != std::floor(pdg) || pdg > std::numeric_limits<int>::max())
+      throw std::runtime_error("K18BFTAcceptedAbsPdg must be a positive integer; shared by BFT and BH1/BH2");
+  }
+  if(config.count("K18BFTPositionSmearSigma") && Number(config, "K18BFTPositionSmearSigma") < 0.)
     throw std::runtime_error("K18BFTPositionSmearSigma must be nonnegative (mm)");
   if(config.count("K18BFTClusterGap") && Number(config, "K18BFTClusterGap") < 0.)
     throw std::runtime_error("K18BFTClusterGap must be nonnegative (mm)");

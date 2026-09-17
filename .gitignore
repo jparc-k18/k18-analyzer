@@ -21,3 +21,6 @@ runmanager/tmp
 set_links.sh
 param
 fig
+tmp*param_release
+tmp/
+param_release

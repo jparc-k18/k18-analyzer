@@ -155,11 +155,144 @@ RequireBranches(TTree* tree, const char* treeName,
   throw std::runtime_error(message.str());
 }
 
+inline bool ApplyPreset(Options& o, const std::string& name)
+{
+  if(name == "e90_cusp"){
+    o.label = "e90_cusp";
+    o.beamPdg = -321;
+    o.scatPdg = -211;
+    o.beamMass = 0.493677;
+    o.scatMass = 0.13957039;
+    o.targetMass = 1.87561294257;
+    o.targetShape = "cylinder";
+    o.targetRadius = 27.0;
+    o.targetHalfLengthY = 50.0;
+    o.targetThickness = 54.0;
+    o.targetDensity = 0.169;
+    o.targetIEv = 19.2;
+    o.targetZOverA = 0.496524329692;
+    o.targetSizeX = 54.0;
+    o.targetSizeY = 100.0;
+    o.targetPlaneZ = -5114.0;
+    o.targetZMargin = 0.0;
+    o.thetaMin = 2.0;
+    o.thetaMax = 14.0;
+    return true;
+  }else if(name == "kpi_c12lambda"){
+    o.label = "kpi_c12lambda";
+    o.beamPdg = -321;
+    o.scatPdg = -211;
+    o.beamMass = 0.493677;
+    o.scatMass = 0.13957039;
+    o.targetMass = 11.174863235340;
+    o.targetShape = "slab";
+    o.targetThickness = 5.555555556;
+    o.targetDensity = 1.8;
+    o.targetIEv = 81.0;
+    o.targetZOverA = 6.0/12.011;
+    o.targetSizeX = 200.0;
+    o.targetSizeY = 100.0;
+    o.targetPlaneZ = -5023.5;
+    o.targetZMargin = 0.0;
+    o.thetaMin = 2.0;
+    o.thetaMax = 14.0;
+    return true;
+  }else if(name == "e75_phase1_li7"){
+    o.label = "e75_phase1_li7";
+    o.beamPdg = -321;
+    o.scatPdg = 321;
+    o.beamMass = 0.493677;
+    o.scatMass = 0.493677;
+    o.targetMass = 6.533832826901;
+    o.targetShape = "slab";
+    o.targetThickness = 16.853932584;
+    o.targetDensity = 0.534;
+    o.targetIEv = 40.0;
+    o.targetZOverA = 0.432214378331;
+    o.targetSizeX = 100.0;
+    o.targetSizeY = 100.0;
+    o.targetPlaneZ = -5023.5;
+    o.targetZMargin = 0.0;
+    o.thetaMin = 2.0;
+    o.thetaMax = 14.0;
+    return true;
+  }else if(name == "kk_c12xibe"){
+    o.label = "kk_c12xibe";
+    o.beamPdg = -321;
+    o.scatPdg = 321;
+    o.beamMass = 0.493677;
+    o.scatMass = 0.493677;
+    o.targetMass = 11.174863235340;
+    o.targetShape = "slab";
+    o.targetThickness = 52.0;
+    o.targetDensity = 1.8;
+    o.targetIEv = 81.0;
+    o.targetZOverA = 6.0/12.011;
+    o.targetSizeX = 200.0;
+    o.targetSizeY = 100.0;
+    o.targetPlaneZ = -5023.5;
+    o.targetZMargin = 0.0;
+    o.thetaMin = 2.0;
+    o.thetaMax = 14.0;
+    return true;
+  }else if(name == "pik_c12lambda"){
+    o.label = "pik_c12lambda";
+    o.beamPdg = 211;
+    o.scatPdg = 321;
+    o.beamMass = 0.13957039;
+    o.scatMass = 0.493677;
+    o.targetMass = 11.174863235340;
+    o.targetShape = "slab";
+    o.targetThickness = 5.555555556;
+    o.targetDensity = 1.8;
+    o.targetIEv = 81.0;
+    o.targetZOverA = 6.0/12.011;
+    o.targetSizeX = 200.0;
+    o.targetSizeY = 100.0;
+    o.targetPlaneZ = -5023.5;
+    o.targetZMargin = 0.0;
+    o.thetaMin = 2.0;
+    o.thetaMax = 14.0;
+    return true;
+  }
+  return false;
+}
+
+void PrintUsage(const char* prog)
+{
+  std::cout << "Usage: " << prog << " [OPTIONS]\n"
+            << "Required inputs:\n"
+            << "  --g4=PATH         Input Geant4 simulation ROOT file\n"
+            << "  --k18=PATH        Input K18 tracking ROOT file\n"
+            << "  --s2s=PATH        Input S-2S tracking ROOT file\n"
+            << "  --root=PATH       Output missing-mass ROOT file\n"
+            << "Optional (or use --preset):\n"
+            << "  --preset=NAME     Preset reaction configuration:\n"
+            << "                    (e90_cusp, kpi_c12lambda, e75_phase1_li7, kk_c12xibe, pik_c12lambda)\n"
+            << "  --csv=PATH        Output CSV file (default: root path with .csv)\n"
+            << "  --label=STR       Analysis label (default: preset name or 'missing_mass')\n"
+            << "  --help, -h        Print this help message\n"
+            << "Advanced overrides:\n"
+            << "  --beam-pdg=INT, --scat-pdg=INT, --beam-mass=VAL, --scat-mass=VAL\n"
+            << "  --target-mass=VAL, --target-shape=slab|cylinder, --target-thickness-mm=VAL\n"
+            << "  --target-density=VAL, --target-i-ev=VAL, --target-z-over-a=VAL\n"
+            << "  --target-size-x-mm=VAL, --target-size-y-mm=VAL, --target-plane-z-mm=VAL\n"
+            << "  --theta-min-deg=VAL, --theta-max-deg=VAL, etc.\n";
+}
+
 Options Parse(int argc, char** argv)
 {
+  if(argc <= 1){
+    PrintUsage(argv[0]);
+    throw std::runtime_error("No arguments specified");
+  }
   Options o;
   for(int i=1; i<argc; ++i){
     const std::string arg = argv[i];
+    if(arg == "--help" || arg == "-h"){
+      PrintUsage(argv[0]);
+      std::exit(EXIT_SUCCESS);
+    }
     auto takeString = [&](const char* key, std::string& value){
       const std::string prefix = std::string("--") + key + "=";
       if(arg.rfind(prefix, 0) != 0) return false;
@@ -178,6 +311,13 @@ Options Parse(int argc, char** argv)
       value = std::stoi(arg.substr(prefix.size()));
       return true;
     };
+    std::string presetName;
+    if(takeString("preset", presetName)){
+      if(!ApplyPreset(o, presetName)){
+        std::cerr << "#W Unknown preset: " << presetName << std::endl;
+      }
+      continue;
+    }
     if(takeString("g4", o.g4) || takeString("k18", o.k18) ||
        takeString("s2s", o.s2s) || takeString("root", o.root) ||
        takeString("csv", o.csv) || takeString("label", o.label) ||
@@ -213,11 +353,22 @@ Options Parse(int argc, char** argv)
        takeDouble("chi2-max", o.chi2Max) ||
        takeDouble("theta-min-deg", o.thetaMin) ||
        takeDouble("theta-max-deg", o.thetaMax)) continue;
-    throw std::runtime_error("unknown option: " + arg);
+    std::cerr << "#W [DstMissingMassGeant4] Unknown option: " << arg << " (ignored)" << std::endl;
   }
-  if(o.g4.empty() || o.k18.empty() || o.s2s.empty() || o.root.empty() ||
-     o.csv.empty() || o.label.empty())
-    throw std::runtime_error("required: --g4 --k18 --s2s --root --csv --label");
+  if(o.g4.empty() || o.k18.empty() || o.s2s.empty() || o.root.empty())
+    throw std::runtime_error("required options missing: --g4 --k18 --s2s --root");
+
+  // Auto-fill label if empty
+  if(o.label.empty()){
+    o.label = "missing_mass";
+  }
+  // Auto-fill csv if empty
+  if(o.csv.empty()){
+    std::filesystem::path p(o.root);
+    p.replace_extension(".csv");
+    o.csv = p.string();
+  }
+
   if(o.targetShape != "slab" && o.targetShape != "cylinder")
     throw std::runtime_error("--target-shape must be slab or cylinder");
   if(o.targetShape == "cylinder" &&

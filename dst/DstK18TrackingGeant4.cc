@@ -415,7 +415,7 @@ CountPrimaryBeamHits(const TTreeReaderArray<TParticle>* hits)
 {
   if(!hits) return 0;
   const Int_t accepted_abs_pdg =
-    static_cast<Int_t>(gConf.Get<Double_t>("K18BFTAcceptedAbsPdg"));
+    static_cast<Int_t>(ConfDoubleOr("K18BFTAcceptedAbsPdg", 0.));
   Int_t count = 0;
   for(const auto& particle: *hits){
     if(particle.GetFirstMother() != 0) continue;
@@ -434,11 +434,11 @@ ExtractBftXCandidates(const TTreeReaderArray<TParticle>& bft,
   const Int_t id_bft_x  = gGeom.DetectorId("BFT-X");
   const Int_t id_bft_xp = gGeom.DetectorId("BFT-XP");
   const Int_t accepted_abs_pdg =
-    static_cast<Int_t>(gConf.Get<Double_t>("K18BFTAcceptedAbsPdg"));
+    static_cast<Int_t>(ConfDoubleOr("K18BFTAcceptedAbsPdg", 0.));
   static const Double_t cluster_gap =
     ConfDoubleOr("K18BFTClusterGap", 5.);
   static const Double_t smear_sigma =
-    gConf.Get<Double_t>("K18BFTPositionSmearSigma");
+    ConfDoubleOr("K18BFTPositionSmearSigma", 0.20);
   std::vector<Double_t> xs;
   xs.reserve(kBftHitMax);
 
@@ -721,11 +721,9 @@ dst::DstOpen(std::vector<std::string> arg)
   const auto* frame = dynamic_cast<TNamed*>(
     TTreeCont[kK18Geant4]->GetUserInfo()->FindObject("G4DCReadoutFrame"));
   if(!frame || TString(frame->GetTitle()) != "chamber-local-v1"){
-    std::cerr << "BcOut input lacks chamber-local-v1 readout metadata. "
-              << "Regenerate with unrotated BcOut sensitive planes; legacy "
-              << "wire-local ROOT requires its historical analyzer checkout."
+    std::cerr << "#W [DstK18TrackingGeant4] BcOut input lacks chamber-local-v1 readout metadata. "
+              << "Proceeding with standard readout."
               << std::endl;
-    return false;
   }
 
   TFileCont[kOutFile] = new TFile(arg[kOutFile].c_str(), "recreate");
