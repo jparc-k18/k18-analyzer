@@ -285,11 +285,9 @@ DCHit::CalcDCObservablesGeant4()
   m_angle = gGeom.GetTiltAngle(m_layer);
   m_z     = gGeom.GetLocalZ(m_layer);
 
-  static const Bool_t smear_signed_position =
-    ConfDoubleOr("G4DCSmearSignedPosition", 0.) != 0.;
-  const Bool_t is_bc = 113 <= m_layer && m_layer <= 124;
   // All DC measurement noise and local-fit weights use DCGEO.Res directly.
-  // There is no independent smearing multiplier.
+  // The drift length is smeared as in data (it may become slightly negative
+  // near the wire and is then subject to the DL gate), for BC and SDC alike.
   for(Int_t i=0, n=m_lpos.size(); i<n; ++i){
     Double_t dt = TMath::QuietNaN();
     const Double_t s = CalcGeant4ReadoutPosition(m_layer, m_lpos[i]);
@@ -299,14 +297,8 @@ DCHit::CalcDCObservablesGeant4()
     Double_t smeared_s = s;
     const Double_t sigma = gGeom.GetResolution(m_layer);
     if(std::isfinite(sigma) && sigma > 0.){
-      if(!is_bc && smear_signed_position){
-        smeared_s = m_wpos + gRandom->Gaus(signed_dl, sigma);
-        dl = TMath::Abs(smeared_s-m_wpos);
-      }
-      else{
-        dl = gRandom->Gaus(dl, sigma);
-        smeared_s = m_wpos + std::copysign(dl, signed_dl);
-      }
+      dl = gRandom->Gaus(dl, sigma);
+      smeared_s = m_wpos + std::copysign(dl, signed_dl);
     }
     m_geant4_true_drift_length.push_back(true_dl);
     m_geant4_smear_delta.push_back(dl-true_dl);

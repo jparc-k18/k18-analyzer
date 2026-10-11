@@ -48,27 +48,13 @@ python3 scripts/config_lifecycle.py --application DstK18TrackingGeant4 config/k1
 DCGEOの実ファイル内容と分解能は通常起動時に検査する。重複、未知キー、非有限値、
 必須値の欠落を黙って既定値へ読み替えない。
 
-## 古い設定とバイナリ
+## 現行入力だけを使う
 
-K18では `G4DCSmearResolutionScale`、`G4DCSmearSignedPosition`、
-`G4DCUseTiltedReadout`、`G4DCUseTiltedReadoutAngleFactor`、
-`G4DCSmearResolutionScaleSdcIn/Out` を拒否する。これらを消しても同じ応答になる
-旧scale=1・追加射影なし・従来DL方式だけ、次のoffline移行ができる。
+新規実行には Version 2 の config と対応する新版 binary を使う。
+旧 `G4DC*` のK18応答switch・倍率・追加射影設定は削除済みであり、指定すると拒否する。
+S2Sの `G4DCSmearSignedPosition` も廃止した。SDCもBCと同じく `DL = Gaus(abs(s-wire), Res)` でsmearする。
 
-```bash
-python3 scripts/migrate_k18_tracking_config.py old.conf --output new.conf
-bin/DstK18TrackingGeant4 --check-config new.conf
-```
-
-移行は元ファイルを変更せず、既存の出力configも上書きしない。scale=0/別倍率、
-signed-position、追加射影の比較は移行対象外。旧commitと入力を隔離して再現する。
-`G4DCUseTiltedReadout` とsmearing倍率3キーはS2S側も廃止した。
-S2Sの `G4DCSmearSignedPosition` は揺らし方を選ぶ既存設定であり、倍率ではないため今回は変更しない。
-
-このoffline移行は応答パラメータの移行であり、旧ROOTの座標を書き換えるものではない。
-新しい `g4s2s` TTreeのUserInfoには `G4DCReadoutFrame=chamber-local-v1` が必要。
-旧BcOut ROOTは新版Geant4で再生成する。識別情報がない入力は出力作成前に拒否する。
-`--check-config` はROOTを開かないため、この座標規約の検査は通常実行時に行う。
-敏感面の矩形境界の向きは変わるが、窓・陰極・母体ガスと既存の分解能処理は変更しない。
-
-新形式のconfigには必ず新版binaryを使う。旧binaryは形式識別子を検査せず、BCをsmearしない可能性がある。
+ROOTの `g4s2s` UserInfoには `G4DCReadoutFrame=chamber-local-v1` が必要。
+識別情報がない入力は出力作成前に拒否する。旧座標のROOTは現行Geant4で再生成する。
+`--check-config` はROOTを開かないため座標規約の検査は通常起動時に行う。
+旧結果を再現するときだけ、当時のソフトウェア・設定・ROOTを一組で隔離して使う。

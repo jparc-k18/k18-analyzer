@@ -4,6 +4,9 @@
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
+#include <fstream>
+#include <set>
+#include <sstream>
 #include <string>
 
 #include <filesystem_util.hh>
@@ -202,11 +205,44 @@ TTree *tree;
 
 namespace
 {
-Double_t
-TruthMomentumGeV(Double_t p)
+// Checked before any output is opened: the removed keys stop the job, and the
+// S-2S particle must be given.
+Bool_t
+CheckS2sGeant4Conf(const std::string& path)
 {
-  if(!std::isfinite(p)) return qnan;
-  return (std::abs(p) > 10.) ? p/1000. : p;
+  std::ifstream input(path);
+  if(!input){
+    std::cerr << "#E cannot read " << path << std::endl;
+    return false;
+  }
+  const std::set<std::string> removed = {
+    "S2sGeant4AcceptSecondaries", "S2sRKPolarity", "S2sGeant4MinLayerSdcIn",
+    "DstS2sTrackingSeedMode", "DstS2sTrackingPreferP0Seed",
+    "G4DCSmearSignedPosition"
+  };
+  Bool_t has_pdg = false;
+  std::string line;
+  while(std::getline(input, line)){
+    std::istringstream fields(line.substr(0, line.find('#')));
+    std::string key;
+    if(!(fields >> key)) continue;
+    if(key.back() == ':') key.pop_back();
+    if(removed.count(key)){
+      std::cerr << "#E " << key << " was removed. S2sGeant4AcceptedPdg alone"
+                << " selects the hits and sets the RK polarity; the RK seed is"
+                << " DstS2sTrackingSeedMomentum or PK18; SdcIn uses USER"
+                << " MinLayerSdcIn; SDC drift lengths are smeared like BC."
+                << std::endl;
+      return false;
+    }
+    if(key == "S2sGeant4AcceptedPdg") has_pdg = true;
+  }
+  if(!has_pdg){
+    std::cerr << "#E S2sGeant4AcceptedPdg (signed PDG code of the S-2S"
+              << " particle) is required" << std::endl;
+    return false;
+  }
+  return true;
 }
 
 Bool_t
@@ -224,6 +260,8 @@ main(int argc, char **argv)
 
   // TTree::SetMaxTreeSize(1000000000000LL);
   if(!CheckArg(arg))
+    return EXIT_FAILURE;
+  if(!CheckS2sGeant4Conf(arg[kConfFile]))
     return EXIT_FAILURE;
   if(!DstOpen(arg))
     return EXIT_FAILURE;
@@ -656,34 +694,15 @@ dst::DstRead(Int_t ievent)
   HF1(1, 21.);
 
   //////////////S2S Tracking
-  const Int_t seed_mode =
-    static_cast<Int_t>(ConfDoubleOr("DstS2sTrackingSeedMode", 0.));
-  if( false && event.nhTof > 0 ){
-    Double_t seg = event.TofSeg[0];
-    Double_t par[3] = {1.59, -3.07e-2, 4.19e-4};
-    Double_t pMag   = par[0]+seg*par[1]+seg*seg*par[2]; // Magnitude
-    Double_t scale  = 1.;
-    Double_t initial_momentum = pMag*scale;
-    event.seedMomentumS2s = initial_momentum;
-    DCAna.TrackSearchS2s(initial_momentum);
-  }
-  else if(seed_mode == 1){
+  // RK seed: the configured central momentum of the S-2S particle, else PK18.
+  // Truth is never used as a seed.
+  static const TString seed_key = gConf.Get<TString>("DstS2sTrackingSeedMomentum");
+  if(seed_key.IsNull()){
     event.seedMomentumS2s = std::abs(gConf.Get<Double_t>("PK18"));
     DCAna.TrackSearchS2s(); // use PK18 as initial momentum
   }
-  else if(seed_mode == 2){
-    const Double_t initial_momentum =
-      ConfDoubleOr("DstS2sTrackingSeedMomentum",
-                   std::abs(gConf.Get<Double_t>("PK18")));
-    event.seedMomentumS2s = initial_momentum;
-    DCAna.TrackSearchS2s(initial_momentum);
-  }
   else{
-    const Bool_t prefer_p0_seed =
-      ConfDoubleOr("DstS2sTrackingPreferP0Seed", 0.) != 0.;
-    event.seedMomentumS2s = TruthMomentumGeV(
-      (!prefer_p0_seed && std::isfinite(event.pTgtTruth))
-      ? event.pTgtTruth : event.p0);
+    event.seedMomentumS2s = gConf.Get<Double_t>("DstS2sTrackingSeedMomentum");
     DCAna.TrackSearchS2s(event.seedMomentumS2s);
   }
 

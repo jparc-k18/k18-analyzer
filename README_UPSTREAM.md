@@ -26,11 +26,15 @@ field-model diagnostic and cross-check.
   poor BFT matches.
 - `K18GlobalScale` and individual magnet scale keys apply when the analytic
   field model is used instead of a map.
-- `S2sGeant4AcceptedPdg` and `S2sGeant4AcceptSecondaries` select the G4 track
-  used for S-2S hit reconstruction.
-- `S2sRKPolarity` sets the S-2S RK charge sign.
-- `DstS2sTrackingSeedMode=1` uses `PK18`; mode 2 uses the fixed
-  `DstS2sTrackingSeedMomentum`. Neither mode reads eventwise truth momentum.
+- `S2sGeant4AcceptedPdg` (required, signed PDG) selects the S-2S hits by
+  particle species, primary or secondary, so a reaction product is kept. Its
+  charge sets the S-2S RK polarity.
+- The S-2S RK seed is `DstS2sTrackingSeedMomentum` (GeV/c) when given, else
+  `PK18`. Eventwise truth momentum is never used as a seed. SdcIn uses the USER
+  `MinLayerSdcIn`.
+- The removed keys `S2sGeant4AcceptSecondaries`, `S2sRKPolarity`,
+  `S2sGeant4MinLayerSdcIn`, `DstS2sTrackingSeedMode`, and
+  `DstS2sTrackingPreferP0Seed` stop `DstS2sTrackingGeant4` with an error.
 
 Input track positions are millimetres and momentum is GeV/c in the K1.8 native
 frame.  Field-map file coordinates are centimetres and field values are Tesla.

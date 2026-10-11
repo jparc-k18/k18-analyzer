@@ -1,5 +1,5 @@
 // Link against libK18Analyzer with the normal analyzer libraries.
-// Usage: check_dcgeo_smearing DCGEO config (only G4DCSmearSignedPosition optional).
+// Usage: check_dcgeo_smearing DCGEO config
 #include <cmath>
 #include <iostream>
 #include <TMath.h>
@@ -20,7 +20,6 @@ int main(int argc, char** argv)
   TMemFile output("smearing-test", "RECREATE");
   auto& geom = DCGeomMan::GetInstance();
   if(!geom.Initialize(argv[1]) || !ConfMan::GetInstance().Initialize(argv[2])) return 2;
-  const bool signed_position = ConfMan::Get<Double_t>("G4DCSmearSignedPosition") != 0.;
   TRandom3 actual(908231), reference(908231);
   TRandom* saved = gRandom;
   gRandom = &actual;
@@ -37,10 +36,8 @@ int main(int argc, char** argv)
         const double target = wpos + offset;
         TVector3 position(target*std::cos(angle), target*std::sin(angle), 0.);
         const double signed_dl = DCHit::CalcGeant4ReadoutPosition(layer, position)-wpos;
-        const bool use_signed = layer < 113 && signed_position;
-        const double draw = reference.Gaus(use_signed ? signed_dl : std::abs(signed_dl), res);
-        const double expected_dl = use_signed ? std::abs((wpos+draw)-wpos) : draw;
-        const double expected_s = wpos + (use_signed ? draw : std::copysign(draw, signed_dl));
+        const double expected_dl = reference.Gaus(std::abs(signed_dl), res);
+        const double expected_s = wpos + std::copysign(expected_dl, signed_dl);
         DCHit hit(0, layer, wire);
         hit.SetDCDataGeant4(position, 1.);
         if(!hit.CalcDCObservablesGeant4() || hit.GetEntries() != 1 ||
@@ -56,7 +53,6 @@ int main(int argc, char** argv)
     geom.SetResolution(layer, original_res);
   }
   gRandom = saved;
-  std::cout << "PASS DCGEO.Res direct Gaussian samples=" << points
-            << " signed_position=" << signed_position << '\n';
+  std::cout << "PASS DCGEO.Res direct Gaussian samples=" << points << '\n';
   return points == 306 ? 0 : 1;
 }

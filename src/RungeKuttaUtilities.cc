@@ -13,6 +13,9 @@
 
 #include <std_ostream.hh>
 
+#include <TDatabasePDG.h>
+#include <TParticlePDG.h>
+
 #include "ConfMan.hh"
 #include "DCGeomMan.hh"
 #include "DCGeomRecord.hh"
@@ -50,10 +53,21 @@ ConfDoubleOr(const char* key, Double_t default_value)
   return default_value;
 }
 
+// Charge sign of the S-2S particle. Geant4 tracking sets S2sGeant4AcceptedPdg;
+// real-data analysis leaves it unset and keeps the positive polarity.
 inline Double_t
 Polarity()
 {
-  return ConfDoubleOr("S2sRKPolarity", 1.) < 0. ? -1. : 1.;
+  static const Double_t polarity = [](){
+    const Int_t pdg = static_cast<Int_t>(ConfDoubleOr("S2sGeant4AcceptedPdg", 0.));
+    if(pdg == 0) return 1.;
+    const auto particle = TDatabasePDG::Instance()->GetParticle(pdg);
+    if(!particle || particle->Charge() == 0.)
+      throw std::runtime_error("S2sGeant4AcceptedPdg must be a charged particle, got "
+                               + std::to_string(pdg));
+    return particle->Charge() < 0. ? -1. : 1.;
+  }();
+  return polarity;
 }
 }
 

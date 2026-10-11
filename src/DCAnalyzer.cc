@@ -429,10 +429,10 @@ DCAnalyzer::DecodeSdcHitsGeant4(TString SdcName, Int_t PlMinSdc,
 {
   static const auto& digit_info =
     hddaq::unpacker::GConfig::get_instance().get_digit_info();
+  // Keep hits of the selected particle species only. A reaction product is a
+  // Geant4 secondary of the beam, so the parent is not used for the selection.
   static const Int_t accepted_pdg =
     static_cast<Int_t>(ConfDoubleOr("S2sGeant4AcceptedPdg", 0.));
-  static const Bool_t accept_secondaries =
-    ConfDoubleOr("S2sGeant4AcceptSecondaries", 0.) != 0.;
   HC.clear();
   Int_t plane_offset = 0;
   for(const auto& name: DCNameList.at(SdcName)){
@@ -443,7 +443,6 @@ DCAnalyzer::DecodeSdcHitsGeant4(TString SdcName, Int_t PlMinSdc,
     std::vector<TVector3> lposArr;
     std::vector<Double_t> deArr;
     for(const auto& particle: *PC.at(name)){
-      if(!accept_secondaries && particle.GetFirstMother()!=0) continue;
       if(accepted_pdg != 0 && particle.GetPdgCode() != accepted_pdg)
         continue;
       Int_t plane = particle.GetSecondMother() - 101;
@@ -678,9 +677,7 @@ DCAnalyzer::TrackSearchBcOut(const std::vector<std::vector<DCHC> >& hc, Int_t T0
 Bool_t
 DCAnalyzer::TrackSearchSdcIn()
 {
-  static const Int_t MinLayer = static_cast<Int_t>(
-    ConfDoubleOr("S2sGeant4MinLayerSdcIn",
-                 gUser.GetParameter("MinLayerSdcIn")));
+  static const Int_t MinLayer = gUser.GetParameter("MinLayerSdcIn");
   track::LocalTrackSearch(m_SdcInHC, PPInfoSdcIn, NPPInfoSdcIn, m_SdcInTC, MinLayer);
   return true;
 }
@@ -735,9 +732,7 @@ DCAnalyzer::TrackSearchSdcOut(const HodoClusterContainer& TOFCont)
 Bool_t
 DCAnalyzer::MakeTrackSdcInGeant4()
 {
-  static const Int_t MinLayer = static_cast<Int_t>(
-    ConfDoubleOr("S2sGeant4MinLayerSdcIn",
-                 gUser.GetParameter("MinLayerSdcIn")));
+  static const Int_t MinLayer = gUser.GetParameter("MinLayerSdcIn");
   track::MakeLocalTrackGeant4(m_SdcInHC, m_SdcInTC, MinLayer);
   return true;
 }
