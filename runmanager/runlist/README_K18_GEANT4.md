@@ -14,11 +14,19 @@ stages from this repository.
 | `kk_c12xibe` | `12C(K-,K+)12_XiBe` | `k18_6381_kk_c12xibe_example.conf` | `k18_6381_kk_c12xibe_{k18,s2s}.conf` |
 | `pik_c12lambda` | `12C(pi+,K+)12_LambdaC` | `k18_6381_pik_c12lambda_example.conf` | `k18_6381_pik_c12lambda_{k18,s2s}.conf` |
 
-Before use, replace the `/path/to/...` entries in the analyzer configurations
-with an equivalent analyzer parameter release and the local `k18-geant4`
-checkout. S-2S field maps are read directly from
-`/group/had/sks/fieldmap/S2S` on KEKCC. The older `k18_638*_example.conf`
-files use the same placeholder convention.
+Run Geant4 from `~/pro/k18-geant4` and tracking from `~/pro/k18-analyzer`.
+All shipped upstream configs use repository-relative parameter paths or the
+KEKCC field-map path. K18 configs use `K18TrackingConfigVersion: 2`, BC
+smearing/fit resolution from DCGEO `Res`, and D2U `p_3rd` as primary momentum.
+`config/k18_tracking_minimal.conf` is the sole minimal K18 template. The common
+6380/6381 examples use the current E63 DCGEO and 1.4-GeV/c D2U release.
+Reaction-specific settings are the five paired configurations in the table.
+For pi+ at 1.4 GeV/c, use the 1.4-GeV/c matrix, not the old 1.2-GeV/c example.
+
+Create a fresh output directory under `/gpfs/group/had/sks/Users/yhong`.
+Keep all G4, tracking and analysis files on different canonical paths.
+Check a copied config before running; do not reuse configs from another
+coordinate convention or parameter release.
 
 ## Build and run
 
