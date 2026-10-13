@@ -195,6 +195,9 @@ Post-stage programs that combine Stage-1 trees by `evnum`:
   overridden from the environment or the command line.
 - `lib/` and `bin/` are created on demand; both are gitignored,
   so without this a fresh clone fails at the archive step.
+- The build file is tracked as `Makefile.org` and `Makefile` is
+  gitignored, matching the other branches: `cp Makefile.org
+  Makefile` before the first build.
 
 ## 9. Conf file keys
 
@@ -244,4 +247,4 @@ history, and three small fixes to inherited parameter files
 relative paths in `analyzer_20151025.conf`).
 
 The E05 calibration output and run bookkeeping are not part of
-this repository -- see README.md.
+this branch -- see README.md.
