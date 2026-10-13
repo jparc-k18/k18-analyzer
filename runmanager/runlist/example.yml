@@ -58,10 +58,6 @@ RUN:
 
   3838: # The default setting will be adapted. In this case run03838.dat.gz/.dat will be loaded.
 
-  3333: # if number of divisions and size of root files are large, set merge queue
-    qmerge: sx
-    unit: 1000
-
   3800:
     bin:  ./bin/KuramaTracking
     conf: ./param/conf # ./param/conf/analyzer_03800.conf will be loaded.

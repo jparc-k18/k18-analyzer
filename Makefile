@@ -21,7 +21,7 @@ ROOT_INCLUDE	= $(shell $(root_config) --cflags)
 ROOT_LIBS	= $(shell $(root_config) --libs)
 #
 # HD DAQ Unpacker
-unpacker_install	?= $(HOME)/work/k18analyzer/e05/unpacker
+unpacker_install	?= /group/had/sks/software/unpacker/unpacker.jparc-k18
 unpacker_include_dir	:= $(unpacker_install)/include
 unpacker_include	:= -I$(unpacker_include_dir)
 unpacker_lib_dir	:= $(unpacker_install)/lib
