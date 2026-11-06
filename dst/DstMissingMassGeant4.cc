@@ -35,6 +35,7 @@
 #include <TLorentzVector.h>
 #include <TNamed.h>
 #include <TParticle.h>
+#include <TRandom3.h>
 #include <TROOT.h>
 #include <TTree.h>
 #include <TTreeReader.h>
@@ -100,6 +101,10 @@ struct Options {
   double chi2Max = 20.;
   double thetaMin = 2.;
   double thetaMax = 14.;
+  // Width added to p_S2S - p_K18 [MeV/c], split between the arms by variance.
+  double extraDpMeV = 0.;
+  double extraDpK18Fraction = 0.5;
+  int extraDpSeed = 20261106;
 };
 
 std::filesystem::path
@@ -277,7 +282,11 @@ void PrintUsage(const char* prog)
             << "  --target-mass=VAL, --target-shape=slab|cylinder, --target-thickness-mm=VAL\n"
             << "  --target-density=VAL, --target-i-ev=VAL, --target-z-over-a=VAL\n"
             << "  --target-size-x-mm=VAL, --target-size-y-mm=VAL, --target-plane-z-mm=VAL\n"
-            << "  --theta-min-deg=VAL, --theta-max-deg=VAL, etc.\n";
+            << "  --theta-min-deg=VAL, --theta-max-deg=VAL, etc.\n"
+            << "Extra momentum smearing (off by default):\n"
+            << "  --extra-dp-mev=VAL  Gaussian sigma added to p_S2S - p_K18 [MeV/c]; see README_K18_GEANT4.md\n"
+            << "  --extra-dp-k18-fraction=VAL  Share of its variance on the K18 arm (default 0.5)\n"
+            << "  --extra-dp-seed=INT Positive seed; each entry uses seed + entry (default 20261106)\n";
 }
 
 Options Parse(int argc, char** argv)
@@ -352,7 +361,10 @@ Options Parse(int argc, char** argv)
        takeDouble("bh2-thickness-mm", o.bh2Thickness) ||
        takeDouble("chi2-max", o.chi2Max) ||
        takeDouble("theta-min-deg", o.thetaMin) ||
-       takeDouble("theta-max-deg", o.thetaMax)) continue;
+       takeDouble("theta-max-deg", o.thetaMax) ||
+       takeDouble("extra-dp-mev", o.extraDpMeV) ||
+       takeDouble("extra-dp-k18-fraction", o.extraDpK18Fraction) ||
+       takeInt("extra-dp-seed", o.extraDpSeed)) continue;
     std::cerr << "#W [DstMissingMassGeant4] Unknown option: " << arg << " (ignored)" << std::endl;
   }
   if(o.g4.empty() || o.k18.empty() || o.s2s.empty() || o.root.empty())
@@ -371,6 +383,12 @@ Options Parse(int argc, char** argv)
 
   if(o.targetShape != "slab" && o.targetShape != "cylinder")
     throw std::runtime_error("--target-shape must be slab or cylinder");
+  if(!(o.extraDpMeV >= 0.))
+    throw std::runtime_error("--extra-dp-mev must be 0 or positive");
+  if(!(o.extraDpK18Fraction >= 0. && o.extraDpK18Fraction <= 1.))
+    throw std::runtime_error("--extra-dp-k18-fraction must be between 0 and 1");
+  if(o.extraDpSeed <= 0)
+    throw std::runtime_error("--extra-dp-seed must be positive");
   if(o.targetShape == "cylinder" &&
      (!(o.targetRadius > 0.) || !(o.targetHalfLengthY > 0.)))
     throw std::runtime_error(
@@ -818,6 +836,10 @@ int main(int argc, char** argv)
       bh2Fail=0,
       multiplicityFail=0, trackFail=0, chi2Fail=0, thetaFail=0,
       vertexFail=0, selected=0;
+    // GeV/c, as the momenta of the tracking trees.
+    const double sigmaExtraK18=1e-3*o.extraDpMeV*std::sqrt(o.extraDpK18Fraction);
+    const double sigmaExtraS2s=1e-3*o.extraDpMeV*std::sqrt(1.-o.extraDpK18Fraction);
+    TRandom3 extraDpRandom;
     while(true){
       const bool ag=rg.Next(), ak=rk.Next(), as=rs.Next();
       if(ag!=ak || ag!=as) throw std::runtime_error("reader length mismatch");
@@ -852,9 +874,15 @@ int main(int argc, char** argv)
          chiK[0]>=o.chi2Max || chiS[0]>=o.chi2Max){
         ++chi2Fail; continue;
       }
+      double pK18Reco=pk[0], pS2sReco=ps[0];
+      if(o.extraDpMeV>0.){
+        extraDpRandom.SetSeed(static_cast<UInt_t>(o.extraDpSeed+rg.GetCurrentEntry()));
+        pK18Reco+=extraDpRandom.Gaus(0.,sigmaExtraK18);
+        pS2sReco+=extraDpRandom.Gaus(0.,sigmaExtraS2s);
+      }
       const TVector3 xK(xk[0],yk[0],0.), xS(xs[0],ys[0],0.);
-      const auto bRecoRaw=FourVector(pk[0],uk[0],vk[0],o.beamMass);
-      const auto sRecoRaw=FourVector(ps[0],us[0],vs[0],o.scatMass);
+      const auto bRecoRaw=FourVector(pK18Reco,uk[0],vk[0],o.beamMass);
+      const auto sRecoRaw=FourVector(pS2sReco,us[0],vs[0],o.scatMass);
       const TVector3 pK=bRecoRaw.Vect(), pS=sRecoRaw.Vect();
       const double denom=pK.Mag()*pS.Mag();
       if(!(denom>0.)){ ++trackFail; continue; }
@@ -871,7 +899,7 @@ int main(int argc, char** argv)
 
       const double bh2Path=o.bh2Thickness*std::sqrt(1.+uk[0]*uk[0]+vk[0]*vk[0]);
       constexpr double bh2Rho=1.032, bh2IEv=64.7, bh2ZOverA=.54141;
-      const double pAfterBH2=PropagateBB(pk[0],o.beamMass,bh2Path,
+      const double pAfterBH2=PropagateBB(pK18Reco,o.beamMass,bh2Path,
                                          bh2Rho,bh2IEv,bh2ZOverA,false);
       struct Paths { double targetIn=0., targetOut=0., cellIn=0., cellOut=0.;
         double shellIn=0., shellOut=0.; };
@@ -907,7 +935,7 @@ int main(int argc, char** argv)
                         o.cellIEv,o.cellZOverA,false);
         pin=PropagateBB(pin,o.beamMass,path.targetIn,o.targetDensity,
                         o.targetIEv,o.targetZOverA,false);
-        double pout=ps[0];
+        double pout=pS2sReco;
         pout=PropagateBB(pout,o.scatMass,path.shellOut,o.vacuumShellDensity,
                          o.vacuumShellIEv,o.vacuumShellZOverA,true);
         pout=PropagateBB(pout,o.scatMass,path.cellOut,o.cellDensity,
@@ -942,11 +970,11 @@ int main(int argc, char** argv)
       fill(0,mmRaw); fill(1,mmFull); fill(2,mmTruthVtx); fill(3,mmK18);
       fill(4,mmS2s); fill(5,mmK18+mmS2s); fill(6,mmFull-mmK18-mmS2s);
       fill(7,mmFull-mmTruthVtx); fill(8,1e3*(pK18BB-bTruth.P()));
-      fill(9,1e3*(pS2sBB-sTruth.P())); fill(10,1e3*(ps[0]-sTruth.P()));
+      fill(9,1e3*(pS2sBB-sTruth.P())); fill(10,1e3*(pS2sReco-sTruth.P()));
       fill(11,zReco-zTruth);
       truthZValues.push_back(zTruth);
       hContrib.Fill(mmK18,mmS2s);
-      hS2sRawZ.Fill(zTruth,1e3*(ps[0]-sTruth.P()));
+      hS2sRawZ.Fill(zTruth,1e3*(pS2sReco-sTruth.P()));
       hS2sBBZ.Fill(zTruth,1e3*(pS2sBB-sTruth.P()));
       hMMFullZ.Fill(zTruth,mmFull);
       hMMFullX.Fill(truthVertex.X(),mmFull);
@@ -966,6 +994,8 @@ int main(int argc, char** argv)
     std::ostringstream definition;
     definition << std::setprecision(12)
       << "Kinematics::VertexPoint shared by K18 and S-2S; incoming BB: BH2 then target entrance to vertex; outgoing inverse BB: target exit back to vertex; "
+      << "extraDpMeV=" << o.extraDpMeV << " extraDpK18Fraction=" << o.extraDpK18Fraction
+      << " extraDpSeed=" << o.extraDpSeed << "; "
       << "beamMass=" << o.beamMass << " scatMass=" << o.scatMass
       << " targetMass=" << o.targetMass << " targetThicknessMm=" << o.targetThickness
       << " targetDensity=" << o.targetDensity << " targetIEv=" << o.targetIEv

@@ -110,6 +110,41 @@ The validated E90 material budget additionally used a 0.25-mm Mylar target
 cell and 0.25-mm G10 vacuum shell; pass the corresponding `--cell-*` and
 `--vacuum-shell-*` options when reproducing that budget.
 
+### Extra momentum smearing for resolution estimates
+
+The MC is narrower than real data. In beam-through runs, `p_S2S/p_K18 - 1` has
+these Gaussian-core FWHM values (10^-3), after a cubic mean in the BC and BFT
+coordinates. The last column is the difference of squares:
+
+| Beam momentum (GeV/c) | Data | MC | Extra sigma (MeV/c) |
+| ---: | ---: | ---: | ---: |
+| 0.922 | 2.466 | 1.641 | 0.72 |
+| 1.212 | 1.791 | 1.040 | 0.75 |
+| 1.414 | 1.548 | 0.921 | 0.75 |
+
+The cause of this difference is not identified, and it does not depend on the
+momentum in this range. To estimate what a future setup would reach with the
+present real-data performance, add it to the MC:
+
+```sh
+bin/DstMissingMassGeant4 --preset=TAG ... --extra-dp-mev=0.70
+```
+
+The value 0.70 comes from adding the term to a beam-through sample of the
+generator-6380 example (25,000 events, FWHM 0.888 without the term) until the
+width reached the 1.414 GeV/c data. It is smaller than the difference of squares
+because the tails of the MC enter the core fit as the width grows.
+
+The option adds a Gaussian to `p_3rd` and `pS2s` before the energy-loss
+correction. Beam-through runs measure only the sum of the arms, so the variance
+is split equally unless `--extra-dp-k18-fraction` says otherwise. Directions and
+the event selection do not change. The default is 0, which leaves the output as
+it was. This is an empirical term: it is not a detector response, and the value
+is not fitted to any reaction peak. Above 1.41 GeV/c it is an extrapolation.
+It reproduces beam-through runs without the AFT at the three momenta above within
+4%. Samples that pass through the AFT stay wider: through-going K at 0.9 GeV/c
+would need about 1.2 MeV/c, so the term does not cover the AFT.
+
 `DstMissingMassGeant4` keeps the `AnaReactionBBFlowBudget` output contract:
 the branch-limited `bbflow` tree, component histograms, fit/cutflow CSV, and
 the reconstructed-vertex plus mean Bethe--Bloch correction flow. Its primary

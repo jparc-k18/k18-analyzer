@@ -129,6 +129,12 @@ def main():
         help="--skip-g4 時に使用する既存の G4 ROOT ファイルパス",
     )
     parser.add_argument(
+        "--extra-dp-mev",
+        type=float,
+        default=0.0,
+        help="ミッシングマス段で p_S2S - p_K18 に足す σ [MeV/c] (デフォルト: 0、値の根拠は README_K18_GEANT4.md)",
+    )
+    parser.add_argument(
         "--list-reactions",
         action="store_true",
         help="利用可能な反応プリセット一覧を表示して終了",
@@ -242,6 +248,7 @@ def main():
             f"--s2s={s2s_root}",
             f"--root={mm_root}",
             f"--csv={mm_csv}",
+            f"--extra-dp-mev={args.extra_dp_mev}",
         ],
         cwd=ANALYZER_DIR,
         log_file=logs_dir / "step4_missing_mass.log",
